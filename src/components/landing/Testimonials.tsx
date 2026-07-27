@@ -54,13 +54,13 @@ export const Testimonials = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="inline-flex items-center px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-sm font-medium mb-6">
+          <span className="inline-flex items-center px-3 py-1 rounded-full border border-pink-100 bg-pink-50 text-pink-700 text-sm font-medium mb-6">
             What People Say
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
             Loved by <span className="gradient-text">Developers</span>
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto">
             Hear from participants, organizers, and judges who use our platform.
           </p>
         </motion.div>
@@ -76,9 +76,9 @@ export const Testimonials = () => {
             <motion.div
               key={index}
               variants={item}
-              className="glass-panel glass-panel-hover p-8 rounded-2xl relative flex flex-col"
+              className="bg-white border border-slate-200 shadow-lg shadow-slate-100 p-8 rounded-2xl relative flex flex-col transition-transform duration-300 hover:-translate-y-1"
             >
-              <div className="absolute top-6 right-6 text-indigo-500/20">
+              <div className="absolute top-6 right-6 text-indigo-200">
                 <Quote size={48} fill="currentColor" />
               </div>
               <div className="flex items-center gap-1 mb-6">
@@ -86,18 +86,18 @@ export const Testimonials = () => {
                   <Star key={i} size={18} className="fill-yellow-500 text-yellow-500" />
                 ))}
               </div>
-              <p className="text-gray-300 italic mb-8 flex-grow relative z-10">
+              <p className="text-slate-600 italic mb-8 flex-grow relative z-10">
                 "{testimonial.quote}"
               </p>
               <div className="flex items-center gap-4 mt-auto">
                 <img
                   src={testimonial.avatar}
                   alt={testimonial.name}
-                  className="w-12 h-12 rounded-full object-cover border border-white/10"
+                  className="w-12 h-12 rounded-full object-cover border border-slate-200"
                 />
                 <div>
-                  <h4 className="text-white font-bold">{testimonial.name}</h4>
-                  <p className="text-sm text-gray-400">{testimonial.title}</p>
+                  <h4 className="text-slate-800 font-bold">{testimonial.name}</h4>
+                  <p className="text-sm text-slate-500">{testimonial.title}</p>
                 </div>
               </div>
               <div className={`mt-4 inline-flex items-center self-start px-2.5 py-0.5 rounded-full text-xs font-medium border ${testimonial.roleColor}`}>

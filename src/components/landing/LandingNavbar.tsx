@@ -26,7 +26,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        scrolled ? 'bg-[#0B1020]/80 backdrop-blur-md border-b border-white/10 shadow-lg' : 'bg-transparent'
+        scrolled ? 'bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-lg shadow-slate-200/50' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 lg:h-20 flex items-center justify-between">
@@ -35,8 +35,8 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]">
             <Terminal size={24} />
           </div>
-          <span className="text-xl font-extrabold text-white hidden sm:block tracking-tight">
-            Hackathon<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Central</span>
+          <span className="text-xl font-extrabold text-slate-900 hidden sm:block tracking-tight">
+            Hackathon<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600">Central</span>
           </span>
         </div>
 
@@ -46,21 +46,21 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
             <a
               key={link}
               href={`#${link.toLowerCase()}`}
-              className="text-gray-300 hover:text-white text-sm font-medium relative group transition-colors"
+              className="text-slate-600 hover:text-slate-900 text-sm font-medium relative group transition-colors"
             >
               {link}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-500 transition-all duration-300 group-hover:w-full"></span>
             </a>
           ))}
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-4">
-          <button className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition-colors">
+          <button className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors">
             <Search size={20} />
           </button>
           
-          <button className="hidden sm:block text-gray-300 hover:text-white font-medium text-sm transition-colors">
+          <button className="hidden sm:block text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors">
             Sign In
           </button>
           
@@ -74,7 +74,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden text-gray-300 hover:text-white p-2 rounded-md hover:bg-white/5 transition-colors"
+            className="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-md hover:bg-slate-100 transition-colors"
           >
             <Menu size={24} />
           </button>
@@ -89,7 +89,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-[#0B1020]/90 backdrop-blur-sm z-50 md:hidden"
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 md:hidden"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
@@ -97,12 +97,12 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-64 bg-[#0F172A] border-l border-white/10 p-6 z-50 flex flex-col md:hidden shadow-2xl"
+              className="fixed top-0 right-0 h-full w-64 bg-white border-l border-slate-200 p-6 z-50 flex flex-col md:hidden shadow-2xl"
             >
               <div className="flex justify-end mb-8">
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition-colors"
+                  className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors"
                 >
                   <X size={24} />
                 </button>
@@ -113,7 +113,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
                   <a
                     key={link}
                     href={`#${link.toLowerCase()}`}
-                    className="text-gray-300 hover:text-white text-lg font-medium transition-colors"
+                    className="text-slate-700 hover:text-slate-900 text-lg font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link}
@@ -122,7 +122,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
               </div>
               
               <div className="flex flex-col gap-4 mt-auto">
-                <button className="text-gray-300 hover:text-white font-medium py-3 border border-white/10 rounded-xl transition-colors">
+                <button className="text-slate-700 hover:text-slate-900 font-medium py-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors">
                   Sign In
                 </button>
                 <button

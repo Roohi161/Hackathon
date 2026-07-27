@@ -109,7 +109,7 @@ export const FeaturedHackathons = () => {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-100/60 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       
       <div className="container mx-auto px-6 mb-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -119,7 +119,7 @@ export const FeaturedHackathons = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-gray-300 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-sm font-medium text-indigo-700 mb-6"
             >
               <Zap className="w-4 h-4 text-cyan-400" />
               <span>Featured Events</span>
@@ -130,7 +130,7 @@ export const FeaturedHackathons = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl md:text-5xl font-extrabold mb-4"
+              className="text-4xl md:text-5xl font-extrabold mb-4 text-slate-900"
             >
               Trending <span className="gradient-text">Hackathons</span>
             </motion.h2>
@@ -140,7 +140,7 @@ export const FeaturedHackathons = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-gray-400"
+              className="text-lg text-slate-500"
             >
               Discover the most exciting competitions happening right now. Join a team, build something amazing, and win big.
             </motion.p>
@@ -150,7 +150,7 @@ export const FeaturedHackathons = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="hidden md:flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors shrink-0 font-medium"
+            className="hidden md:flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 transition-colors shrink-0 font-medium"
           >
             View All Hackathons
           </motion.button>
@@ -171,7 +171,7 @@ export const FeaturedHackathons = () => {
             <motion.div 
               key={hackathon.id}
               variants={cardVariants}
-              className="min-w-[340px] md:min-w-[400px] w-[340px] md:w-[400px] snap-start shrink-0 glass-card rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 border border-white/[0.08]"
+              className="min-w-[340px] md:min-w-[400px] w-[340px] md:w-[400px] snap-start shrink-0 glass-card rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 border border-slate-200"
             >
               {/* Card Header / Image Placeholder */}
               <div className={`h-40 relative bg-gradient-to-br ${hackathon.imageGradient} p-6 flex flex-col justify-between`}>
@@ -198,14 +198,14 @@ export const FeaturedHackathons = () => {
 
               {/* Card Body */}
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-4 line-clamp-1 group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-xl font-bold mb-4 line-clamp-1 text-slate-900 group-hover:text-indigo-600 transition-colors">
                   {hackathon.title}
                 </h3>
                 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-6">
                   {hackathon.tags.map(tag => (
-                    <span key={tag} className="px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-xs font-medium text-gray-300">
+                    <span key={tag} className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-xs font-medium text-slate-600">
                       {tag}
                     </span>
                   ))}
@@ -216,15 +216,15 @@ export const FeaturedHackathons = () => {
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-amber-400" />
                     <div>
-                      <div className="text-xs text-gray-500">Prize Pool</div>
-                      <div className="font-bold text-white">{hackathon.prize}</div>
+                      <div className="text-xs text-slate-400">Prize Pool</div>
+                      <div className="font-bold text-slate-800">{hackathon.prize}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-indigo-400" />
                     <div>
-                      <div className="text-xs text-gray-500">Participants</div>
-                      <div className="font-bold text-white">{hackathon.participants}</div>
+                      <div className="text-xs text-slate-400">Participants</div>
+                      <div className="font-bold text-slate-800">{hackathon.participants}</div>
                     </div>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export const FeaturedHackathons = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-cyan-400" />
-                    <span className="text-gray-300 font-medium">{hackathon.timeLeft}</span>
+                    <span className="text-slate-600 font-medium">{hackathon.timeLeft}</span>
                   </div>
                   <span className={`text-xs font-semibold px-2 py-1 rounded border ${hackathon.difficultyColor}`}>
                     {hackathon.difficulty}
@@ -253,7 +253,7 @@ export const FeaturedHackathons = () => {
       
       {/* Mobile view all button */}
       <div className="mt-8 px-6 md:hidden">
-        <button className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium">
+        <button className="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-medium">
           View All Hackathons
         </button>
       </div>

@@ -27,7 +27,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-gray-100 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-transparent text-slate-900 font-sans overflow-x-hidden">
       {/* Sticky Navbar */}
       <LandingNavbar onGetStarted={scrollToWorkspace} />
 

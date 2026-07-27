@@ -183,7 +183,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B1020] text-gray-100 font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
       {/* Persistent Navigation */}
       <Navbar
         currentRole={currentRole}

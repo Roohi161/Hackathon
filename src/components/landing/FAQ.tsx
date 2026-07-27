@@ -46,13 +46,13 @@ export const FAQ = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="inline-flex items-center px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-sm font-medium mb-6">
+          <span className="inline-flex items-center px-3 py-1 rounded-full border border-violet-100 bg-violet-50 text-violet-700 text-sm font-medium mb-6">
             Common Questions
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
             Frequently Asked <span className="gradient-text">Questions</span>
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto">
             Everything you need to know about Hackathon Central.
           </p>
         </motion.div>
@@ -63,25 +63,25 @@ export const FAQ = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="glass-panel rounded-2xl overflow-hidden"
+            className="bg-white/60 backdrop-blur-sm border border-slate-200 rounded-2xl overflow-hidden"
           >
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className={`border-b border-white/[0.06] last:border-0 ${
-                  openIndex === index ? 'bg-white/[0.02]' : ''
+                className={`border-b border-slate-100 last:border-0 ${
+                  openIndex === index ? 'bg-indigo-50/50' : ''
                 }`}
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full text-left px-8 py-6 flex items-center justify-between focus:outline-none focus-visible:bg-white/[0.05] transition-colors hover:bg-white/[0.03]"
+                  className="w-full text-left px-8 py-6 flex items-center justify-between focus:outline-none focus-visible:bg-slate-50 transition-colors hover:bg-slate-50"
                 >
-                  <span className="text-lg font-medium text-white pr-4">
+                  <span className="text-lg font-semibold text-slate-800 pr-4">
                     {faq.question}
                   </span>
                   <ChevronDown
-                    className={`text-gray-400 transition-transform duration-300 flex-shrink-0 ${
-                      openIndex === index ? 'rotate-180 text-indigo-400' : ''
+                    className={`text-slate-400 transition-transform duration-300 flex-shrink-0 ${
+                      openIndex === index ? 'rotate-180 text-indigo-600' : ''
                     }`}
                     size={24}
                   />
@@ -95,7 +95,7 @@ export const FAQ = () => {
                       transition={{ duration: 0.3, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="px-8 pb-6 text-gray-400">
+                      <div className="px-8 pb-6 text-slate-600">
                         {faq.answer}
                       </div>
                     </motion.div>

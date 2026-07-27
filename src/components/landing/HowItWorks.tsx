@@ -65,7 +65,7 @@ export const HowItWorks = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-gray-300 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 border border-purple-100 text-sm font-medium text-purple-700 mb-6"
           >
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span>Simple Process</span>
@@ -76,7 +76,7 @@ export const HowItWorks = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-5xl font-extrabold mb-6"
+            className="text-4xl md:text-5xl font-extrabold mb-6 text-slate-900"
           >
             How It <span className="gradient-text">Works</span>
           </motion.h2>
@@ -86,7 +86,7 @@ export const HowItWorks = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-gray-400"
+            className="text-lg text-slate-500"
           >
             Get started in four simple steps and start building amazing projects. Our platform makes the entire hackathon journey seamless.
           </motion.p>
@@ -94,7 +94,7 @@ export const HowItWorks = () => {
 
         <div className="relative">
           {/* Connecting Line - hidden on mobile */}
-          <div className="hidden lg:block absolute top-12 left-[12%] right-[12%] h-[2px] border-t-2 border-dashed border-white/10 -z-10" />
+          <div className="hidden lg:block absolute top-12 left-[12%] right-[12%] h-[2px] border-t-2 border-dashed border-slate-200 -z-10" />
 
           <motion.div 
             variants={containerVariants}
@@ -110,25 +110,25 @@ export const HowItWorks = () => {
                 className="relative flex flex-col items-center text-center group"
               >
                 {/* Step Number */}
-                <div className="absolute -top-10 -right-4 text-[120px] font-extrabold text-white/[0.02] -z-20 select-none pointer-events-none transition-all duration-500 group-hover:text-white/[0.05]">
+                <div className="absolute -top-10 -right-4 text-[120px] font-extrabold text-slate-200 -z-20 select-none pointer-events-none transition-all duration-500">
                   {step.id}
                 </div>
 
                 {/* Icon Circle */}
-                <div className={`w-24 h-24 rounded-full ${step.bgColor} border ${step.borderColor} flex items-center justify-center mb-8 relative z-10 transition-transform duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-[color:var(--tw-shadow-color)]`} style={{ '--tw-shadow-color': 'rgba(255,255,255,0.1)' } as any}>
-                  <div className="absolute inset-0 rounded-full bg-white/5 backdrop-blur-sm -z-10" />
+                <div className={`w-24 h-24 rounded-full ${step.bgColor} border ${step.borderColor} flex items-center justify-center mb-8 relative z-10 transition-transform duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-[color:var(--tw-shadow-color)]`} style={{ '--tw-shadow-color': 'rgba(0,0,0,0.05)' } as any}>
+                  <div className="absolute inset-0 rounded-full bg-white/50 backdrop-blur-sm -z-10" />
                   <step.icon className={`w-10 h-10 ${step.color}`} strokeWidth={1.5} />
                   
                   {/* Number Badge */}
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gray-900 border border-white/20 flex items-center justify-center text-sm font-bold shadow-xl">
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm font-bold shadow-xl text-slate-700">
                     {index + 1}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="glass-panel p-6 rounded-2xl w-full flex-1 border border-white/[0.06] hover:border-white/[0.15] transition-colors relative z-10">
-                  <h3 className="text-xl font-bold mb-3 text-white">{step.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">
+                <div className="glass-panel p-6 rounded-2xl w-full flex-1 border border-slate-200 hover:border-slate-300 transition-colors relative z-10">
+                  <h3 className="text-xl font-bold mb-3 text-slate-800">{step.title}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">
                     {step.description}
                   </p>
                 </div>
