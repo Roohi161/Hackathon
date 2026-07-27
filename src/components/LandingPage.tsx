@@ -14,9 +14,9 @@ import { AboutSection } from './landing/AboutSection';
 import { ContactSection } from './landing/ContactSection';
 
 interface LandingPageProps {
-  onLogin: (role: 'participant' | 'organizer' | 'judge', user: { name: string; email: string; avatar: string }) => void;
-  onNavigateLogin: () => void;
-  onNavigateSignup: () => void;
+  onLogin: (role: 'participant' | 'organizer' | 'judge' | 'admin', user: { name: string; email: string; avatar: string }) => void;
+  onNavigateLogin?: () => void;
+  onNavigateSignup?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLogin, onNavigateSignup }) => {
@@ -33,7 +33,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLog
 
   return (
     <div className="min-h-screen bg-transparent text-slate-900 font-sans overflow-x-hidden">
-      <LandingNavbar onNavigateSignup={onNavigateSignup} onNavigateLogin={onNavigateLogin} />
+      <LandingNavbar onNavigateSignup={onNavigateSignup} onNavigateLogin={onNavigateLogin} onGetStarted={scrollToWorkspace} />
 
       <div id="home">
         <HeroSection onExplore={scrollToHackathons} onHost={scrollToWorkspace} />
