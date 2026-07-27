@@ -10,7 +10,13 @@
   }
 
   body {
-    background: linear-gradient(135deg, #F8F7FF 0%, #EEF2FF 40%, #F0F9FF 100%);
+    background:
+      radial-gradient(ellipse 70% 55% at 8%  15%, #EEF4FF 0%, transparent 60%),
+      radial-gradient(ellipse 65% 50% at 92% 12%, #FDF2FF 0%, transparent 55%),
+      radial-gradient(ellipse 60% 55% at 88% 85%, #FFF6EC 0%, transparent 55%),
+      radial-gradient(ellipse 70% 55% at 5%  90%, #EAFBFF 0%, transparent 55%),
+      radial-gradient(ellipse 50% 45% at 50% 50%, #EEF4FF 0%, transparent 65%),
+      linear-gradient(145deg, #F5F7FF 0%, #EEF4FF 22%, #F5F7FF 44%, #FDF2FF 66%, #FFF6EC 82%, #EAFBFF 100%);
     background-attachment: fixed;
     color: #1e293b;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
