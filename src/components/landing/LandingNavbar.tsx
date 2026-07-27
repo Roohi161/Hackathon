@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal, Search, Menu, X } from 'lucide-react';
 
 interface LandingNavbarProps {
-  onGetStarted: () => void;
+  onNavigateSignup: () => void;
+  onNavigateLogin: () => void;
 }
 
-export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) => {
+export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, onNavigateLogin }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -60,15 +61,18 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
             <Search size={20} />
           </button>
           
-          <button className="hidden sm:block text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors">
+          <button 
+            onClick={onNavigateLogin}
+            className="hidden sm:block text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
+          >
             Sign In
           </button>
           
           <button
-            onClick={onGetStarted}
+            onClick={onNavigateSignup}
             className="hidden sm:flex bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-500 hover:via-purple-500 hover:to-cyan-400 text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all hover:scale-105"
           >
-            Get Started
+            Sign Up
           </button>
 
           {/* Mobile Menu Toggle */}
@@ -122,17 +126,23 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onGetStarted }) =>
               </div>
               
               <div className="flex flex-col gap-4 mt-auto">
-                <button className="text-slate-700 hover:text-slate-900 font-medium py-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors">
+                <button 
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onNavigateLogin();
+                  }}
+                  className="text-slate-700 hover:text-slate-900 font-medium py-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors"
+                >
                   Sign In
                 </button>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    onGetStarted();
+                    onNavigateSignup();
                   }}
                   className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-medium py-3 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)]"
                 >
-                  Get Started
+                  Sign Up
                 </button>
               </div>
             </motion.div>

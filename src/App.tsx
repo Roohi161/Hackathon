@@ -4,6 +4,8 @@ import { Footer } from './components/Footer';
 import { TeamModal } from './components/TeamModal';
 import { NotificationDrawer } from './components/NotificationDrawer';
 import { LandingPage } from './components/LandingPage';
+import { LoginPage } from './components/LoginPage';
+import { SignupPage } from './components/SignupPage';
 
 // Participant Components
 import { HackathonList } from './components/participant/HackathonList';
@@ -64,6 +66,8 @@ export function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isTeamRegModalOpen, setIsTeamRegModalOpen] = useState(false);
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
   // Entities State
   const [hackathons, setHackathons] = useState<Hackathon[]>(INITIAL_HACKATHONS);
@@ -179,7 +183,13 @@ export function App() {
 
   // --- LOGIN GATE ---
   if (!isAuthenticated) {
-    return <LandingPage onLogin={handleLogin} />;
+    if (showLogin) {
+      return <LoginPage onLogin={handleLogin} onBack={() => setShowLogin(false)} onSwitchToSignup={() => { setShowLogin(false); setShowSignup(true); }} />;
+    }
+    if (showSignup) {
+      return <SignupPage onSignup={handleLogin} onBack={() => setShowSignup(false)} onSwitchToLogin={() => { setShowSignup(false); setShowLogin(true); }} />;
+    }
+    return <LandingPage onLogin={handleLogin} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} />;
   }
 
   return (
