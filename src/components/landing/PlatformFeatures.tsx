@@ -23,7 +23,13 @@ const features: FeatureDetail[] = [
       'Instant team chat channels per project',
       'Real-time markdown & code snippet sharing',
       'Kanban task boards & milestone tracking',
-      'Integrated GitHub & GitLab webhook sync'
+      'Integrated GitHub & GitLab webhook sync',
+      'Voice and video huddle rooms for quick syncs',
+      'Collaborative whiteboard for brainstorming',
+      'Threaded discussions and @mentions',
+      'Customizable notification preferences',
+      'File sharing with built-in previewers',
+      'Role-based access control for team members'
     ],
     icon: MessageSquare,
     accent: 'bg-indigo-500',
@@ -39,7 +45,13 @@ const features: FeatureDetail[] = [
       'Multi-dimensional weighted rubric templates',
       'Blind evaluation mode to reduce scoring bias',
       'Automatic score aggregation & consensus analytics',
-      'Code quality & repository activity metrics'
+      'Code quality & repository activity metrics',
+      'AI-assisted project summarization for judges',
+      'Customizable judging criteria per track',
+      'Conflict of interest detection algorithm',
+      'Real-time judging progress dashboard',
+      'Automated feedback generation for participants',
+      'Historical judging data and trend analysis'
     ],
     icon: BarChart3,
     accent: 'bg-purple-500',
@@ -55,7 +67,13 @@ const features: FeatureDetail[] = [
       'Real-time websocket leaderboard updates',
       'Filter rankings by track, tech stack, or team size',
       'Public & private leaderboards per competition',
-      'Exportable CSV & JSON scoring audit trails'
+      'Exportable CSV & JSON scoring audit trails',
+      'Gamified achievement badges and streaks',
+      'Historical performance graphs per team',
+      'Interactive visual data breakdowns',
+      'Automated tie-breaking resolution logic',
+      'Customizable leaderboard theme and styling',
+      'API access for embedding on external sites'
     ],
     icon: Trophy,
     accent: 'bg-amber-500',
@@ -71,7 +89,13 @@ const features: FeatureDetail[] = [
       'Drag-and-drop timeline & milestone builder',
       'Custom registration screening forms',
       'Live broadcast announcement system',
-      'Automated digital certificate & prize payouts'
+      'Automated digital certificate & prize payouts',
+      'Sponsor booth and tier management system',
+      'Built-in ticketing and RSVP tracking',
+      'Dynamic email campaign automation',
+      'Post-event feedback collection forms',
+      'Comprehensive event budget tracking',
+      'Real-time attendee engagement analytics'
     ],
     icon: Calendar,
     accent: 'bg-cyan-500',
@@ -87,7 +111,13 @@ const features: FeatureDetail[] = [
       'Direct GitHub, GitLab & Bitbucket repository linking',
       'Automated commit history & originality verification',
       'Loom & YouTube video demo embeds',
-      'Encrypted artifact & submission storage'
+      'Encrypted artifact & submission storage',
+      'Automated dependency vulnerability scanning',
+      'Docker image build and test environments',
+      'Continuous Integration (CI) pipeline hooks',
+      'Advanced plagiarism detection against public repos',
+      'Immutable submission timestamping',
+      'Malware and virus scanning on all uploads'
     ],
     icon: Shield,
     accent: 'bg-emerald-500',
@@ -103,7 +133,13 @@ const features: FeatureDetail[] = [
       'Cross-platform hacker matchmaking engine',
       'Mentor directory with 1-on-1 office hours scheduling',
       'Alumni directory & career opportunities',
-      'Global community Discord & Slack integrations'
+      'Global community Discord & Slack integrations',
+      'Skill-based endorsement and reputation system',
+      'Interactive community forums and Q&A boards',
+      'Local chapter and regional meetup discovery',
+      'Open-source project contribution tracking',
+      'Personalized learning resource recommendations',
+      'Verified portfolios with verified hackathon wins'
     ],
     icon: Globe,
     accent: 'bg-rose-500',
@@ -178,7 +214,7 @@ export const PlatformFeatures = () => {
           viewport={{ once: true, margin: "-100px" }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {features.map((feature, index) => (
+          {[...features, ...features, ...features].map((feature, index) => (
             <motion.div
               key={index}
               variants={cardVariants}
