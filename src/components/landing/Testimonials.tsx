@@ -59,7 +59,7 @@ export const Testimonials = () => {
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-indigo-50/60 rounded-full blur-[130px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+      <div className="w-full px-6 lg:px-12 xl:px-24 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -71,10 +71,10 @@ export const Testimonials = () => {
             <ShieldCheck className="w-4 h-4 text-indigo-600" />
             Verified Platform Feedback
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+          <h2 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight">
             Trusted by the Global <span className="gradient-text">Developer Ecosystem</span>
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-xl sm:text-2xl text-slate-500 max-w-2xl mx-auto">
             Discover how participants, organizers, and expert judges leverage Hackathon Central to drive technological breakthroughs.
           </p>
         </motion.div>

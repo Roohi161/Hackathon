@@ -69,7 +69,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
           scrolled ? 'bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-lg shadow-slate-200/50' : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 lg:h-20 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24 h-16 lg:h-20 flex items-center justify-between">
           {/* Logo */}
           <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2 cursor-pointer">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]">

@@ -134,9 +134,9 @@ export const FeaturedHackathons = () => {
       {/* Background decorations */}
       <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-indigo-100/60 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
-      <div className="container mx-auto px-6 mb-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl">
+      <div className="w-full px-6 lg:px-12 xl:px-24 mb-12">
+        <div className="flex flex-col items-center justify-center gap-6 text-center">
+          <div className="max-w-2xl flex flex-col items-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -153,7 +153,7 @@ export const FeaturedHackathons = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl md:text-5xl font-extrabold mb-4 text-slate-900 tracking-tight"
+              className="text-5xl md:text-7xl font-extrabold mb-4 text-slate-900 tracking-tight"
             >
               Trending <span className="gradient-text">Hackathons</span>
             </motion.h2>
@@ -163,13 +163,13 @@ export const FeaturedHackathons = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg text-slate-500 mb-6"
+              className="text-xl sm:text-2xl text-slate-500 mb-6"
             >
               Discover the most exciting competitions happening right now. Join a team, build something amazing, and win big.
             </motion.p>
 
             {/* Category Filter Pills */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
               <Filter className="w-4 h-4 text-slate-400 mr-1" />
               {categories.map((cat) => (
                 <button
@@ -190,13 +190,13 @@ export const FeaturedHackathons = () => {
       </div>
 
       {/* Carousel Container */}
-      <div className="w-full px-6">
+      <div className="w-full px-6 lg:px-12 xl:px-24 flex justify-center">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
-          className="flex overflow-x-auto gap-6 pb-8 pt-4 snap-x snap-mandatory hide-scrollbar"
+          className="flex overflow-x-auto max-w-full gap-6 pb-8 pt-4 snap-x snap-mandatory hide-scrollbar"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {filteredHackathons.map((hackathon) => (

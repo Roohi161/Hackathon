@@ -285,7 +285,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
   return (
     <div
       ref={containerRef}
-      className="relative min-h-screen overflow-hidden pt-20 pb-16 lg:pt-28 flex flex-col"
+      className="relative min-h-[calc(100vh-4rem)] lg:min-h-screen overflow-hidden pt-20 pb-12 lg:pt-28 flex flex-col"
       style={{
         background: `
           radial-gradient(ellipse 80% 60% at 15% 20%,  #EEF4FF 0%,  transparent 65%),
@@ -435,9 +435,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
       <motion.div
         style={{ y: heroY }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10 relative flex-1 flex flex-col"
+        className="w-full px-4 sm:px-6 lg:px-12 xl:px-24 z-10 relative flex-1 flex flex-col"
       >
-        <div className="flex flex-col lg:flex-row items-center gap-10 flex-1 min-h-[calc(100vh-8rem)]">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-16 pt-8 pb-8 lg:pt-12 flex-1">
 
           {/* ── LEFT TEXT (55%) ─────────────────────────────────────────── */}
           <div className="w-full lg:w-[55%] flex flex-col items-start text-left pt-10 lg:pt-0">
@@ -463,7 +463,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
             <motion.h1
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, delay: 0.1 }}
-              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 leading-[1.08] tracking-tight mb-6"
+              className="text-6xl sm:text-7xl lg:text-[6rem] font-extrabold text-slate-900 leading-[1.05] tracking-tight mb-6"
             >
               Build.{' '}
               <span style={{
@@ -480,7 +480,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
             <motion.p
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, delay: 0.2 }}
-              className="text-lg sm:text-xl text-slate-500 mb-10 max-w-xl leading-relaxed"
+              className="text-xl sm:text-2xl text-slate-500 mb-10 max-w-2xl leading-relaxed"
             >
               The complete platform for hosting, managing, evaluating, and participating in hackathons.
               Join <span className="font-semibold text-slate-700">50,000+ developers</span> building the future.

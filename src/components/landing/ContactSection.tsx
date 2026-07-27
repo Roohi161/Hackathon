@@ -4,7 +4,7 @@ export const ContactSection = () => {
   return (
     <section id="contact" className="py-24 bg-slate-900 text-white relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-extrabold sm:text-4xl tracking-tight">Get In Touch</h2>
           <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">

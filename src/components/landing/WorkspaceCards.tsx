@@ -171,7 +171,7 @@ export const WorkspaceCards: React.FC<WorkspaceCardsProps> = ({ onLogin }) => {
       {/* Background ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-gradient-to-tr from-indigo-100/50 via-purple-100/40 to-blue-100/50 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24 relative z-10">
         <motion.div
           className="text-center max-w-3xl mx-auto mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -184,11 +184,11 @@ export const WorkspaceCards: React.FC<WorkspaceCardsProps> = ({ onLogin }) => {
             Tailored Platform Experience
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+          <h2 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight">
             Select Your <span className="gradient-text">Workspace</span>
           </h2>
 
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-xl sm:text-2xl text-slate-500 max-w-2xl mx-auto">
             Choose your role to access dedicated tools tailored specifically for hackers, event organizers, expert judges, and platform administrators.
           </p>
         </motion.div>

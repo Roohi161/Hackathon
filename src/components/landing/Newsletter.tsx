@@ -33,7 +33,7 @@ export const Newsletter = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 text-white mb-6 shadow-lg backdrop-blur-sm border border-white/30">
                 <Mail size={32} />
               </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
+              <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-4">
                 Stay in the <span className="text-cyan-300">Loop</span>
               </h2>
               <p className="text-lg text-indigo-100 max-w-xl mx-auto lg:mx-0">

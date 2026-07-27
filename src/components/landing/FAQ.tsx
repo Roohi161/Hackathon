@@ -38,7 +38,7 @@ export const FAQ = () => {
 
   return (
     <section className="py-24 relative z-10">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="w-full px-6 lg:px-12 xl:px-24 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -49,7 +49,7 @@ export const FAQ = () => {
           <span className="inline-flex items-center px-3 py-1 rounded-full border border-violet-100 bg-violet-50 text-violet-700 text-sm font-medium mb-6">
             Common Questions
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
+          <h2 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6">
             Frequently Asked <span className="gradient-text">Questions</span>
           </h2>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto">

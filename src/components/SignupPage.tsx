@@ -52,7 +52,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       <div className="absolute bottom-[-200px] right-[-200px] w-[600px] h-[600px] bg-purple-200/40 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDelay: '1.5s' }} />
 
       <header className="relative z-10 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               {onBack && (

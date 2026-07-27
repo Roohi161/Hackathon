@@ -173,7 +173,7 @@ export const PlatformFeatures = () => {
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-100/80 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/3" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-cyan-100/60 rounded-full blur-[100px] pointer-events-none translate-y-1/2 -translate-x-1/3" />
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="w-full px-6 lg:px-12 xl:px-24 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -191,7 +191,7 @@ export const PlatformFeatures = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-5xl font-extrabold mb-6 text-slate-900 tracking-tight"
+            className="text-5xl md:text-7xl font-extrabold mb-6 text-slate-900 tracking-tight"
           >
             Everything You <span className="gradient-text">Need</span>
           </motion.h2>
@@ -201,7 +201,7 @@ export const PlatformFeatures = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg text-slate-500"
+            className="text-xl sm:text-2xl text-slate-500"
           >
             A comprehensive suite of tools designed for hackathon excellence. Focus on building great products while we handle the rest.
           </motion.p>
