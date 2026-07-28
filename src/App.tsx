@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { TeamModal } from './components/TeamModal';
@@ -8,10 +8,16 @@ import { LoginPage } from './components/LoginPage';
 import { SignupPage } from './components/SignupPage';
 import { AboutPage } from './components/landing/AboutPage';
 import { ContactPage } from './components/landing/ContactPage';
+import { Toast } from './components/Toast';
+import type { ToastType } from './components/Toast';
+import { UserProfilePage } from './components/profile/UserProfilePage';
+import { AnimatePresence } from 'framer-motion';
 
 // Participant Components
 import { HackathonList } from './components/participant/HackathonList';
 import { HackathonDetail } from './components/participant/HackathonDetail';
+import { ParticipantOnboarding } from './components/participant/ParticipantOnboarding';
+import { ParticipantDashboard } from './components/participant/ParticipantDashboard';
 import { TeamRegistrationModal } from './components/participant/TeamRegistrationModal';
 import { ProjectSubmissionModal } from './components/participant/ProjectSubmissionModal';
 import { LeaderboardView } from './components/participant/LeaderboardView';
@@ -37,8 +43,11 @@ import {
   INITIAL_VERIFICATIONS
 } from './data/mockData';
 
+import api from './services/api';
+
 import type {
   UserRole,
+  AuthenticatedUser,
   Hackathon,
   ProjectSubmission,
   Team,
@@ -48,12 +57,6 @@ import type {
 } from './types';
 
 // Authenticated user type
-interface AuthenticatedUser {
-  name: string;
-  email: string;
-  avatar: string;
-}
-
 export function App() {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -72,6 +75,17 @@ export function App() {
   const [showSignup, setShowSignup] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  
+  // Toast State
+  const [toasts, setToasts] = useState<{id: string, message: string, type: ToastType}[]>([]);
+
+  const addToast = (message: string, type: ToastType = 'info') => {
+    setToasts(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), message, type }]);
+  };
+  
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   // Entities State
   const [hackathons, setHackathons] = useState<Hackathon[]>(INITIAL_HACKATHONS);
@@ -84,16 +98,54 @@ export function App() {
   const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
   const [verifications, setVerifications] = useState<OrganizerVerificationRequest[]>(INITIAL_VERIFICATIONS);
 
+  // Fetch initial data from backend API
+  useEffect(() => {
+    const fetchApiData = async () => {
+      try {
+        const [hacksRes, teamsRes, subsRes, annRes] = await Promise.all([
+          api.get('/hackathons').catch(() => null),
+          api.get('/teams').catch(() => null),
+          api.get('/submissions').catch(() => null),
+          api.get('/announcements').catch(() => null)
+        ]);
+        
+        if (hacksRes?.data?.length) setHackathons(hacksRes.data);
+        if (teamsRes?.data?.length) setTeams(teamsRes.data);
+        if (subsRes?.data?.length) setSubmissions(subsRes.data);
+        if (annRes?.data?.length) setAnnouncements(annRes.data);
+      } catch (err) {
+        console.warn('Backend not reachable or data missing. Using local mock data fallback.', err);
+      }
+    };
+    
+    fetchApiData();
+  }, []);
+
   // Login Handler
   const handleLogin = (role: UserRole, user: AuthenticatedUser) => {
     setLoggedInUser(user);
     setCurrentRole(role);
     setIsAuthenticated(true);
-    // Set the default tab for the role
-    if (role === 'participant') setActiveTab('explore');
-    else if (role === 'organizer') setActiveTab('create');
-    else if (role === 'judge') setActiveTab('judge-portal');
-    else if (role === 'admin') setActiveTab('admin-dashboard');
+    setShowLogin(false);
+    
+    // Default routing based on role
+    if (role === 'participant') {
+      setActiveTab(user.profileComplete ? 'dashboard' : 'onboarding');
+    } else if (role === 'organizer') {
+      setActiveTab('organizer');
+    } else if (role === 'admin') {
+      setActiveTab('admin');
+    } else {
+      setActiveTab('dashboard');
+    }
+    
+    addToast('Successfully signed in!', 'success');
+  };
+
+  const handleProfileComplete = (updatedUser: AuthenticatedUser) => {
+    setLoggedInUser(updatedUser);
+    setActiveTab('dashboard');
+    addToast('Profile completed successfully!', 'success');
   };
 
   // Logout Handler
@@ -104,22 +156,30 @@ export function App() {
     setActiveTab('explore');
   };
 
-
-
   // Participant Handlers
-  const handleSelectHackathon = (hackathon: Hackathon) => {
-    setSelectedHackathon(hackathon);
-    setActiveTab('detail');
-  };
 
-  const handleRegisterTeam = (newTeam: Team) => {
-    setTeams([newTeam, ...teams]);
-    // update hackathon team counts
-    setHackathons(
-      hackathons.map((h) =>
-        h.id === newTeam.hackathonId ? { ...h, teamsCount: h.teamsCount + 1 } : h
+
+  const handleRegisterTeam = async (newTeam: Team) => {
+    setTeams((prev) => [newTeam, ...prev]);
+    setHackathons((prev) =>
+      prev.map((h) =>
+        h.id === newTeam.hackathonId
+          ? { ...h, teamsCount: h.teamsCount + 1, participantsCount: h.participantsCount + newTeam.members.length }
+          : h
       )
     );
+    addToast(`Team "${newTeam.name}" registered successfully!`, 'success');
+    try {
+      await api.post('/api/teams', {
+        name: newTeam.name,
+        hackathon_id: newTeam.hackathonId,
+        leader_name: newTeam.leaderName,
+        leader_email: newTeam.leaderEmail,
+        project_title: `${newTeam.name} Project`
+      });
+    } catch (e) {
+      // Fallback
+    }
   };
 
   const handleSubmitProject = (newSubmission: ProjectSubmission) => {
@@ -132,7 +192,7 @@ export function App() {
     setSelectedHackathon(newHackathon);
     setCurrentRole('participant');
     setActiveTab('detail');
-    alert('Hackathon successfully created & published to central directory!');
+    addToast('Hackathon successfully created & published to central directory!', 'success');
   };
 
   const handleUpdateTeamStatus = (teamId: string, status: 'Approved' | 'Rejected') => {
@@ -211,27 +271,53 @@ export function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        
+        {/* PROFILE VIEW */}
+        {activeTab === 'profile' && (
+          <UserProfilePage 
+            user={loggedInUser} 
+            onLogout={handleLogout} 
+            onUpdateUser={(updated) => setLoggedInUser((prev: AuthenticatedUser | null) => prev ? { ...prev, ...updated } : null)}
+          />
+        )}
         
         {/* PARTICIPANT VIEW */}
         {currentRole === 'participant' && (
           <>
-            {activeTab === 'explore' && (
-              <HackathonList
-                hackathons={hackathons}
-                onSelectHackathon={handleSelectHackathon}
-              />
+            {(!loggedInUser?.profileComplete && activeTab === 'onboarding') ? (
+              <ParticipantOnboarding user={loggedInUser!} onComplete={handleProfileComplete} />
+            ) : (
+              <>
+                {activeTab === 'dashboard' && (
+                  <ParticipantDashboard 
+                    user={loggedInUser!} 
+                    allHackathons={hackathons} 
+                    onViewHackathon={(h) => {
+                      setSelectedHackathon(h);
+                      setActiveTab('detail');
+                    }}
+                  />
+                )}
+                {activeTab === 'explore' && (
+                  <HackathonList
+                    hackathons={hackathons}
+                    onSelectHackathon={(h) => {
+                      setSelectedHackathon(h);
+                      setActiveTab('detail');
+                    }}
+                  />
+                )}
+                {activeTab === 'detail' && selectedHackathon && (
+                  <HackathonDetail
+                    hackathon={selectedHackathon}
+                    onBack={() => setActiveTab('dashboard')}
+                    onOpenTeamRegistration={() => setIsTeamRegModalOpen(true)}
+                    onOpenSubmissionModal={() => setIsSubmissionModalOpen(true)}
+                  />
+                )}
+              </>
             )}
-
-            {activeTab === 'detail' && selectedHackathon && (
-              <HackathonDetail
-                hackathon={selectedHackathon}
-                onBack={() => setActiveTab('explore')}
-                onOpenTeamRegistration={() => setIsTeamRegModalOpen(true)}
-                onOpenSubmissionModal={() => setIsSubmissionModalOpen(true)}
-              />
-            )}
-
             {activeTab === 'leaderboard' && (
               <LeaderboardView
                 submissions={submissions}
@@ -339,6 +425,15 @@ export function App() {
           />
         </>
       )}
+
+      {/* Global Toasts */}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+        <AnimatePresence>
+          {toasts.map(toast => (
+            <Toast key={toast.id} {...toast} onClose={removeToast} />
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

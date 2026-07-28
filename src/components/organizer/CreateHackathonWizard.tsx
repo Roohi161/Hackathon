@@ -115,7 +115,10 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
       organizerName: 'DevPulse Verified Organizer',
       organizerVerified: true,
       participantsCount: 0,
-      teamsCount: 0
+      teamsCount: 0,
+      description: '',
+      tags: [],
+      eligibility: ['Student', 'Professional']
     };
 
     onCreateHackathon(newHackathon);

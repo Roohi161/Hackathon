@@ -192,6 +192,7 @@ export const FeaturedHackathons = () => {
       {/* Carousel Container */}
       <div className="w-full px-6 lg:px-12 xl:px-24 flex justify-center">
         <motion.div
+          key={selectedCategory}
           variants={containerVariants}
           initial="hidden"
           whileInView="show"

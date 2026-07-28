@@ -93,8 +93,10 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     featured: true,
     organizerName: 'DevPulse Labs',
     organizerVerified: true,
-    participantsCount: 1420,
-    teamsCount: 380
+    participantsCount: 1542,
+    teamsCount: 312,
+    description: '',
+    tags: []
   },
   {
     id: 'hack-2',
@@ -137,9 +139,11 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     ],
     featured: true,
     organizerName: 'CryptoForge Alliance',
-    organizerVerified: true,
-    participantsCount: 890,
-    teamsCount: 210
+    organizerVerified: false,
+    participantsCount: 856,
+    teamsCount: 145,
+    description: '',
+    tags: []
   },
   {
     id: 'hack-3',
@@ -180,7 +184,140 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     organizerName: 'GreenTech Global',
     organizerVerified: true,
     participantsCount: 650,
-    teamsCount: 160
+    teamsCount: 160,
+    description: 'Pioneering technology for carbon tracking, renewable grid management, and sustainability.',
+    tags: ['Carbon Footprint', 'Renewable Energy', 'Circular Economy']
+  },
+  {
+    id: 'hack-4',
+    title: 'Quantum Computing & FinTech Summit 2026',
+    tagline: 'Build next-gen financial algorithms, quantum-resistant security, and automated trading bots.',
+    banner: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=1200&q=80',
+    status: 'live',
+    mode: 'online',
+    location: 'Global (Virtual)',
+    startDate: '2026-07-20T00:00:00Z',
+    endDate: '2026-08-15T23:59:59Z',
+    prizePool: '$60,000',
+    prizeBreakdown: [
+      { title: '🥇 1st Place Quantum Alpha', amount: '$30,000', description: 'Best quantum-resistant financial protocol.' },
+      { title: '🥈 2nd Place Algo Bot', amount: '$18,000', description: 'High-frequency algorithmic trading strategy.' },
+      { title: '🥉 3rd Place DeFi Shield', amount: '$12,000', description: 'DeFi protocol risk management system.' }
+    ],
+    tracks: ['Quantum Cryptography', 'DeFi & Trading', 'Algorithmic Risk'],
+    problemStatements: [
+      {
+        id: 'ps-401',
+        track: 'Quantum Cryptography',
+        title: 'Post-Quantum Vault Security',
+        description: 'Design a lattice-based cryptographic vault for decentralized finance transactions.',
+        difficulty: 'Advanced'
+      }
+    ],
+    rubrics: [
+      { id: 'rub-401', name: 'Cryptographic Soundness', description: 'Resistance to quantum attack vectors', weight: 50 },
+      { id: 'rub-402', name: 'Latency & Throughput', description: 'Performance under high-frequency load', weight: 30 },
+      { id: 'rub-403', name: 'Code Quality', description: 'Clean modular implementation', weight: 20 }
+    ],
+    schedule: [
+      { time: 'July 20', event: 'Hackathon Kickoff' },
+      { time: 'August 15', event: 'Submission Deadline' }
+    ],
+    rules: ['Must use lattice-based encryption standards.', 'Submissions must include benchmark scripts.'],
+    featured: true,
+    organizerName: 'FinTech Quantum Labs',
+    organizerVerified: true,
+    participantsCount: 1420,
+    teamsCount: 295,
+    description: 'Build next-gen financial algorithms, quantum-resistant security, and automated trading bots.',
+    tags: ['Quantum Cryptography', 'DeFi & Trading', 'Algorithmic Risk']
+  },
+  {
+    id: 'hack-5',
+    title: 'HealthTech & AI Medical Diagnostics Hack',
+    tagline: 'Developing AI-driven medical imaging, remote patient monitoring, and predictive health analytics.',
+    banner: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
+    status: 'upcoming',
+    mode: 'hybrid',
+    location: 'Boston Medical Hub, USA & Virtual',
+    startDate: '2026-08-10T08:00:00Z',
+    endDate: '2026-08-25T20:00:00Z',
+    prizePool: '$45,000',
+    prizeBreakdown: [
+      { title: '🏥 Diagnostic Excellence Award', amount: '$25,000', description: 'Highest accuracy medical image diagnostic model.' },
+      { title: '🩺 Patient Care Innovation', amount: '$20,000', description: 'Best remote patient monitoring platform.' }
+    ],
+    tracks: ['AI Radiology', 'Bioinformatics', 'Remote Patient Care'],
+    problemStatements: [
+      {
+        id: 'ps-501',
+        track: 'AI Radiology',
+        title: 'Real-time X-Ray Anomaly Detection',
+        description: 'Computer vision model for early identification of lung anomalies in low-resource clinics.',
+        difficulty: 'Intermediate'
+      }
+    ],
+    rubrics: [
+      { id: 'rub-501', name: 'Model Accuracy & Precision', description: 'High sensitivity & low false positive rate', weight: 45 },
+      { id: 'rub-502', name: 'Clinical Utility', description: 'Ease of adoption for frontline healthcare workers', weight: 35 },
+      { id: 'rub-503', name: 'HIPAA Compliance & Privacy', description: 'Federated learning and data anonymization', weight: 20 }
+    ],
+    schedule: [
+      { time: 'August 10', event: 'Opening Ceremony & Dataset Release' },
+      { time: 'August 25', event: 'Live Judging Panel' }
+    ],
+    rules: ['All datasets must be anonymized.', 'Open-source compliance required.'],
+    featured: false,
+    organizerName: 'BioHealth Innovations',
+    organizerVerified: true,
+    participantsCount: 980,
+    teamsCount: 185,
+    description: 'Developing AI-driven medical imaging, remote patient monitoring, and predictive health analytics.',
+    tags: ['AI Radiology', 'Bioinformatics', 'Remote Patient Care']
+  },
+  {
+    id: 'hack-6',
+    title: 'Autonomous Robotics & Cyber-Physical Systems',
+    tagline: 'Pioneering ROS2 swarm robotics, edge vision AI, and autonomous drone navigation.',
+    banner: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80',
+    status: 'live',
+    mode: 'online',
+    location: 'Global (Virtual)',
+    startDate: '2026-07-15T00:00:00Z',
+    endDate: '2026-08-30T23:59:59Z',
+    prizePool: '$80,000',
+    prizeBreakdown: [
+      { title: '🤖 Swarm Master Grand Prize', amount: '$40,000', description: 'Best multi-agent swarm coordination algorithm.' },
+      { title: '🚁 Autonomous Navigation Winner', amount: '$25,000', description: 'Best SLAM navigation in GPS-denied environments.' },
+      { title: '⚡ Edge AI Hardware Optimization', amount: '$15,000', description: 'Lowest power consumption edge vision pipeline.' }
+    ],
+    tracks: ['Edge AI Vision', 'Swarm Intelligence', 'Drone Flight Controls'],
+    problemStatements: [
+      {
+        id: 'ps-601',
+        track: 'Swarm Intelligence',
+        title: 'Multi-Rover Search & Rescue Coordination',
+        description: 'ROS2 algorithm for autonomous rovers mapping unknown cavern terrain without GPS.',
+        difficulty: 'Advanced'
+      }
+    ],
+    rubrics: [
+      { id: 'rub-601', name: 'Simulation Fidelity & Control', description: 'Gazebo/Isaac Sim test performance', weight: 50 },
+      { id: 'rub-602', name: 'Fault Tolerance', description: 'Graceful degradation on node failure', weight: 30 },
+      { id: 'rub-603', name: 'Documentation & Demo', description: 'Clean setup guide and video demonstration', weight: 20 }
+    ],
+    schedule: [
+      { time: 'July 15', event: 'Simulation Sandbox Launch' },
+      { time: 'August 30', event: 'Final Leaderboard Lock' }
+    ],
+    rules: ['ROS2 Humble/Jazzy framework compatibility required.'],
+    featured: true,
+    organizerName: 'RoboTech Global Alliance',
+    organizerVerified: true,
+    participantsCount: 2150,
+    teamsCount: 410,
+    description: 'Pioneering ROS2 swarm robotics, edge vision AI, and autonomous drone navigation.',
+    tags: ['Edge AI Vision', 'Swarm Intelligence', 'Drone Flight Controls']
   }
 ];
 

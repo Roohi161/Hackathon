@@ -9,8 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
-
+app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ extended: true, limit: '200mb' }));
 // Initialize Database Schema on Start
 initDatabase();
 
@@ -27,6 +27,37 @@ app.get('/api/health', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ status: 'error', error: err.message });
+  }
+});
+
+// Profile Update API
+app.put('/api/profile', async (req, res) => {
+  const { name, email, bio, avatar } = req.body;
+  try {
+    // Assuming there's a user session or hardcoding a user id for demo
+    const userId = req.headers.authorization ? req.headers.authorization.split(' ')[1] : 'user-1'; 
+    
+    // Check if user exists first
+    const checkUser = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    
+    if (checkUser.rows.length === 0) {
+      // Create user if they don't exist for the demo
+      await pool.query(
+        'INSERT INTO users (id, name, email, role, avatar) VALUES ($1, $2, $3, $4, $5)',
+        [userId, name, email, 'Participant', avatar]
+      );
+    } else {
+      // Update existing user
+      await pool.query(
+        'UPDATE users SET name = $1, email = $2, avatar = $3 WHERE id = $4',
+        [name, email, avatar, userId]
+      );
+    }
+    
+    res.json({ message: 'Profile updated successfully', user: { id: userId, name, email, avatar } });
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
