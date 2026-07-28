@@ -6,6 +6,8 @@ import { NotificationDrawer } from './components/NotificationDrawer';
 import { LandingPage } from './components/LandingPage';
 import { LoginPage } from './components/LoginPage';
 import { SignupPage } from './components/SignupPage';
+import { AboutPage } from './components/landing/AboutPage';
+import { ContactPage } from './components/landing/ContactPage';
 
 // Participant Components
 import { HackathonList } from './components/participant/HackathonList';
@@ -68,6 +70,8 @@ export function App() {
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showContact, setShowContact] = useState(false);
 
   // Entities State
   const [hackathons, setHackathons] = useState<Hackathon[]>(INITIAL_HACKATHONS);
@@ -182,7 +186,13 @@ export function App() {
     if (showSignup) {
       return <SignupPage onSignup={handleLogin} onBack={() => setShowSignup(false)} onSwitchToLogin={() => { setShowSignup(false); setShowLogin(true); }} />;
     }
-    return <LandingPage onLogin={handleLogin} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} />;
+    if (showAbout) {
+      return <AboutPage onNavigateHome={() => setShowAbout(false)} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateContact={() => { setShowAbout(false); setShowContact(true); }} />;
+    }
+    if (showContact) {
+      return <ContactPage onNavigateHome={() => setShowContact(false)} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateAbout={() => { setShowContact(false); setShowAbout(true); }} />;
+    }
+    return <LandingPage onLogin={handleLogin} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateAbout={() => setShowAbout(true)} onNavigateContact={() => setShowContact(true)} />;
   }
 
   return (

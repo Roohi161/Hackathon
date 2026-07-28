@@ -17,9 +17,12 @@ interface LandingPageProps {
   onLogin: (role: 'participant' | 'organizer' | 'judge' | 'admin', user: { name: string; email: string; avatar: string }) => void;
   onNavigateLogin?: () => void;
   onNavigateSignup?: () => void;
+  onNavigateHome?: () => void;
+  onNavigateAbout?: () => void;
+  onNavigateContact?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLogin, onNavigateSignup }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLogin, onNavigateSignup, onNavigateHome, onNavigateAbout, onNavigateContact }) => {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const hackathonsRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +36,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLog
 
   return (
     <div className="min-h-screen bg-transparent text-slate-900 font-sans overflow-x-hidden">
-      <LandingNavbar onNavigateSignup={onNavigateSignup} onNavigateLogin={onNavigateLogin} onGetStarted={scrollToWorkspace} />
+      <LandingNavbar 
+        onNavigateSignup={onNavigateSignup} 
+        onNavigateLogin={onNavigateLogin} 
+        onGetStarted={scrollToWorkspace} 
+        onNavigateHome={onNavigateHome}
+        onNavigateAbout={onNavigateAbout}
+        onNavigateContact={onNavigateContact}
+      />
 
       <div id="home">
         <HeroSection onExplore={scrollToHackathons} onHost={scrollToWorkspace} />

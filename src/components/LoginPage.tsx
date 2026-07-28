@@ -43,11 +43,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     setIsLoading(true);
     setError('');
     setTimeout(() => {
-      // Valid credentials for the 3 roles
+      // Valid credentials for the 4 roles
       const validCredentials = {
         participant: { email: 'participant@hackathon.com', password: 'password123', name: 'Participant User' },
         organizer: { email: 'organizer@hackathon.com', password: 'password123', name: 'Organizer Admin' },
-        judge: { email: 'judge@hackathon.com', password: 'password123', name: 'Judge Reviewer' }
+        judge: { email: 'judge@hackathon.com', password: 'password123', name: 'Judge Reviewer' },
+        admin: { email: 'admin@hackathon.com', password: 'password123', name: 'System Admin' }
       };
 
       const expected = validCredentials[role];
