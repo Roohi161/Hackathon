@@ -100,14 +100,7 @@ export function App() {
     setActiveTab('explore');
   };
 
-  // Handlers for Role Switch
-  const handleRoleChange = (role: UserRole) => {
-    setCurrentRole(role);
-    if (role === 'participant') setActiveTab('explore');
-    else if (role === 'organizer') setActiveTab('create');
-    else if (role === 'judge') setActiveTab('judge-portal');
-    else if (role === 'admin') setActiveTab('admin-dashboard');
-  };
+
 
   // Participant Handlers
   const handleSelectHackathon = (hackathon: Hackathon) => {
@@ -197,7 +190,7 @@ export function App() {
       {/* Persistent Navigation */}
       <Navbar
         currentRole={currentRole}
-        onRoleChange={handleRoleChange}
+
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenTeamModal={() => setIsTeamModalOpen(true)}
         unreadCount={announcements.length}
