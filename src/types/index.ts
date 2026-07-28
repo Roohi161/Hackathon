@@ -72,6 +72,17 @@ export interface HackathonScheduleItem {
   description?: string;
 }
 
+export interface AuthenticatedUser {
+  name: string;
+  email: string;
+  avatar: string;
+  profileComplete?: boolean;
+  education?: string;
+  skills?: string[];
+  githubUrl?: string;
+  linkedinUrl?: string;
+}
+
 export interface PrizeItem {
   title: string;
   amount: string;
@@ -100,6 +111,9 @@ export interface Hackathon {
   organizerVerified?: boolean;
   participantsCount: number;
   teamsCount: number;
+  description: string;
+  tags: string[];
+  eligibility?: string[]; // e.g. ['Student', 'Professional', 'React', 'Python']
 }
 
 export interface Announcement {

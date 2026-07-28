@@ -34,20 +34,20 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
     switch (status) {
       case 'live':
         return (
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-white shadow-sm border border-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
             LIVE NOW
           </span>
         );
       case 'upcoming':
         return (
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow-sm border border-indigo-500">
             <Clock className="w-3.5 h-3.5" /> UPCOMING
           </span>
         );
       case 'ended':
         return (
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/30">
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-900/80 text-slate-200 backdrop-blur-md border border-slate-700">
             ENDED
           </span>
         );
@@ -57,25 +57,25 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
   return (
     <div className="space-y-8">
       {/* Hero Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 shadow-2xl border border-indigo-500/20 mb-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)' }}>
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 shadow-xl shadow-slate-200/50 border border-slate-200 bg-white mb-8">
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-100/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-purple-100/40 rounded-full blur-3xl pointer-events-none" />
+        
         {/* Decorative Grid */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl space-y-5">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold backdrop-blur-sm shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
             <span>Discover & Compete in Global Hackathons</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.15]">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
             Build Projects. Win Prizes. <br />
-            <span style={{
-                background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
-            }}>Shape the Future.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+              Shape the Future.
+            </span>
           </h1>
-          <p className="text-indigo-100/80 text-sm sm:text-lg leading-relaxed max-w-2xl">
+          <p className="text-slate-500 text-sm sm:text-lg leading-relaxed max-w-2xl font-medium">
             Hackathon Central connects developers, designers, and innovators with high-impact competitions, live rubric judging, and real-time leaderboards.
           </p>
         </div>
@@ -150,32 +150,32 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
       {/* Hackathons Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredHackathons.length === 0 ? (
-          <div className="col-span-full text-center py-16 glass-panel rounded-2xl">
-            <Filter className="w-10 h-10 text-gray-500 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-white">No Hackathons Match Filters</h3>
-            <p className="text-xs text-gray-400 mt-1">Try resetting your search term or filter dropdowns.</p>
+          <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <Filter className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-slate-900">No Hackathons Match Filters</h3>
+            <p className="text-xs text-slate-500 mt-1 font-medium">Try resetting your search term or filter dropdowns.</p>
           </div>
         ) : (
           filteredHackathons.map((hackathon) => (
             <div
               key={hackathon.id}
               onClick={() => onSelectHackathon(hackathon)}
-              className="group relative flex flex-col overflow-hidden rounded-2xl glass-panel glass-panel-hover border border-white/10 cursor-pointer"
+              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:shadow-indigo-100/60 hover:border-indigo-300 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
             >
               {/* Banner Image */}
-              <div className="relative h-44 w-full overflow-hidden bg-gray-900">
+              <div className="relative h-44 w-full overflow-hidden bg-slate-900">
                 <img
                   src={hackathon.banner}
                   alt={hackathon.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
                 
                 <div className="absolute top-3 left-3">
                   {getStatusBadge(hackathon.status)}
                 </div>
 
-                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-gray-900/80 backdrop-blur-md text-amber-400 text-xs font-bold border border-amber-500/30 flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-amber-400 text-xs font-black border border-amber-500/40 shadow-sm flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5" />
                   {hackathon.prizePool}
                 </div>
@@ -184,18 +184,18 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
               {/* Body Content */}
               <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <div className="flex items-center gap-1.5 text-xs text-indigo-400 mb-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 mb-1">
                     <span>{hackathon.organizerName}</span>
                     {hackathon.organizerVerified && (
                       <span title="Verified Organizer">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                       </span>
                     )}
                   </div>
-                  <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">
+                  <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
                     {hackathon.title}
                   </h3>
-                  <p className="text-xs text-gray-300 mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed font-medium">
                     {hackathon.tagline}
                   </p>
                 </div>
@@ -205,25 +205,25 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
                   {hackathon.tracks.slice(0, 3).map((track, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md bg-gray-800/80 text-[11px] font-medium text-gray-300 border border-white/5"
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-600 border border-slate-200/80"
                     >
                       {track}
                     </span>
                   ))}
                   {hackathon.tracks.length > 3 && (
-                    <span className="px-2 py-0.5 rounded-md bg-gray-800/80 text-[11px] text-gray-400">
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-400">
                       +{hackathon.tracks.length - 3} more
                     </span>
                   )}
                 </div>
 
                 {/* Footer Info */}
-                <div className="pt-3 border-t border-gray-800/80 flex items-center justify-between text-xs text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-gray-500" />
+                <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-500">
+                  <div className="flex items-center gap-1 text-slate-500 font-medium">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
                     <span className="truncate max-w-[120px]">{hackathon.location}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-indigo-400 font-semibold group-hover:translate-x-1 transition-transform">
+                  <div className="flex items-center gap-1 text-indigo-600 font-bold group-hover:translate-x-1 transition-transform">
                     <span>View Event</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
