@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Trophy, ShieldCheck, ArrowRight, Clock, Sparkles } from 'lucide-react';
+import { Search, Filter, ChevronDown, MapPin, Trophy, ShieldCheck, ArrowRight, Clock, Sparkles } from 'lucide-react';
 import type { Hackathon, HackathonStatus } from '../../types';
 
 interface HackathonListProps {
@@ -57,38 +57,43 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
   return (
     <div className="space-y-8">
       {/* Hero Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 glass-panel border border-indigo-500/20">
-        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 shadow-2xl border border-indigo-500/20 mb-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)' }}>
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl pointer-events-none" />
+        {/* Decorative Grid */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
+        <div className="relative z-10 max-w-3xl space-y-5">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold backdrop-blur-sm">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>Discover & Compete in Global Hackathons</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.15]">
             Build Projects. Win Prizes. <br />
-            <span className="gradient-text">Shape the Future.</span>
+            <span style={{
+                background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
+            }}>Shape the Future.</span>
           </h1>
-          <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+          <p className="text-indigo-100/80 text-sm sm:text-lg leading-relaxed max-w-2xl">
             Hackathon Central connects developers, designers, and innovators with high-impact competitions, live rubric judging, and real-time leaderboards.
           </p>
         </div>
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div className="p-4 rounded-2xl glass-panel border border-white/10 space-y-4">
+      <div className="p-3 sm:p-4 rounded-2xl bg-white/70 backdrop-blur-xl shadow-lg shadow-indigo-100/50 border border-white/60 space-y-4 mb-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           
           {/* Search Box */}
           <div className="md:col-span-1 relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+            <Search className="w-4 h-4 text-indigo-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
               placeholder="Search hackathons or tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-gray-900/80 border border-gray-700/60 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-10 pr-4 py-2.5 text-sm font-medium rounded-xl bg-white border border-slate-200/80 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 shadow-sm transition-all hover:border-indigo-300"
             />
           </div>
 
@@ -97,13 +102,14 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900/80 border border-gray-700/60 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 pr-10 py-2.5 text-sm font-medium rounded-xl bg-white border border-slate-200/80 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 appearance-none cursor-pointer shadow-sm hover:border-indigo-300 transition-colors"
             >
-              <option value="all">All Statuses (Live, Upcoming, Ended)</option>
+              <option value="all">All Statuses</option>
               <option value="live">🟢 Live Now</option>
               <option value="upcoming">🔵 Upcoming</option>
               <option value="ended">⚪ Ended</option>
             </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
           </div>
 
           {/* Mode Filter */}
@@ -111,13 +117,14 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
             <select
               value={selectedMode}
               onChange={(e) => setSelectedMode(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900/80 border border-gray-700/60 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 pr-10 py-2.5 text-sm font-medium rounded-xl bg-white border border-slate-200/80 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 appearance-none cursor-pointer shadow-sm hover:border-indigo-300 transition-colors"
             >
-              <option value="all">All Modes (Online, Hybrid, In-Person)</option>
-              <option value="online">Online / Virtual</option>
-              <option value="hybrid">Hybrid Event</option>
-              <option value="in-person">In-Person</option>
+              <option value="all">All Modes</option>
+              <option value="online">🌐 Online / Virtual</option>
+              <option value="hybrid">🎪 Hybrid Event</option>
+              <option value="in-person">🏢 In-Person</option>
             </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
           </div>
 
           {/* Track Filter */}
@@ -125,7 +132,7 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
             <select
               value={selectedTrack}
               onChange={(e) => setSelectedTrack(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900/80 border border-gray-700/60 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 pr-10 py-2.5 text-sm font-medium rounded-xl bg-white border border-slate-200/80 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 appearance-none cursor-pointer shadow-sm hover:border-indigo-300 transition-colors"
             >
               <option value="all">All Tech Tracks</option>
               {allTracks.map((track) => (
@@ -134,6 +141,7 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
                 </option>
               ))}
             </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
           </div>
 
         </div>
