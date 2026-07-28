@@ -22,7 +22,7 @@ interface LoggedInUser {
 
 interface NavbarProps {
   currentRole: UserRole;
-  onRoleChange: (role: UserRole) => void;
+
   onOpenNotifications: () => void;
   onOpenTeamModal: () => void;
   unreadCount: number;
@@ -34,7 +34,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentRole,
-  onRoleChange,
+
   onOpenNotifications,
   onOpenTeamModal,
   unreadCount,
@@ -205,32 +205,24 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* Logged-in User Profile & Role Switcher */}
-            {loggedInUser ? (
-              <div className="flex items-center gap-2">
-                {/* Role Switcher (compact) */}
-                <div className="relative flex items-center">
-                  <select
-                    value={currentRole}
-                    onChange={(e) => onRoleChange(e.target.value as UserRole)}
-                    className={`appearance-none pl-8 pr-6 py-1.5 text-[11px] font-semibold rounded-xl bg-gray-900 border ${roleColors[currentRole]?.split(' ')[0] || 'border-indigo-500/40'} ${roleColors[currentRole]?.split(' ')[1] || 'text-indigo-300'} cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner`}
-                  >
-                    <option value="participant">Participant</option>
-                    <option value="organizer">Organizer</option>
-                    <option value="judge">Judge</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <UserCheck className="w-3 h-3 text-gray-400 absolute left-2.5 pointer-events-none" />
+            {/* Logged-in User Profile */}
+            {loggedInUser && (
+              <div className="flex items-center gap-3">
+                {/* Static Role Badge */}
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-900 border ${roleColors[currentRole]?.split(' ')[0] || 'border-indigo-500/40'} ${roleColors[currentRole]?.split(' ')[1] || 'text-indigo-300'} shadow-inner`}>
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">{currentRole}</span>
                 </div>
 
                 {/* User Avatar + Name */}
-                <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                <div className="flex items-center gap-2 pl-3 border-l border-white/10">
                   <img
                     src={loggedInUser.avatar}
                     alt={loggedInUser.name}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-indigo-500/30 shadow-md"
+                    className="w-9 h-9 rounded-full object-cover border-2 border-indigo-500/30 shadow-lg hover:border-indigo-400 transition-colors cursor-pointer"
                   />
                   <div className="hidden lg:block">
-                    <span className="text-xs font-semibold text-white block leading-tight">{loggedInUser.name}</span>
+                    <span className="text-xs font-bold text-white block leading-tight">{loggedInUser.name}</span>
                     <span className="text-[10px] text-gray-400 block leading-tight">{loggedInUser.email}</span>
                   </div>
                 </div>
@@ -238,26 +230,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {/* Logout Button */}
                 <button
                   onClick={onLogout}
-                  className="p-2 text-gray-400 hover:text-red-400 bg-gray-900/60 hover:bg-red-950/40 border border-white/10 hover:border-red-500/30 rounded-xl transition-all"
+                  className="p-2 ml-1 text-gray-400 hover:text-red-400 bg-gray-900/60 hover:bg-red-950/40 border border-white/10 hover:border-red-500/30 rounded-xl transition-all shadow-sm"
                   title="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
-              </div>
-            ) : (
-              /* Fallback: Original Role Switcher */
-              <div className="relative flex items-center">
-                <select
-                  value={currentRole}
-                  onChange={(e) => onRoleChange(e.target.value as UserRole)}
-                  className="appearance-none pl-8 pr-8 py-1.5 text-xs font-semibold rounded-xl bg-gray-900 border border-indigo-500/40 text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
-                >
-                  <option value="participant">Participant Workflow</option>
-                  <option value="organizer">Organizer Workflow</option>
-                  <option value="judge">Judge Workflow</option>
-                  <option value="admin">Platform Admin</option>
-                </select>
-                <UserCheck className="w-3.5 h-3.5 text-indigo-400 absolute left-2.5 pointer-events-none" />
               </div>
             )}
 

@@ -1,20 +1,22 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Search, Menu, X, Trophy, Info, Mail, ArrowRight } from 'lucide-react';
+import { Terminal, Search, Menu, X, Trophy, ArrowRight } from 'lucide-react';
 
 interface LandingNavbarProps {
   onNavigateSignup?: () => void;
   onNavigateLogin?: () => void;
   onGetStarted?: () => void;
+  onNavigateHome?: () => void;
+  onNavigateAbout?: () => void;
+  onNavigateContact?: () => void;
 }
 
-export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, onNavigateLogin, onGetStarted }) => {
+export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, onNavigateLogin, onGetStarted, onNavigateHome, onNavigateAbout, onNavigateContact }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModal, setActiveModal] = useState<'leaderboard' | 'about' | 'contact' | null>(null);
-  const [contactSubmitted, setContactSubmitted] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,16 +40,20 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
   const handleNavClick = (link: string) => {
     setMobileMenuOpen(false);
     if (link === 'Home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (onNavigateHome) onNavigateHome();
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (link === 'Hackathons') {
-      const el = document.getElementById('hackathons') || document.getElementById('hackathons-section') || document.querySelector('section');
-      el?.scrollIntoView({ behavior: 'smooth' });
+      if (onNavigateHome) onNavigateHome();
+      setTimeout(() => {
+        const el = document.getElementById('hackathons') || document.getElementById('hackathons-section') || document.querySelector('section');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     } else if (link === 'Leaderboard') {
       setActiveModal('leaderboard');
     } else if (link === 'About') {
-      setActiveModal('about');
+      if (onNavigateAbout) onNavigateAbout();
     } else if (link === 'Contact') {
-      setActiveModal('contact');
+      if (onNavigateContact) onNavigateContact();
     }
   };
 
@@ -308,55 +314,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
         )}
       </AnimatePresence>
 
-      {/* ABOUT & CONTACT MODALS */}
-      <AnimatePresence>
-        {(activeModal === 'about' || activeModal === 'contact') && (
-          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                  {activeModal === 'about' ? <Info className="w-5 h-5 text-indigo-600" /> : <Mail className="w-5 h-5 text-purple-600" />}
-                  {activeModal === 'about' ? 'About Hackathon Central' : 'Contact Support'}
-                </h3>
-                <button onClick={() => setActiveModal(null)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {activeModal === 'about' ? (
-                <div className="space-y-3 text-sm text-slate-600 leading-relaxed mb-6">
-                  <p>Hackathon Central is the world's leading enterprise SaaS platform for hosting, evaluating, and participating in technology hackathons.</p>
-                  <p>Our platform powers over 500+ hackathons annually with live real-time leaderboards, automated judging rubrics, and team matchmaking.</p>
-                </div>
-              ) : (
-                <div className="space-y-4 mb-6">
-                  {contactSubmitted ? (
-                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-semibold text-center">
-                      🎉 Message received! Our support team will respond within 2 hours.
-                    </div>
-                  ) : (
-                    <form onSubmit={(e) => { e.preventDefault(); setContactSubmitted(true); }} className="space-y-3">
-                      <input type="text" required placeholder="Your Name" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm" />
-                      <input type="email" required placeholder="Your Email" className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm" />
-                      <textarea required placeholder="How can we help?" rows={3} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm" />
-                      <button type="submit" className="w-full py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-md">Send Message</button>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              <button onClick={() => setActiveModal(null)} className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50">
-                Close
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Modals removed and extracted to separate pages */}
     </>
   );
 };
