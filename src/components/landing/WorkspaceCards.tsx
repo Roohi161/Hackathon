@@ -86,7 +86,7 @@ const cardData: CardData[] = [
     ],
     stats: [
       { label: 'Events Hosted', value: '500+' },
-      { label: 'Prizes Awarded', value: '$2M+' }
+      { label: 'Prizes Awarded', value: '₹15Cr+' }
     ],
     defaultUser: {
       name: 'Event Organizer',
