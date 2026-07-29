@@ -34,7 +34,7 @@ const communityInsights = [
 const impactStats = [
   { label: 'Global Active Hackers', value: '50,000+', icon: <Users className="w-5 h-5 text-indigo-500" /> },
   { label: 'Platform Satisfaction', value: '99.4%', icon: <Sparkles className="w-5 h-5 text-purple-500" /> },
-  { label: 'Total Prizes Awarded', value: '$2.5M+', icon: <Trophy className="w-5 h-5 text-amber-500" /> },
+  { label: 'Total Prizes Awarded', value: '₹20Cr+', icon: <Trophy className="w-5 h-5 text-amber-500" /> },
   { label: 'Countries Represented', value: '120+', icon: <Globe2 className="w-5 h-5 text-cyan-500" /> }
 ];
 

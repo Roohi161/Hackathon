@@ -34,9 +34,7 @@ import { LeaderboardView } from './components/participant/LeaderboardView';
 import { AiAssistantHub } from './components/ai/AiAssistantHub';
 
 // Organizer Components
-import { CreateHackathonWizard } from './components/organizer/CreateHackathonWizard';
-import { ParticipantManagement } from './components/organizer/ParticipantManagement';
-import { AnnouncementBroadcaster } from './components/organizer/AnnouncementBroadcaster';
+import { OrganizerWorkspace } from './components/organizer/OrganizerWorkspace';
 
 // Judge Components
 import { DedicatedEvaluationPortal } from './components/judge/DedicatedEvaluationPortal';
@@ -93,22 +91,21 @@ const getSavedUser = (): AuthenticatedUser => {
 
 export function App() {
   // Authentication State
-  const [loggedInUser, setLoggedInUser] = useState<AuthenticatedUser | null>(getSavedUser);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('hackathon_is_auth') === 'true' || true;
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('hc_auth') === 'true';
+  });
+  const [loggedInUser, setLoggedInUser] = useState<AuthenticatedUser | null>(() => {
+    const raw = localStorage.getItem('hc_user');
+    return raw ? JSON.parse(raw) : null;
   });
 
-  // Keep localStorage synced whenever loggedInUser changes
-  useEffect(() => {
-    if (loggedInUser) {
-      localStorage.setItem('hackathon_user', JSON.stringify(loggedInUser));
-      localStorage.setItem('hackathon_is_auth', 'true');
-    }
-  }, [loggedInUser]);
-
   // Global State
-  const [currentRole, setCurrentRole] = useState<UserRole>('participant');
-  const [activeTab, setActiveTab] = useState<string>('explore');
+  const [currentRole, setCurrentRole] = useState<UserRole>(() => {
+    return (localStorage.getItem('hc_role') as UserRole) || 'participant';
+  });
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    return localStorage.getItem('hc_tab') || 'explore';
+  });
 
   // Modals State
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -121,8 +118,13 @@ export function App() {
   const [showContact, setShowContact] = useState(false);
 
   // Entities State
-  const [hackathons, setHackathons] = useState<Hackathon[]>(INITIAL_HACKATHONS);
-  const [selectedHackathon, setSelectedHackathon] = useState<Hackathon | null>(INITIAL_HACKATHONS[0]);
+  const [hackathons, setHackathons] = useState<Hackathon[]>(() => {
+    const raw = localStorage.getItem('hc_hackathons');
+    return raw ? JSON.parse(raw) : INITIAL_HACKATHONS;
+  });
+  const [selectedHackathon, setSelectedHackathon] = useState<Hackathon | null>(() => {
+    return hackathons[0] || null;
+  });
 
   const [submissions, setSubmissions] = useState<ProjectSubmission[]>(INITIAL_SUBMISSIONS);
   const [selectedSubmission, setSelectedSubmission] = useState<ProjectSubmission | null>(null);
@@ -131,17 +133,24 @@ export function App() {
   const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
   const [verifications, setVerifications] = useState<OrganizerVerificationRequest[]>(INITIAL_VERIFICATIONS);
 
-  const [dbConnected, setDbConnected] = useState(false);
-  if (dbConnected) {
-    // Verified connected to Render PostgreSQL Cloud DB
-  }
+
+  // Sync to localStorage
+  useEffect(() => {
+    localStorage.setItem('hc_auth', isAuthenticated ? 'true' : 'false');
+    localStorage.setItem('hc_user', loggedInUser ? JSON.stringify(loggedInUser) : '');
+    localStorage.setItem('hc_role', currentRole);
+    localStorage.setItem('hc_tab', activeTab);
+  }, [isAuthenticated, loggedInUser, currentRole, activeTab]);
+
+  useEffect(() => {
+    localStorage.setItem('hc_hackathons', JSON.stringify(hackathons));
+  }, [hackathons]);
 
   // Sync PostgreSQL Live Data on Mount
   useEffect(() => {
     async function loadPostgresData() {
       const health = await getDbHealth();
       if (health) {
-        setDbConnected(true);
         console.log('🐘 Connected to PostgreSQL Cloud DB:', health.dbName);
       }
       const dbHackathons = await getHackathonsFromDb();
@@ -163,12 +172,17 @@ export function App() {
           banner: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
           imageGradient: h.image_gradient || 'from-indigo-600 to-purple-600',
           featured: h.featured || false,
-          description: 'Official hackathon synced live with Render PostgreSQL database central_hackathon.',
+          description: 'Official hackathon synced live with Render PostgreSQL database.',
           rules: ['Build clean code', 'Submit project before deadline'],
           schedule: [{ time: '09:00 AM', event: 'Event Kickoff' }],
           problemStatements: [{ id: 'ps1', track: 'AI Track', title: 'Smart Agents', description: 'Build autonomous agents', difficulty: 'Intermediate' as const }]
         }));
-        setHackathons(mapped);
+        // Merge with local storage added ones
+        setHackathons(prev => {
+          const ids = new Set(mapped.map((x: any) => x.id));
+          const localOnly = prev.filter(x => !ids.has(x.id));
+          return [...localOnly, ...mapped];
+        });
       }
     }
     loadPostgresData();
@@ -181,27 +195,11 @@ export function App() {
     localStorage.setItem('hackathon_is_auth', 'true');
     setCurrentRole(role);
     setIsAuthenticated(true);
-    setShowLogin(false);
-    
-    // Default routing based on role
-    if (role === 'participant') {
-      setActiveTab(user.profileComplete ? 'dashboard' : 'onboarding');
-    } else if (role === 'organizer') {
-      setActiveTab('organizer');
-    } else if (role === 'admin') {
-      setActiveTab('admin');
-    } else {
-      setActiveTab('dashboard');
-    }
-    
-    addToast('Successfully signed in!', 'success');
-  };
-
-  const handleProfileComplete = (updatedUser: AuthenticatedUser) => {
-    setLoggedInUser(updatedUser);
-    localStorage.setItem('hackathon_user', JSON.stringify(updatedUser));
-    setActiveTab('dashboard');
-    addToast('Profile completed successfully!', 'success');
+    // Set the default tab for the role
+    if (role === 'participant') setActiveTab('explore');
+    else if (role === 'organizer') setActiveTab('overview');
+    else if (role === 'judge') setActiveTab('judge-portal');
+    else if (role === 'admin') setActiveTab('admin-dashboard');
   };
 
   // Logout Handler
@@ -212,9 +210,8 @@ export function App() {
     localStorage.setItem('hackathon_is_auth', 'false');
     setCurrentRole('participant');
     setActiveTab('explore');
+    localStorage.clear();
   };
-
-
 
   // Participant Handlers
   const handleSelectHackathon = (hackathon: Hackathon) => {
@@ -245,7 +242,15 @@ export function App() {
 
   // Organizer Handlers
   const handleCreateHackathon = (newHackathon: Hackathon) => {
-    setHackathons([newHackathon, ...hackathons]);
+    // Check if modifying existing
+    setHackathons(prev => {
+      const exists = prev.some(h => h.id === newHackathon.id);
+      if (exists) {
+        return prev.map(h => h.id === newHackathon.id ? newHackathon : h);
+      }
+      return [newHackathon, ...prev];
+    });
+
     saveHackathonToDb({
       id: newHackathon.id,
       title: newHackathon.title,
@@ -260,10 +265,14 @@ export function App() {
       image_gradient: 'from-indigo-600 to-purple-600',
       featured: newHackathon.featured
     });
+    
     setSelectedHackathon(newHackathon);
-    setCurrentRole('participant');
-    setActiveTab('detail');
-    alert('Hackathon successfully created & saved to PostgreSQL database!');
+    setActiveTab('hackathons');
+    alert('Hackathon successfully saved & synced to backend and database!');
+  };
+
+  const handleDeleteHackathon = (hackathonId: string) => {
+    setHackathons(hackathons.filter(h => h.id !== hackathonId));
   };
 
   const handleUpdateTeamStatus = (teamId: string, status: 'Approved' | 'Rejected') => {
@@ -324,6 +333,23 @@ export function App() {
       return <ContactPage onNavigateHome={() => setShowContact(false)} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateAbout={() => { setShowContact(false); setShowAbout(true); }} />;
     }
     return <LandingPage onLogin={handleLogin} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateAbout={() => setShowAbout(true)} onNavigateContact={() => setShowContact(true)} />;
+  }
+
+  // --- ORGANIZER ROLE FULL SCREEN VIEW BYPASS ---
+  if (currentRole === 'organizer') {
+    return (
+      <div className="min-h-screen bg-[#F4F6FB] selection:bg-indigo-500 selection:text-white w-full">
+        <OrganizerWorkspace
+          hackathons={hackathons}
+          teams={teams}
+          announcements={announcements}
+          onCreateHackathon={handleCreateHackathon}
+          onDeleteHackathon={handleDeleteHackathon}
+          onUpdateTeamStatus={handleUpdateTeamStatus}
+          onBroadcastAnnouncement={handleBroadcastAnnouncement}
+        />
+      </div>
+    );
   }
 
   return (
@@ -451,32 +477,6 @@ export function App() {
               )}
             </>
           )}
-
-        {/* ORGANIZER VIEW */}
-        {currentRole === 'organizer' && (
-          <>
-            {activeTab === 'create' && (
-              <CreateHackathonWizard
-                onCreateHackathon={handleCreateHackathon}
-                onCancel={() => setActiveTab('manage')}
-              />
-            )}
-
-            {activeTab === 'manage' && (
-              <ParticipantManagement
-                teams={teams}
-                onUpdateTeamStatus={handleUpdateTeamStatus}
-              />
-            )}
-
-            {activeTab === 'broadcast' && (
-              <AnnouncementBroadcaster
-                hackathons={hackathons}
-                onBroadcastAnnouncement={handleBroadcastAnnouncement}
-              />
-            )}
-          </>
-        )}
 
         {/* JUDGE VIEW */}
         {currentRole === 'judge' && (

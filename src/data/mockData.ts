@@ -42,11 +42,11 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     location: 'Global (Virtual)',
     startDate: '2026-07-20T09:00:00Z',
     endDate: '2026-07-28T23:59:59Z',
-    prizePool: '$50,000',
+    prizePool: '₹40,00,000',
     prizeBreakdown: [
-      { title: '🥇 1st Grand Winner', amount: '$25,000', description: 'Includes Cloud credits & Vercel Pro membership.' },
-      { title: '🥈 2nd Place Runner-Up', amount: '$15,000', description: 'Includes $5k API credits for LLM tooling.' },
-      { title: '🥉 Best UI/UX Design', amount: '$10,000', description: 'Awarded to top visually outstanding application.' }
+      { title: '🥇 1st Grand Winner', amount: '₹20,00,000', description: 'Includes Cloud credits & Vercel Pro membership.' },
+      { title: '🥈 2nd Place Runner-Up', amount: '₹12,00,000', description: 'Includes ₹4 lakh API credits for LLM tooling.' },
+      { title: '🥉 Best UI/UX Design', amount: '₹8,00,000', description: 'Awarded to top visually outstanding application.' }
     ],
     tracks: ['Generative AI', 'Agentic Coding', 'Multimodal Web Apps', 'Open Innovation'],
     problemStatements: [
@@ -108,11 +108,11 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     location: 'San Francisco, CA & Online',
     startDate: '2026-08-10T10:00:00Z',
     endDate: '2026-08-15T18:00:00Z',
-    prizePool: '$75,000',
+    prizePool: '₹60,00,000',
     prizeBreakdown: [
-      { title: '🏆 Grand Protocol Prize', amount: '$40,000' },
-      { title: '⚡ Best ZK Application', amount: '$20,000' },
-      { title: '🎨 Best DAO Tooling', amount: '$15,000' }
+      { title: '🏆 Grand Protocol Prize', amount: '₹32,00,000' },
+      { title: '⚡ Best ZK Application', amount: '₹16,00,000' },
+      { title: '🎨 Best DAO Tooling', amount: '₹12,0,000' }
     ],
     tracks: ['DeFi', 'Zero-Knowledge', 'Cross-Chain', 'Infra & Tooling'],
     problemStatements: [
@@ -155,10 +155,10 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     location: 'Berlin Tech Center, Germany',
     startDate: '2026-06-01T08:00:00Z',
     endDate: '2026-06-05T20:00:00Z',
-    prizePool: '$30,000',
+    prizePool: '₹25,00,000',
     prizeBreakdown: [
-      { title: '🌱 Eco Champion', amount: '$18,000' },
-      { title: '⚡ Smart Energy Award', amount: '$12,000' }
+      { title: '🌱 Eco Champion', amount: '₹15,00,000' },
+      { title: '⚡ Smart Energy Award', amount: '₹10,00,000' }
     ],
     tracks: ['Carbon Footprint', 'Renewable Energy', 'Circular Economy'],
     problemStatements: [
@@ -198,11 +198,11 @@ export const INITIAL_HACKATHONS: Hackathon[] = [
     location: 'Global (Virtual)',
     startDate: '2026-07-20T00:00:00Z',
     endDate: '2026-08-15T23:59:59Z',
-    prizePool: '$60,000',
+    prizePool: '₹50,00,000',
     prizeBreakdown: [
-      { title: '🥇 1st Place Quantum Alpha', amount: '$30,000', description: 'Best quantum-resistant financial protocol.' },
-      { title: '🥈 2nd Place Algo Bot', amount: '$18,000', description: 'High-frequency algorithmic trading strategy.' },
-      { title: '🥉 3rd Place DeFi Shield', amount: '$12,000', description: 'DeFi protocol risk management system.' }
+      { title: '🥇 1st Place Quantum Alpha', amount: '₹25,00,000', description: 'Best quantum-resistant financial protocol.' },
+      { title: '🥈 2nd Place Algo Bot', amount: '₹15,00,000', description: 'High-frequency algorithmic trading strategy.' },
+      { title: '🥉 3rd Place DeFi Shield', amount: '₹10,00,000', description: 'DeFi protocol risk management system.' }
     ],
     tracks: ['Quantum Cryptography', 'DeFi & Trading', 'Algorithmic Risk'],
     problemStatements: [

@@ -277,7 +277,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
   const stats = [
     { label: 'Hackathons Hosted',     value: '500+',    icon: <Layers    className="text-indigo-500" size={22} /> },
     { label: 'Active Participants',    value: '50,000+', icon: <Users     className="text-purple-500" size={22} /> },
-    { label: 'Prize Pool Distributed', value: '$2M+',    icon: <Trophy    className="text-amber-500"  size={22} /> },
+    { label: 'Prize Pool Distributed', value: '₹15Cr+',   icon: <Trophy    className="text-amber-500"  size={22} /> },
     { label: 'Projects Submitted',     value: '12,000+', icon: <GitBranch className="text-cyan-500"   size={22} /> },
     { label: 'Expert Judges',          value: '1,200+',  icon: <Award     className="text-pink-500"   size={22} /> },
   ];
@@ -629,7 +629,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
               <div className="font-extrabold text-3xl" style={{
                 background: 'linear-gradient(135deg, #10b981, #14b8a6)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              }}>$50,000</div>
+              }} >₹40,00,000</div>
             </motion.div>
 
             {/* ── Floating Card: Submission */}
