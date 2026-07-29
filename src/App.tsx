@@ -373,7 +373,13 @@ export function App() {
       </main>
 
       {/* Persistent Footer */}
-      <Footer onOpenTeamModal={() => setIsTeamModalOpen(true)} />
+      <Footer
+        onOpenTeamModal={() => setIsTeamModalOpen(true)}
+        onNavigate={(tab, role) => {
+          setCurrentRole(role);
+          setActiveTab(tab);
+        }}
+      />
 
       {/* Global Modals */}
       <TeamModal
