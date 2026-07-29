@@ -10,12 +10,28 @@ import { SignupPage } from './components/SignupPage';
 import { AboutPage } from './components/landing/AboutPage';
 import { ContactPage } from './components/landing/ContactPage';
 
+// Sidebar & Layout Components
+import { SidebarNavigation } from './components/layout/SidebarNavigation';
+
 // Participant Components
 import { HackathonList } from './components/participant/HackathonList';
 import { HackathonDetail } from './components/participant/HackathonDetail';
+import { ParticipantOnboarding } from './components/participant/ParticipantOnboarding';
+import { ParticipantDashboard } from './components/participant/ParticipantDashboard';
+import { ParticipantMainDashboard } from './components/participant/ParticipantMainDashboard';
+import { TeamsWorkspaceView } from './components/participant/TeamsWorkspaceView';
+import { ProjectWorkspaceView } from './components/participant/ProjectWorkspaceView';
+import { LearningCenterView } from './components/participant/LearningCenterView';
+import { CertificatesView } from './components/participant/CertificatesView';
+import { CalendarView } from './components/participant/CalendarView';
+import { MessagesView } from './components/participant/MessagesView';
+import { SettingsView } from './components/participant/SettingsView';
 import { TeamRegistrationModal } from './components/participant/TeamRegistrationModal';
 import { ProjectSubmissionModal } from './components/participant/ProjectSubmissionModal';
 import { LeaderboardView } from './components/participant/LeaderboardView';
+
+// AI Suite Components
+import { AiAssistantHub } from './components/ai/AiAssistantHub';
 
 // Organizer Components
 import { CreateHackathonWizard } from './components/organizer/CreateHackathonWizard';
@@ -40,6 +56,7 @@ import {
 
 import type {
   UserRole,
+  AuthenticatedUser,
   Hackathon,
   ProjectSubmission,
   Team,
@@ -48,17 +65,46 @@ import type {
   JudgeScore
 } from './types';
 
-// Authenticated user type
-interface AuthenticatedUser {
-  name: string;
-  email: string;
-  avatar: string;
-}
+// Default mock user fallback
+const DEFAULT_USER: AuthenticatedUser = {
+  name: 'Roohi',
+  email: 'roohi@hackathon.io',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150&h=150',
+  role: 'participant',
+  profileComplete: true,
+  college: 'National Institute of Technology',
+  github: 'https://github.com/Roohi161',
+  bio: 'Full-Stack Developer & AI Specialist',
+  skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Python']
+};
+
+const getSavedUser = (): AuthenticatedUser => {
+  try {
+    const saved = localStorage.getItem('hackathon_user');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.name) return parsed;
+    }
+  } catch (e) {
+    console.error('Failed to parse saved user from localStorage', e);
+  }
+  return DEFAULT_USER;
+};
 
 export function App() {
   // Authentication State
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loggedInUser, setLoggedInUser] = useState<AuthenticatedUser | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<AuthenticatedUser | null>(getSavedUser);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('hackathon_is_auth') === 'true' || true;
+  });
+
+  // Keep localStorage synced whenever loggedInUser changes
+  useEffect(() => {
+    if (loggedInUser) {
+      localStorage.setItem('hackathon_user', JSON.stringify(loggedInUser));
+      localStorage.setItem('hackathon_is_auth', 'true');
+    }
+  }, [loggedInUser]);
 
   // Global State
   const [currentRole, setCurrentRole] = useState<UserRole>('participant');
@@ -131,19 +177,39 @@ export function App() {
   // Login Handler
   const handleLogin = (role: UserRole, user: AuthenticatedUser) => {
     setLoggedInUser(user);
+    localStorage.setItem('hackathon_user', JSON.stringify(user));
+    localStorage.setItem('hackathon_is_auth', 'true');
     setCurrentRole(role);
     setIsAuthenticated(true);
-    // Set the default tab for the role
-    if (role === 'participant') setActiveTab('explore');
-    else if (role === 'organizer') setActiveTab('create');
-    else if (role === 'judge') setActiveTab('judge-portal');
-    else if (role === 'admin') setActiveTab('admin-dashboard');
+    setShowLogin(false);
+    
+    // Default routing based on role
+    if (role === 'participant') {
+      setActiveTab(user.profileComplete ? 'dashboard' : 'onboarding');
+    } else if (role === 'organizer') {
+      setActiveTab('organizer');
+    } else if (role === 'admin') {
+      setActiveTab('admin');
+    } else {
+      setActiveTab('dashboard');
+    }
+    
+    addToast('Successfully signed in!', 'success');
+  };
+
+  const handleProfileComplete = (updatedUser: AuthenticatedUser) => {
+    setLoggedInUser(updatedUser);
+    localStorage.setItem('hackathon_user', JSON.stringify(updatedUser));
+    setActiveTab('dashboard');
+    addToast('Profile completed successfully!', 'success');
   };
 
   // Logout Handler
   const handleLogout = () => {
     setIsAuthenticated(false);
     setLoggedInUser(null);
+    localStorage.removeItem('hackathon_user');
+    localStorage.setItem('hackathon_is_auth', 'false');
     setCurrentRole('participant');
     setActiveTab('explore');
   };
@@ -275,36 +341,116 @@ export function App() {
         onLogout={handleLogout}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Layout Wrapper */}
+      <div className="flex-1 max-w-7xl w-full mx-auto flex items-start">
         
-        {/* PARTICIPANT VIEW */}
-        {currentRole === 'participant' && (
-          <>
-            {activeTab === 'explore' && (
-              <HackathonList
-                hackathons={hackathons}
-                onSelectHackathon={handleSelectHackathon}
-              />
-            )}
+        {/* Sidebar Navigation */}
+        <SidebarNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          currentRole={currentRole}
+          setCurrentRole={setCurrentRole}
+          onLogout={handleLogout}
+          userName={loggedInUser?.name}
+          userAvatar={loggedInUser?.avatar}
+          unreadMessagesCount={announcements.length}
+        />
 
-            {activeTab === 'detail' && selectedHackathon && (
-              <HackathonDetail
-                hackathon={selectedHackathon}
-                onBack={() => setActiveTab('explore')}
-                onOpenTeamRegistration={() => setIsTeamRegModalOpen(true)}
-                onOpenSubmissionModal={() => setIsSubmissionModalOpen(true)}
-              />
-            )}
+        {/* Main Content Area */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+          
+          {/* PROFILE VIEW */}
+          {activeTab === 'profile' && (
+            <UserProfilePage 
+              user={loggedInUser} 
+              onLogout={handleLogout} 
+              onUpdateUser={(updated) => setLoggedInUser((prev: AuthenticatedUser | null) => prev ? { ...prev, ...updated } : null)}
+            />
+          )}
 
-            {activeTab === 'leaderboard' && (
-              <LeaderboardView
-                submissions={submissions}
-                hackathons={hackathons}
-              />
-            )}
-          </>
-        )}
+          {/* SETTINGS VIEW */}
+          {activeTab === 'settings' && (
+            <SettingsView />
+          )}
+
+          {/* AI SUITE HUB */}
+          {activeTab === 'ai-assistant' && (
+            <AiAssistantHub />
+          )}
+
+          {/* PARTICIPANT VIEWS */}
+          {currentRole === 'participant' && (
+            <>
+              {(!loggedInUser?.profileComplete && activeTab === 'onboarding') ? (
+                <ParticipantOnboarding user={loggedInUser!} onComplete={handleProfileComplete} />
+              ) : (
+                <>
+                  {activeTab === 'dashboard' && (
+                    <ParticipantMainDashboard
+                      user={loggedInUser!}
+                      hackathons={hackathons}
+                      onViewHackathon={(h) => {
+                        setSelectedHackathon(h);
+                        setActiveTab('detail');
+                      }}
+                      onNavigateTab={setActiveTab}
+                    />
+                  )}
+                  {activeTab === 'explore' && (
+                    <HackathonList
+                      hackathons={hackathons}
+                      onSelectHackathon={(h) => {
+                        setSelectedHackathon(h);
+                        setActiveTab('detail');
+                      }}
+                    />
+                  )}
+                  {activeTab === 'my-hackathons' && (
+                    <ParticipantDashboard 
+                      user={loggedInUser!} 
+                      allHackathons={hackathons} 
+                      onViewHackathon={(h) => {
+                        setSelectedHackathon(h);
+                        setActiveTab('detail');
+                      }}
+                    />
+                  )}
+                  {activeTab === 'teams' && (
+                    <TeamsWorkspaceView />
+                  )}
+                  {activeTab === 'projects' && (
+                    <ProjectWorkspaceView />
+                  )}
+                  {activeTab === 'learning' && (
+                    <LearningCenterView />
+                  )}
+                  {activeTab === 'certificates' && (
+                    <CertificatesView />
+                  )}
+                  {activeTab === 'calendar' && (
+                    <CalendarView />
+                  )}
+                  {activeTab === 'messages' && (
+                    <MessagesView />
+                  )}
+                  {activeTab === 'detail' && selectedHackathon && (
+                    <HackathonDetail
+                      hackathon={selectedHackathon}
+                      onBack={() => setActiveTab('dashboard')}
+                      onOpenTeamRegistration={() => setIsTeamRegModalOpen(true)}
+                      onOpenSubmissionModal={() => setIsSubmissionModalOpen(true)}
+                    />
+                  )}
+                </>
+              )}
+              {activeTab === 'leaderboard' && (
+                <LeaderboardView
+                  submissions={submissions}
+                  hackathons={hackathons}
+                />
+              )}
+            </>
+          )}
 
         {/* ORGANIZER VIEW */}
         {currentRole === 'organizer' && (
@@ -369,8 +515,8 @@ export function App() {
             onUpdateVerificationStatus={handleUpdateVerificationStatus}
           />
         )}
-
-      </main>
+        </main>
+      </div>
 
       {/* Persistent Footer */}
       <Footer

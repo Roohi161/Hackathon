@@ -76,10 +76,14 @@ export interface AuthenticatedUser {
   name: string;
   email: string;
   avatar: string;
+  role?: string;
   profileComplete?: boolean;
   education?: string;
+  college?: string;
+  bio?: string;
   skills?: string[];
   githubUrl?: string;
+  github?: string;
   linkedinUrl?: string;
 }
 

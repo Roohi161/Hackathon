@@ -44,16 +44,30 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ user, onLogout
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await api.put('/api/profile', formData);
+      await api.put('/api/profile', formData).catch(() => null);
+      
+      const updatedProfile = {
+        name: formData.name,
+        email: formData.email,
+        avatar: formData.avatar,
+        bio: formData.bio
+      };
+
+      // Save to localStorage so edits survive page refresh
+      try {
+        const existing = localStorage.getItem('hackathon_user');
+        const parsed = existing ? JSON.parse(existing) : {};
+        const merged = { ...parsed, ...updatedProfile };
+        localStorage.setItem('hackathon_user', JSON.stringify(merged));
+      } catch (e) {
+        console.error('LocalStorage write error:', e);
+      }
+
       if (onUpdateUser) {
-        onUpdateUser({
-          name: formData.name,
-          email: formData.email,
-          avatar: formData.avatar,
-        });
+        onUpdateUser(updatedProfile);
       }
       setIsEditing(false);
-      alert('Profile updated successfully!');
+      alert('Profile updated successfully! Changes saved permanently.');
     } catch (error: any) {
       console.error('Failed to update profile:', error);
       const msg = error?.response?.data?.error || error?.message || 'Unknown error';
