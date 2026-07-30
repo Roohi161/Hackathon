@@ -127,6 +127,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [editingHackathonId, setEditingHackathonId] = useState<string | null>(null);
   const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
   const [isBannerConfirmed, setIsBannerConfirmed] = useState(false);
+  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
 
   // Step 2 State - Tracks & Problems
   const [problemStatements, setProblemStatements] = useState<ProblemStatement[]>([
@@ -1090,41 +1091,124 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           {/* TAB 4: REGISTRATIONS & TEAMS */}
           {activeTab === 'teams' && (
             <div className="space-y-6">
-              <h3 className="text-xl font-extrabold text-slate-955">Developer Registrations</h3>
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-950">Developer Registrations</h3>
+                  <p className="text-xs text-slate-500 font-medium">Verify team justifications, member profiles, and approve/reject applications</p>
+                </div>
+                <div className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3.5 py-2 rounded-xl">
+                  {teams.length} Teams Registered
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50 font-bold text-slate-600">
-                      <th className="p-4">Team Name</th>
+                    <tr className="border-b border-slate-200 bg-slate-50 font-black text-slate-500 uppercase tracking-wider text-[10px]">
+                      <th className="p-4">Group Name</th>
+                      <th className="p-4">Group Number/Code</th>
                       <th className="p-4">Leader Email</th>
-                      <th className="p-4">Members</th>
+                      <th className="p-4">Group Size</th>
                       <th className="p-4">Status</th>
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {teams.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-4 font-bold text-slate-900">{t.name}</td>
-                        <td className="p-4 text-slate-500 font-mono">{t.leaderEmail}</td>
-                        <td className="p-4 font-semibold text-indigo-600">{t.members.length} members</td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold border ${
-                            t.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
-                            {t.status}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right space-x-2">
-                          <button
-                            onClick={() => onUpdateTeamStatus(t.id, 'Approved')}
-                            className="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-xs shadow-sm hover:scale-[1.02] transition-transform"
+                    {teams.map((t) => {
+                      const isExpanded = expandedTeamId === t.id;
+                      return (
+                        <React.Fragment key={t.id}>
+                          {/* Main Row */}
+                          <tr
+                            onClick={() => setExpandedTeamId(isExpanded ? null : t.id)}
+                            className="hover:bg-slate-50/80 cursor-pointer transition-colors"
                           >
-                            Approve
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                            <td className="p-4 font-extrabold text-slate-900 flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                              {t.name}
+                            </td>
+                            <td className="p-4 text-slate-600 font-mono font-bold">{t.inviteCode || 'N/A'}</td>
+                            <td className="p-4 text-slate-550 font-medium">{t.leaderEmail}</td>
+                            <td className="p-4 font-bold text-slate-700">{t.members.length} Members</td>
+                            <td className="p-4">
+                              <span className={`px-3 py-1 rounded-full text-[9px] font-extrabold uppercase border ${
+                                t.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                t.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
+                                {t.status}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => {
+                                  onUpdateTeamStatus(t.id, 'Approved');
+                                  alert(`Team "${t.name}" Approved!`);
+                                }}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] shadow-sm hover:scale-[1.02] transition-transform"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => {
+                                  onUpdateTeamStatus(t.id, 'Rejected');
+                                  alert(`Team "${t.name}" Rejected!`);
+                                }}
+                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-[10px] border border-rose-200 hover:scale-[1.02] transition-transform"
+                              >
+                                Reject
+                              </button>
+                            </td>
+                          </tr>
+
+                          {/* Expanded Detail Panel Row */}
+                          {isExpanded && (
+                            <tr className="bg-slate-50/70">
+                              <td colSpan={6} className="p-5 border-t border-slate-100">
+                                <div className="space-y-4 max-w-4xl">
+                                  
+                                  {/* Justification details */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1">
+                                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">💡 Project Idea / Description</span>
+                                      <p className="text-xs text-slate-700 font-medium leading-relaxed">
+                                        {t.description || 'No description supplied. Group plans to build custom solutions matching the hackathon tracks.'}
+                                      </p>
+                                    </div>
+                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1">
+                                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">❓ Why should we approve?</span>
+                                      <p className="text-xs text-slate-700 font-medium leading-relaxed">
+                                        {t.justification || 'No justification details provided by the team lead yet.'}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Individual Members List */}
+                                  <div className="space-y-2">
+                                    <span className="text-[10px] text-slate-400 font-extrabold uppercase px-1">👥 Group Members ({t.members.length})</span>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                      {t.members.map((member) => (
+                                        <div key={member.id} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-2.5">
+                                          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-650 flex items-center justify-center font-bold text-xs">
+                                            {member.name.charAt(0)}
+                                          </div>
+                                          <div className="truncate">
+                                            <div className="font-extrabold text-slate-800 truncate text-[11px]">{member.name}</div>
+                                            <div className="text-[9px] text-slate-450 truncate">{member.email}</div>
+                                            <div className="text-[9px] text-indigo-600 font-bold">{member.role}</div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

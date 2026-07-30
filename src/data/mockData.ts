@@ -416,6 +416,8 @@ export const INITIAL_TEAMS: Team[] = [
     hackathonId: 'hack-1',
     status: 'Approved',
     registeredAt: '2026-07-20T11:00:00Z',
+    description: 'A platform to build autonomous code refactoring tools using advanced agents.',
+    justification: 'Our team comprises experienced developers who have previously won multiple state-level hackathons. We want to solve the code refactoring problem because manual reviews are extremely time consuming.',
     members: [
       { id: 'm-1', name: 'Shaik Ansar Ali', email: 'ansar@hackathoncentral.io', role: 'Team Lead' },
       { id: 'm-2', name: 'KVS Bhavya Sri', email: 'bhavya@hackathoncentral.io', role: 'UI/UX Lead' },
@@ -432,6 +434,8 @@ export const INITIAL_TEAMS: Team[] = [
     hackathonId: 'hack-1',
     status: 'Approved',
     registeredAt: '2026-07-21T14:20:00Z',
+    description: 'AI-driven crop classification model with mobile-first reporting interface.',
+    justification: 'We have a working prototype of our crop model and want to deploy it in browser-level client instances to make it highly accessible.',
     members: [
       { id: 'm-5', name: 'Alex Rivera', email: 'alex@visionary.io', role: 'Full Stack' },
       { id: 'm-6', name: 'Elena Rostova', email: 'elena@visionary.io', role: 'ML Researcher' }
@@ -446,6 +450,8 @@ export const INITIAL_TEAMS: Team[] = [
     hackathonId: 'hack-1',
     status: 'Pending',
     registeredAt: '2026-07-25T09:10:00Z',
+    description: 'Lattice-based vault system for banking transactions.',
+    justification: 'Our team specializes in mathematical cryptography. We aim to construct post-quantum proof mechanisms to secure transaction protocols against potential compute vectors.',
     members: [
       { id: 'm-7', name: 'Carlos Gomez', email: 'carlos@quantum.org', role: 'Developer' }
     ]

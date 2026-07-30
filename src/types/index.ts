@@ -36,6 +36,8 @@ export interface Team {
   hackathonId: string;
   status: 'Approved' | 'Pending' | 'Rejected';
   registeredAt: string;
+  justification?: string;
+  description?: string;
 }
 
 export interface JudgeScore {

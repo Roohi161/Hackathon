@@ -29,6 +29,7 @@ import { SettingsView } from './components/participant/SettingsView';
 import { TeamRegistrationModal } from './components/participant/TeamRegistrationModal';
 import { ProjectSubmissionModal } from './components/participant/ProjectSubmissionModal';
 import { LeaderboardView } from './components/participant/LeaderboardView';
+import { UserProfilePage } from './components/profile/UserProfilePage';
 
 // AI Suite Components
 import { AiAssistantHub } from './components/ai/AiAssistantHub';
@@ -63,31 +64,9 @@ import type {
   JudgeScore
 } from './types';
 
-// Default mock user fallback
-const DEFAULT_USER: AuthenticatedUser = {
-  name: 'Roohi',
-  email: 'roohi@hackathon.io',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150&h=150',
-  role: 'participant',
-  profileComplete: true,
-  college: 'National Institute of Technology',
-  github: 'https://github.com/Roohi161',
-  bio: 'Full-Stack Developer & AI Specialist',
-  skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Python']
-};
 
-const getSavedUser = (): AuthenticatedUser => {
-  try {
-    const saved = localStorage.getItem('hackathon_user');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.name) return parsed;
-    }
-  } catch (e) {
-    console.error('Failed to parse saved user from localStorage', e);
-  }
-  return DEFAULT_USER;
-};
+
+
 
 export function App() {
   // Authentication State
@@ -238,6 +217,12 @@ export function App() {
 
   const handleSubmitProject = (newSubmission: ProjectSubmission) => {
     setSubmissions([newSubmission, ...submissions]);
+  };
+
+  const handleProfileComplete = (updatedUser: AuthenticatedUser) => {
+    setLoggedInUser({ ...updatedUser, profileComplete: true });
+    localStorage.setItem('hc_user', JSON.stringify({ ...updatedUser, profileComplete: true }));
+    setActiveTab('dashboard');
   };
 
   // Organizer Handlers
@@ -415,30 +400,21 @@ export function App() {
                     <ParticipantMainDashboard
                       user={loggedInUser!}
                       hackathons={hackathons}
-                      onViewHackathon={(h) => {
-                        setSelectedHackathon(h);
-                        setActiveTab('detail');
-                      }}
+                      onViewHackathon={handleSelectHackathon}
                       onNavigateTab={setActiveTab}
                     />
                   )}
                   {activeTab === 'explore' && (
                     <HackathonList
                       hackathons={hackathons}
-                      onSelectHackathon={(h) => {
-                        setSelectedHackathon(h);
-                        setActiveTab('detail');
-                      }}
+                      onSelectHackathon={handleSelectHackathon}
                     />
                   )}
                   {activeTab === 'my-hackathons' && (
                     <ParticipantDashboard 
                       user={loggedInUser!} 
                       allHackathons={hackathons} 
-                      onViewHackathon={(h) => {
-                        setSelectedHackathon(h);
-                        setActiveTab('detail');
-                      }}
+                      onViewHackathon={handleSelectHackathon}
                     />
                   )}
                   {activeTab === 'teams' && (
