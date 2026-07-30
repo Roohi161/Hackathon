@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Trophy,
@@ -13,19 +13,16 @@ import {
   Cpu,
   Calendar as CalendarIcon,
   History,
-  CheckCircle,
   Plus,
   Settings,
-  Zap,
-  Target,
-  Sparkle,
-  AlertCircle
+  Sparkle
 } from 'lucide-react';
-import type { Hackathon, Team, Announcement, ProblemStatement, RubricCriteria, PrizeItem } from '../../types';
+import type { Hackathon, Team, Announcement, ProblemStatement, RubricCriteria, PrizeItem, ProjectSubmission } from '../../types';
 
 interface OrganizerWorkspaceProps {
   hackathons: Hackathon[];
   teams: Team[];
+  submissions?: ProjectSubmission[];
   announcements: Announcement[];
   onCreateHackathon: (hackathon: Hackathon) => void;
   onDeleteHackathon: (hackathonId: string) => void;
@@ -39,9 +36,19 @@ interface CustomDateItem {
   notified: boolean;
 }
 
+interface JudgeItem {
+  id: string;
+  name: string;
+  email: string;
+  expertise: string;
+  assignedTrack: string;
+  status: string;
+}
+
 export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   hackathons,
   teams,
+  submissions = [],
   onCreateHackathon,
   onDeleteHackathon,
   onUpdateTeamStatus,
@@ -68,6 +75,39 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [showCalendarDropdown, setShowCalendarDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
+  // Dropdown reference containers for outside click detection
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const orgRef = useRef<HTMLDivElement>(null);
+
+  // Global Outside Click Detector
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Close calendar dropdown
+      if (showCalendarDropdown && calendarRef.current && !calendarRef.current.contains(target)) {
+        setShowCalendarDropdown(false);
+      }
+      // Close notifications drawer
+      if (showNotifications && notificationRef.current && !notificationRef.current.contains(target)) {
+        setShowNotifications(false);
+      }
+      // Close profile dropdown
+      if (showProfileDropdown && profileRef.current && !profileRef.current.contains(target)) {
+        setShowProfileDropdown(false);
+      }
+      // Close org dropdown
+      if (showOrgDropdown && orgRef.current && !orgRef.current.contains(target)) {
+        setShowOrgDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showCalendarDropdown, showNotifications, showProfileDropdown, showOrgDropdown]);
+
   // Settings tab configurations
   const [workspaceTheme, setWorkspaceTheme] = useState('light-glass');
   const [allowPublicSubmissions, setAllowPublicSubmissions] = useState(true);
@@ -87,10 +127,54 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [newDateValue, setNewDateValue] = useState('');
   const [todayNotification, setTodayNotification] = useState<string | null>(null);
 
-  // Save custom dates
+  // Judges state variables
+  const [judges, setJudges] = useState<JudgeItem[]>(() => {
+    const raw = localStorage.getItem('hc_judges');
+    if (raw) return JSON.parse(raw);
+    return [
+      { id: 'j-1', name: 'Dr. Suresh Kumar', email: 'suresh@judge.io', expertise: 'Computer Vision & LLMs', assignedTrack: 'Generative AI', status: 'Active' },
+      { id: 'j-2', name: 'Elena Rostova', email: 'elena@judge.io', expertise: 'Web3 Security', assignedTrack: 'Agentic Coding', status: 'Active' }
+    ];
+  });
+
+  // Judge Add Form state
+  const [newJudgeName, setNewJudgeName] = useState('');
+  const [newJudgeEmail, setNewJudgeEmail] = useState('');
+  const [newJudgeExpertise, setNewJudgeExpertise] = useState('');
+  const [newJudgeTrack, setNewJudgeTrack] = useState('Generative AI');
+
+  // Save custom dates & judges
   useEffect(() => {
     localStorage.setItem('hc_custom_dates', JSON.stringify(customDates));
   }, [customDates]);
+
+  useEffect(() => {
+    localStorage.setItem('hc_judges', JSON.stringify(judges));
+  }, [judges]);
+
+  const handleAddJudge = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newJudgeName || !newJudgeEmail) return;
+    const j: JudgeItem = {
+      id: `j-${Date.now()}`,
+      name: newJudgeName,
+      email: newJudgeEmail,
+      expertise: newJudgeExpertise || 'General Software Engineering',
+      assignedTrack: newJudgeTrack,
+      status: 'Active'
+    };
+    setJudges([...judges, j]);
+    setNewJudgeName('');
+    setNewJudgeEmail('');
+    setNewJudgeExpertise('');
+    alert(`⚖️ Judge "${newJudgeName}" added successfully to evaluations panel!`);
+  };
+
+  const handleDeleteJudge = (id: string) => {
+    if (confirm('Are you sure you want to remove this judge?')) {
+      setJudges(judges.filter(j => j.id !== id));
+    }
+  };
 
   // Check for arrived dates on mount/load
   useEffect(() => {
@@ -98,7 +182,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
     const arrived = customDates.find(d => d.date === todayStr && !d.notified);
     if (arrived) {
       setTodayNotification(arrived.title);
-      // Mark as notified so it only popups once
       setCustomDates(prev => prev.map(d => d.date === todayStr ? { ...d, notified: true } : d));
     }
   }, []);
@@ -122,10 +205,8 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [mode, setMode] = useState<'online' | 'hybrid' | 'in-person'>('online');
   const [prizePool, setPrizePool] = useState('₹25,00,000');
   const [maxTeamSize, setMaxTeamSize] = useState('4');
-  const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
-  const [registrationDeadline, setRegistrationDeadline] = useState('2026-08-30');
+  const [difficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
   const [editingHackathonId, setEditingHackathonId] = useState<string | null>(null);
-  const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
   const [isBannerConfirmed, setIsBannerConfirmed] = useState(false);
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
 
@@ -142,9 +223,9 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
   // Step 3 State - Prizes
   const [prizes, setPrizes] = useState<PrizeItem[]>([
-    { title: '🥇 1st Place Grand Champion', amount: '₹15,00,000', description: 'Main cash prize + Server sponsorship' },
-    { title: '🥈 2nd Place Runner-Up', amount: '₹7,50,000', description: 'Runner-up award' },
-    { title: '🥉 3rd Place Innovation Award', amount: '₹2,50,000', description: 'Special visual design award' }
+    { title: '🥇 1st Place Grand Winner (60%)', amount: '₹15,00,000', description: 'Top performing implementation' },
+    { title: '🥈 2nd Place Runner-Up (30%)', amount: '₹7,50,050', description: 'Second place runner-up' },
+    { title: '🥉 3rd Place Third Winner (10%)', amount: '₹2,50,000', description: 'Third place award' }
   ]);
 
   // Step 4 State - Rubrics
@@ -268,13 +349,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
     alert('📢 Announcement broadcasted live to all registered participants!');
   };
 
-  const handleAiBannerGenerate = () => {
-    setIsGeneratingBanner(true);
-    setTimeout(() => {
-      setBanner('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80');
-      setIsGeneratingBanner(false);
-    }, 1500);
-  };
+
 
   // Compiler bypass
   if (currentOrg === '' && showOrgDropdown && searchQuery === '' && statusFilter === 'All') {
@@ -287,15 +362,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   return (
     <div className="min-h-screen bg-[#F0F2F6] text-slate-800 flex flex-col w-full relative overflow-x-hidden">
       
-      {/* ── WOW BACKGROUND ELEMENTS (GLOWING ORBS, HIGHER OPACITY GRIDS) ──── */}
+      {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(#d1d5db_1.5px,transparent_1.5px)] bg-[size:24px_24px] pointer-events-none opacity-60 z-0" />
-      
-      {/* Giant Rotating Gradient Background Spheres */}
       <div className="absolute top-[-20%] left-[-10%] w-[65vw] h-[65vw] rounded-full bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent blur-[120px] pointer-events-none animate-pulse z-0" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-[-10%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-tr from-pink-500/25 via-cyan-400/10 to-transparent blur-[140px] pointer-events-none animate-pulse z-0" style={{ animationDuration: '12s' }} />
-      <div className="absolute top-[30%] left-[20%] w-[35vw] h-[35vw] rounded-full bg-gradient-to-r from-purple-400/15 to-indigo-500/5 blur-[100px] pointer-events-none z-0" />
 
-      {/* ── TODAY CALENDAR NOTIFICATION MODAL POPUP (WOW ELEMENT) ────────── */}
+      {/* Popups alert */}
       <AnimatePresence>
         {todayNotification && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -305,38 +377,22 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
               exit={{ scale: 0.9, opacity: 0, y: 30 }}
               className="bg-white/90 backdrop-blur-xl border border-white/60 p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-4 text-center relative overflow-hidden"
             >
-              {/* Top glow */}
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-40 bg-indigo-500/30 rounded-full blur-2xl pointer-events-none" />
-              
               <div className="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-pink-500 rounded-2xl flex items-center justify-center text-white mx-auto shadow-lg shadow-indigo-200">
                 <CalendarIcon className="w-8 h-8 animate-bounce" />
               </div>
-
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Date Arrived!</span>
-                <h3 className="text-lg font-black text-slate-950 leading-tight">
-                  📅 {todayNotification}
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Your scheduled calendar reminder is here. Review the dashboard to coordinate details.
-                </p>
+                <h3 className="text-lg font-black text-slate-955 leading-tight">📅 {todayNotification}</h3>
+                <p className="text-xs text-slate-500">Your scheduled calendar reminder is here. Review dashboard to coordinate details.</p>
               </div>
-
-              <button
-                onClick={() => setTodayNotification(null)}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 transition-all hover:scale-[1.02]"
-              >
-                Acknowledge
-              </button>
+              <button onClick={() => setTodayNotification(null)} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all">Acknowledge</button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* ── FLOATING TOP BAR NAVBAR ──────────────────────────────────────── */}
-      <header className="mx-4 md:mx-6 lg:mx-8 my-4 z-40 rounded-2xl border border-slate-200/80 bg-white/70 backdrop-blur-xl shadow-sm flex items-center justify-between px-6 py-3.5 transition-all">
-        
-        {/* Brand */}
+      {/* TOP HEADER */}
+      <header className="mx-4 md:mx-6 lg:mx-8 my-4 z-40 rounded-2xl border border-slate-200/80 bg-white/70 backdrop-blur-xl shadow-sm flex items-center justify-between px-6 py-3.5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-md font-bold">
             <Cpu className="w-5 h-5 animate-spin" style={{ animationDuration: '6s' }} />
@@ -344,127 +400,71 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-extrabold text-slate-900 tracking-tight">Hackathon</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
-                Workspace
-              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">Workspace</span>
             </div>
             <p className="text-[10px] text-slate-400 font-semibold">{currentOrg}</p>
           </div>
         </div>
 
-        {/* Action Widgets */}
         <div className="flex items-center gap-3">
-          
-          {/* Switch Organization */}
-          <div className="relative">
-            <button
-              onClick={() => setShowOrgDropdown(!showOrgDropdown)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-750"
-            >
+          {/* Org dropdown */}
+          <div className="relative" ref={orgRef}>
+            <button onClick={() => setShowOrgDropdown(!showOrgDropdown)} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-700">
               <span>{currentOrg}</span>
               <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400" />
             </button>
             <AnimatePresence>
               {showOrgDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-52 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50"
-                >
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-2 w-52 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50">
                   {['TechCorp India Labs', 'AI Agents Forum Bangalore', 'Vercel India Hub'].map(o => (
-                    <button
-                      key={o}
-                      onClick={() => { setCurrentOrg(o); setShowOrgDropdown(false); }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-50 text-slate-700"
-                    >
-                      {o}
-                    </button>
+                    <button key={o} onClick={() => { setCurrentOrg(o); setShowOrgDropdown(false); }} className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-50 text-slate-700">{o}</button>
                   ))}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Calendar Planner Toggle */}
-          <div className="relative">
-            <button
-              onClick={() => setShowCalendarDropdown(!showCalendarDropdown)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 transition-colors text-xs font-bold"
-            >
+          {/* Calendar dropdown */}
+          <div className="relative" ref={calendarRef}>
+            <button onClick={() => setShowCalendarDropdown(!showCalendarDropdown)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 text-xs font-bold">
               <CalendarIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Calendar</span>
             </button>
             <AnimatePresence>
               {showCalendarDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-80 p-4 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 space-y-4 text-left"
-                >
-                  <h4 className="font-extrabold text-slate-900 text-xs border-b pb-2">Calendar Deadlines</h4>
-                  
-                  {/* Calendar lists */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-2 w-80 p-4 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 space-y-4">
+                  <h4 className="font-extrabold text-slate-900 text-xs border-b pb-2">Calendar Reminders</h4>
                   <div className="space-y-2 text-[10px] max-h-48 overflow-y-auto">
                     {customDates.map((d, idx) => (
                       <div key={idx} className="p-2 bg-indigo-50/50 border border-indigo-100 rounded-lg flex justify-between items-center">
-                        <span className="font-bold text-indigo-950 truncate max-w-[150px]">{d.title}</span>
+                        <span className="font-bold text-indigo-955 truncate max-w-[150px]">{d.title}</span>
                         <span className="font-mono text-[9px] text-indigo-500 font-bold">{d.date}</span>
                       </div>
                     ))}
                   </div>
-
-                  {/* Add date form */}
                   <form onSubmit={handleAddCustomDate} className="space-y-2 border-t pt-3">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase">Add Reminder</span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Code Freeze"
-                      value={newDateTitle}
-                      onChange={(e) => setNewDateTitle(e.target.value)}
-                      className="w-full px-3 py-1.5 border rounded-lg text-[10px] font-semibold"
-                    />
-                    <input
-                      type="date"
-                      required
-                      value={newDateValue}
-                      onChange={(e) => setNewDateValue(e.target.value)}
-                      className="w-full px-3 py-1.5 border rounded-lg text-[10px]"
-                    />
-                    <button type="submit" className="w-full py-2 bg-indigo-650 text-white rounded-lg text-[10px] font-bold">
-                      Add to Calendar
-                    </button>
+                    <input type="text" required placeholder="Reminder Title" value={newDateTitle} onChange={(e) => setNewDateTitle(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg text-[10px]" />
+                    <input type="date" required value={newDateValue} onChange={(e) => setNewDateValue(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg text-[10px]" />
+                    <button type="submit" className="w-full py-2 bg-indigo-600 text-white rounded-lg text-[10px] font-bold">Add Date</button>
                   </form>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Notification Bell */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
-            >
+          {/* Notification drawer */}
+          <div className="relative" ref={notificationRef}>
+            <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-950">
               <Bell className="w-4 h-4" />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-pink-500" />
             </button>
             <AnimatePresence>
               {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-80 p-4 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 space-y-3 text-left"
-                >
-                  <h4 className="font-bold text-slate-900 text-xs border-b pb-2">Live Notifications</h4>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    <div className="p-2.5 bg-slate-50 text-[11px] rounded-lg">
-                      <span className="font-bold">Team CyberKnights registered</span>
-                      <p className="text-slate-500">Regional AI agents challenge participant.</p>
-                    </div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-2 w-80 p-4 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 space-y-2">
+                  <h4 className="font-bold text-slate-900 text-xs border-b pb-2">Notifications</h4>
+                  <div className="p-2.5 bg-slate-50 text-[11px] rounded-lg">
+                    <span className="font-bold">Team CyberPioneers registered</span>
+                    <p className="text-slate-400">Assigned under AI Agents Track.</p>
                   </div>
                 </motion.div>
               )}
@@ -472,38 +472,16 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-all text-xs font-bold text-slate-700"
-            >
-              <div className="w-6.5 h-6.5 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">
-                KS
-              </div>
-              <span className="hidden sm:inline">KVS Bhavya</span>
-              <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400" />
+          <div className="relative" ref={profileRef}>
+            <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold text-slate-700">
+              <div className="w-6.5 h-6.5 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">KS</div>
+              <span>KVS Bhavya</span>
             </button>
             <AnimatePresence>
               {showProfileDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-52 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 text-left"
-                >
-                  <div className="px-3 py-2 text-xs border-b border-slate-100">
-                    <div className="font-bold text-slate-800">KVS Bhavya Sri</div>
-                    <div className="text-[10px] text-slate-400">organizer@hackathon.io</div>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab('settings')}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs text-slate-700 font-semibold flex items-center gap-2"
-                  >
-                    <Settings className="w-3.5 h-3.5" /> Workspace Settings
-                  </button>
-                  <button onClick={() => { setShowProfileDropdown(false); alert('Logged out successfully.'); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs text-rose-600 font-bold">
-                    Log Out
-                  </button>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-2 w-52 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50">
+                  <button onClick={() => setActiveTab('settings')} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs font-semibold">Settings</button>
+                  <button onClick={() => alert('Logged out.')} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs font-bold text-rose-600">Logout</button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -511,111 +489,71 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
         </div>
       </header>
 
-      {/* ── LAYOUT ROW ───────────────────────────────────────────────────── */}
+      {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col lg:flex-row px-4 md:px-6 lg:px-8 pb-6 gap-6 w-full z-10">
-        
-        {/* ── LEFT PANEL (EXPANDED SIDEBAR) ────────────────────────────────── */}
-        <aside className="w-full lg:w-64 flex flex-col gap-5 shrink-0">
-          
-          {/* Main Navigation Group */}
-          <div className="p-4 rounded-3xl bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm space-y-4">
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5">
-                Workspace
-              </div>
-              {[
-                { id: 'overview', label: 'Dashboard Overview', icon: BarChart3 },
-                { id: 'hackathons', label: `My Hackathons (${hackathons.length})`, icon: Layers },
-                { id: 'create', label: 'Create Hackathon', icon: Sparkles },
-                { id: 'teams', label: 'Registrations', icon: Users },
-                { id: 'judges', label: 'Judges & Rubrics', icon: Award },
-                { id: 'broadcast', label: 'Broadcaster', icon: Megaphone },
-                { id: 'settings', label: 'Workspace Settings', icon: Settings },
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    activeTab === item.id
-                      ? 'bg-indigo-600 text-white shadow-md hover:scale-[1.02]'
-                      : 'text-slate-650 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-1'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </button>
-              ))}
-            </div>
+        <aside className="w-full lg:w-64 flex flex-col gap-5 shrink-0 animate-fade-in">
+          <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5">Workspace</span>
+            {[
+              { id: 'overview', label: 'Dashboard Overview', icon: BarChart3 },
+              { id: 'hackathons', label: `My Hackathons (${hackathons.length})`, icon: Layers },
+              { id: 'create', label: 'Create Hackathon', icon: Sparkles },
+              { id: 'teams', label: 'Registrations', icon: Users },
+              { id: 'judges', label: 'Judges & Rubrics', icon: Award },
+              { id: 'broadcast', label: 'Broadcaster', icon: Megaphone },
+              { id: 'settings', label: 'Workspace Settings', icon: Settings },
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as any)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === item.id ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-650 hover:bg-slate-50 hover:translate-x-1'
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </button>
+            ))}
           </div>
 
-          {/* Left Panel Workspace Stats (Revenue & Previous Hackathons) */}
-          <div className="p-5 rounded-3xl bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm space-y-4">
+          {/* Stats widget */}
+          <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
             <h4 className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <History className="w-3.5 h-3.5 text-indigo-500" />
               <span>Workspace Stats</span>
             </h4>
-
-            {/* Total Revenue */}
             <div className="space-y-1">
               <div className="text-[10px] text-slate-400 font-semibold">Total Revenue Earned</div>
               <div className="text-xl font-black text-slate-900 font-mono">₹12,50,000</div>
             </div>
-
-            {/* Revenue breakdown */}
-            <div className="space-y-1 text-[10px] text-slate-500">
+            <div className="space-y-1 text-[10px] text-slate-500 border-t pt-2">
               <div className="flex justify-between">
                 <span>Corporate Sponsors:</span>
                 <span className="font-bold text-slate-800">₹8,00,000</span>
               </div>
               <div className="flex justify-between">
-                <span>Government Grants:</span>
+                <span>Grants:</span>
                 <span className="font-bold text-slate-800">₹4,50,000</span>
-              </div>
-            </div>
-
-            {/* Previous Hackathons */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-100">
-              <div className="text-[10px] text-slate-400 font-semibold">Previous Events (4)</div>
-              <div className="space-y-1">
-                {[
-                  { name: 'Bangalore FinTech Hack 2025', status: 'Completed' },
-                  { name: 'Delhi NCR EdTech Sprint 2025', status: 'Completed' }
-                ].map((ph, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-[10px] p-1.5 bg-slate-50/80 rounded-lg border border-slate-100 hover:shadow-sm transition-all">
-                    <span className="font-bold text-slate-700 truncate max-w-[120px]">{ph.name}</span>
-                    <span className="text-[9px] font-bold text-slate-400 flex items-center gap-0.5">
-                      <CheckCircle className="w-2.5 h-2.5 text-emerald-500" /> {ph.status}
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         </aside>
 
-        {/* ── MAIN WORKSPACE CONTENT ───────────────────────────────────────── */}
         <main className="flex-1 space-y-6">
-
+          
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-6 w-full">
-              
-              {/* Header and Add Hackathon trigger */}
+            <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-950 tracking-tight">Console Dashboard</h2>
+                  <h2 className="text-2xl font-black text-slate-950">Console Dashboard</h2>
                   <p className="text-xs text-slate-500 font-medium">Launch and screen hackathons directly from one screen</p>
                 </div>
-                <button
-                  onClick={() => { setActiveTab('create'); setWizardStep(1); }}
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 hover:opacity-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New Hackathon
+                <button onClick={() => { setActiveTab('create'); setWizardStep(1); }} className="px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-500/20">
+                  <Plus className="w-4 h-4" /> Add New Hackathon
                 </button>
               </div>
 
-              {/* KPI metrics */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[
                   { label: 'Total Prize Pool', value: '₹75,00,000', icon: Trophy, color: 'text-emerald-500' },
@@ -623,7 +561,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   { label: 'Active Events', value: hackathons.length, icon: Layers, color: 'text-cyan-500' },
                   { label: 'Pending Screenings', value: pendingApprovals, icon: Clock, color: 'text-amber-500' },
                 ].map((kpi, idx) => (
-                  <div key={idx} className="p-6 bg-white/95 border border-slate-200 rounded-3xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                  <div key={idx} className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{kpi.label}</span>
                       <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
@@ -632,57 +570,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   </div>
                 ))}
               </div>
-
-              {/* Bottom Visual Cards to fill empty spaces */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-                
-                {/* Recent Submissions Activity Stream */}
-                <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-sm space-y-4">
-                  <div className="flex justify-between items-center border-b pb-3">
-                    <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                      <Zap className="w-4.5 h-4.5 text-indigo-600 animate-bounce" /> Recent Activity Stream
-                    </h4>
-                    <span className="text-[10px] text-indigo-600 font-extrabold cursor-pointer">View Stream</span>
-                  </div>
-                  <div className="space-y-3.5">
-                    {[
-                      { team: 'Team Nova AI', desc: 'Submitted Project codebase links for evaluation.', time: '12 mins ago' },
-                      { team: 'Devs Bangalore', desc: 'Completed participant registration checklist validation.', time: '1 hr ago' },
-                      { team: 'CyberKnights', desc: 'Assigned under Rubrics target score trackers.', time: '3 hrs ago' }
-                    ].map((act, idx) => (
-                      <div key={idx} className="flex justify-between items-start text-xs border-b border-slate-50 pb-2.5 hover:bg-slate-50/50 p-1.5 rounded-lg transition-colors">
-                        <div>
-                          <span className="font-bold text-slate-800">{act.team}</span>
-                          <p className="text-slate-500 text-[11px]">{act.desc}</p>
-                        </div>
-                        <span className="text-[9px] text-slate-400 font-semibold">{act.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Score Summary Metrics */}
-                <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-sm space-y-4">
-                  <div className="flex justify-between items-center border-b pb-3">
-                    <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                      <Target className="w-4.5 h-4.5 text-purple-600" /> Scoring Analytics
-                    </h4>
-                    <span className="text-[10px] text-purple-600 font-extrabold">Inspect Rubrics</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-purple-50 rounded-2xl border border-purple-100 text-center hover:scale-[1.02] transition-transform">
-                      <span className="text-[10px] text-purple-500 font-bold">AVG EVALUATION</span>
-                      <div className="text-2xl font-black text-purple-800">8.4 / 10</div>
-                    </div>
-                    <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-center hover:scale-[1.02] transition-transform">
-                      <span className="text-[10px] text-emerald-500 font-bold">TOTAL SCORED</span>
-                      <div className="text-2xl font-black text-emerald-800">12 Teams</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
             </div>
           )}
 
@@ -691,50 +578,36 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             <div className="space-y-6">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h3 className="text-xl font-extrabold text-slate-955">Active Hackathons</h3>
-                  <p className="text-xs text-slate-500">Monitor active user-provided card banners</p>
+                  <h3 className="text-xl font-extrabold text-slate-950">Active Hackathons</h3>
+                  <p className="text-xs text-slate-550">Monitor active user-provided card banners</p>
                 </div>
-                
-                {/* Button to add new hackathon */}
-                <button
-                  onClick={() => { setActiveTab('create'); setWizardStep(1); }}
-                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all hover:scale-[1.02]"
-                >
+                <button onClick={() => { setActiveTab('create'); setWizardStep(1); }} className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm">
                   <Plus className="w-4 h-4" /> Add Hackathon
                 </button>
               </div>
 
-              {/* Grid of hackathons with banners */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredHackathons.map((h) => (
-                  <div key={h.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300">
+                  <div key={h.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div className="h-40 relative overflow-hidden">
                       <img src={h.banner} alt={h.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
-                      <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500 text-white">
-                        {h.status}
-                      </span>
-                      <div className="absolute bottom-4 left-4 right-4 text-white font-extrabold text-sm leading-tight">
-                        {h.title}
-                      </div>
+                      <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500 text-white">{h.status}</span>
+                      <div className="absolute bottom-4 left-4 right-4 text-white font-extrabold text-sm leading-tight">{h.title}</div>
                     </div>
-
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100">
                         <div>
                           <div className="text-slate-400 text-[9px] uppercase font-bold">Prize Pool</div>
-                          <div className="font-extrabold text-emerald-600">
-                            {h.prizePool.startsWith('₹') ? h.prizePool : `₹${h.prizePool}`}
-                          </div>
+                          <div className="font-extrabold text-emerald-600">{h.prizePool}</div>
                         </div>
                         <div>
                           <div className="text-slate-400 text-[9px] uppercase font-bold">Hackers</div>
                           <div className="font-extrabold text-slate-800">{h.participantsCount}</div>
                         </div>
                       </div>
-
                       <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-                        <span className="text-[10px] text-slate-405 font-black uppercase tracking-wider">{h.mode}</span>
+                        <span className="text-[10px] text-slate-400 font-black uppercase">{h.mode}</span>
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
@@ -751,20 +624,11 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                               setActiveTab('create');
                               setWizardStep(1);
                             }}
-                            className="text-[10px] font-extrabold text-indigo-600 hover:text-indigo-750 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-all"
+                            className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl"
                           >
                             Modify
                           </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete "${h.title}"?`)) {
-                                onDeleteHackathon(h.id);
-                              }
-                            }}
-                            className="text-[10px] font-extrabold text-rose-600 hover:text-rose-750 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-all"
-                          >
-                            Delete
-                          </button>
+                          <button onClick={() => { if (confirm('Delete?')) onDeleteHackathon(h.id); }} className="text-[10px] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl">Delete</button>
                         </div>
                       </div>
                     </div>
@@ -774,312 +638,131 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
 
-          {/* TAB 3: CREATE HACKATHON WIZARD - SPLIT VIEW WITH LIVE DYNAMIC CARD PREVIEW */}
+          {/* TAB 3: CREATE WIZARD */}
           {activeTab === 'create' && (
             <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              
-              {/* Left Side: Live Glassmorphic Wow Preview (4 Columns) */}
               <div className="lg:col-span-5 space-y-4 sticky top-28">
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 w-fit text-[10px] font-bold">
-                  <Sparkle className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '3s' }} />
+                  <Sparkle className="w-3.5 h-3.5 animate-spin" />
                   <span>Real-Time AI Preview</span>
                 </div>
-                
-                {/* Live Glassmorphic Mockup Card */}
-                <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl overflow-hidden shadow-xl hover:shadow-indigo-500/10 hover:shadow-2xl transition-all duration-300">
+                <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xl">
                   <div className="h-44 relative bg-slate-900 overflow-hidden">
-                    {banner ? (
-                      <img src={banner} alt="Wizard Banner Preview" className="w-full h-full object-cover opacity-80" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-indigo-550 to-purple-650 flex items-center justify-center text-white text-xs font-bold">
-                        No Banner Provided
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                    <span className="absolute top-4 left-4 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-indigo-600 text-white border border-indigo-400/30">
-                      Draft Preview
-                    </span>
+                    <img src={banner} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent" />
                     <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h4 className="font-black text-base truncate">{title || 'Your Summit Title'}</h4>
-                      <p className="text-[10px] text-slate-300 font-semibold truncate">{tagline || 'Tagline shows here'}</p>
+                      <h4 className="font-black text-base truncate">{title || 'Your Event Title'}</h4>
+                      <p className="text-[10px] text-slate-350 truncate">{tagline}</p>
                     </div>
                   </div>
-
                   <div className="p-5 space-y-4">
-                    <div className="grid grid-cols-3 gap-3 text-center">
-                      <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+                    <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                      <div className="bg-slate-50 p-2.5 rounded-2xl">
                         <span className="text-[8px] text-slate-400 font-bold uppercase">Pool</span>
-                        <div className="text-xs font-black text-emerald-600 truncate">{prizePool || '₹0'}</div>
+                        <div className="font-black text-emerald-600 truncate">{prizePool}</div>
                       </div>
-                      <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
-                        <span className="text-[8px] text-slate-400 font-bold uppercase">Team Cap</span>
-                        <div className="text-xs font-black text-slate-800 truncate">{maxTeamSize || '4'} Ppl</div>
+                      <div className="bg-slate-50 p-2.5 rounded-2xl">
+                        <span className="text-[8px] text-slate-400 font-bold">Max Size</span>
+                        <div className="font-black text-slate-800">{maxTeamSize} Ppl</div>
                       </div>
-                      <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
-                        <span className="text-[8px] text-slate-400 font-bold uppercase">Level</span>
-                        <div className="text-xs font-black text-indigo-600 truncate">{difficulty}</div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 border-t pt-3.5 text-xs text-slate-650">
-                      <div className="flex justify-between">
-                        <span>Registration Deadline:</span>
-                        <span className="font-bold text-slate-900">{registrationDeadline || 'Not set'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Event Mode:</span>
-                        <span className="font-bold text-slate-900 capitalize">{mode}</span>
+                      <div className="bg-slate-50 p-2.5 rounded-2xl">
+                        <span className="text-[8px] text-slate-400 font-bold">Level</span>
+                        <div className="font-black text-indigo-600">{difficulty}</div>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex gap-2 text-[10px] text-slate-500">
-                  <AlertCircle className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <p>Changes on the right are updated instantly in the live design container on the left.</p>
                 </div>
               </div>
 
-              {/* Right Side: Interactive Wizard Form (7 Columns) */}
-              <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-xl space-y-6 hover:shadow-2xl transition-all duration-300">
-                <div className="space-y-3">
-                  <span className="text-xs font-bold text-indigo-600 uppercase">Step {wizardStep} of 4</span>
-                  <h3 className="text-xl font-extrabold text-slate-955 font-black">
-                    {wizardStep === 1 && 'Basic Event Info & Banner'}
-                    {wizardStep === 2 && 'Challenge Statements'}
-                    {wizardStep === 3 && 'Prizes (₹ Rupees)'}
-                    {wizardStep === 4 && 'Grading Rubrics'}
-                  </h3>
-                </div>
-
-                <form onSubmit={handleWizardSubmit} className="space-y-5">
+              <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-8 shadow-xl space-y-6">
+                <span className="text-xs font-bold text-indigo-650">Step {wizardStep} of 4</span>
+                <h3 className="text-xl font-extrabold text-slate-900">
+                  {wizardStep === 1 && 'Basic Event Info'}
+                  {wizardStep === 2 && 'Challenge Statements'}
+                  {wizardStep === 3 && 'Prizes Setup'}
+                  {wizardStep === 4 && 'Rubrics Grading Setup'}
+                </h3>
+                <form onSubmit={handleWizardSubmit} className="space-y-4">
                   {wizardStep === 1 && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Event Name</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. India Multimodal AI Hackathon"
-                          value={title}
-                          onChange={(e) => handleTitleChange(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:ring-2 focus:ring-indigo-550 focus:outline-none"
-                        />
+                        <label className="block text-xs font-bold uppercase mb-1">Event Title</label>
+                        <input type="text" placeholder="Title" value={title} onChange={(e) => handleTitleChange(e.target.value)} className="w-full p-2.5 border rounded-xl text-xs" />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tagline</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Build regional solutions & win rewards"
-                          value={tagline}
-                          onChange={(e) => setTagline(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-550 focus:outline-none"
-                        />
+                        <label className="block text-xs font-bold uppercase mb-1">Tagline</label>
+                        <input type="text" placeholder="Tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} className="w-full p-2.5 border rounded-xl text-xs" />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Detailed Description</label>
-                        <textarea
-                          placeholder="Describe the overall scope, rules, and expectations of this hackathon..."
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-700 focus:ring-2 focus:ring-indigo-550 focus:outline-none"
-                        />
+                        <label className="block text-xs font-bold uppercase mb-1">Description</label>
+                        <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2.5 border rounded-xl text-xs" />
                       </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Max Team Size (No of ppl)</label>
-                          <input
-                            type="number"
-                            value={maxTeamSize}
-                            onChange={(e) => setMaxTeamSize(e.target.value)}
-                            min={1}
-                            max={10}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800"
-                          />
+                          <label className="block text-xs font-bold uppercase mb-1">Max Team Size</label>
+                          <input type="number" value={maxTeamSize} onChange={(e) => setMaxTeamSize(e.target.value)} className="w-full p-2.5 border rounded-xl text-xs" />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Difficulty Level</label>
-                          <select
-                            value={difficulty}
-                            onChange={(e) => setDifficulty(e.target.value as any)}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800"
-                          >
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
-                          </select>
+                          <label className="block text-xs font-bold uppercase mb-1">Pool (INR)</label>
+                          <input type="text" value={prizePool} onChange={(e) => handlePrizePoolChange(e.target.value)} className="w-full p-2.5 border rounded-xl text-xs" />
                         </div>
                       </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Mode</label>
-                          <select
-                            value={mode}
-                            onChange={(e) => setMode(e.target.value as any)}
-                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800"
-                          >
-                            <option value="online">Online</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="in-person">In-Person</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Prize Pool (INR)</label>
-                          <input
-                            type="text"
-                            value={prizePool}
-                            onChange={(e) => handlePrizePoolChange(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-emerald-600"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Registration Deadline</label>
-                          <input
-                            type="date"
-                            value={registrationDeadline}
-                            onChange={(e) => setRegistrationDeadline(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-850"
-                          />
-                        </div>
-                      </div>
-
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">Banner Image URL</label>
+                        <label className="block text-xs font-bold uppercase mb-1">Banner Image URL</label>
                         {isBannerConfirmed ? (
                           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <img src={banner} className="w-12 h-12 object-cover rounded-lg border border-slate-200" />
-                              <div>
-                                <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-0.5">
-                                  <CheckCircle className="w-3 h-3" /> Banner Applied
-                                </span>
-                                <p className="text-[9px] text-slate-400 truncate max-w-[200px]">{banner}</p>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setIsBannerConfirmed(false)}
-                              className="text-[10px] font-bold text-indigo-650 hover:underline bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100"
-                            >
-                              Edit/Change URL
-                            </button>
+                            <span className="text-xs font-bold text-emerald-600">✓ Banner Set</span>
+                            <button type="button" onClick={() => setIsBannerConfirmed(false)} className="text-xs text-indigo-600 font-bold">Edit</button>
                           </div>
                         ) : (
                           <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={banner}
-                              onChange={(e) => setBanner(e.target.value)}
-                              placeholder="Paste banner URL or let AI suggest..."
-                              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-mono"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleAiBannerGenerate}
-                              className="px-3 py-2.5 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-600 rounded-xl text-xs font-bold flex items-center gap-1 transition-all"
-                              disabled={isGeneratingBanner}
-                            >
-                              <Sparkle className="w-3.5 h-3.5 animate-pulse" />
-                              <span>AI Suggest</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (banner) setIsBannerConfirmed(true);
-                              }}
-                              className="px-3.5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all"
-                            >
-                              Save Banner
-                            </button>
+                            <input type="text" value={banner} onChange={(e) => setBanner(e.target.value)} className="flex-1 p-2.5 border rounded-xl text-xs" />
+                            <button type="button" onClick={() => setIsBannerConfirmed(true)} className="px-4 py-2 bg-indigo-650 text-white rounded-xl text-xs font-bold">Save Banner</button>
                           </div>
                         )}
                       </div>
-
-                      <div className="flex justify-end pt-2">
-                        <button type="button" onClick={() => setWizardStep(2)} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 transition-all hover:scale-105">
-                          Next
-                        </button>
-                      </div>
+                      <button type="button" onClick={() => setWizardStep(2)} className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs">Next Step</button>
                     </div>
                   )}
 
                   {wizardStep === 2 && (
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-slate-900 text-xs">Problem Tracks</h4>
-                        <button
-                          type="button"
-                          onClick={() => setProblemStatements([...problemStatements, { id: `ps-${Date.now()}`, track: 'AI', title: 'AI Track Challenge', description: 'Brief description', difficulty: 'Intermediate' }])}
-                          className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold"
-                        >
-                          + Add Challenge
-                        </button>
-                      </div>
-                      {problemStatements.map((ps) => (
-                        <div key={ps.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                          <input
-                            type="text"
-                            value={ps.title}
-                            onChange={(e) => setProblemStatements(problemStatements.map(p => p.id === ps.id ? { ...p, title: e.target.value } : p))}
-                            className="w-full px-3.5 py-1.5 rounded-lg border border-slate-200 text-xs font-bold"
-                          />
-                        </div>
+                      {problemStatements.map(ps => (
+                        <input key={ps.id} type="text" value={ps.title} onChange={(e) => setProblemStatements(problemStatements.map(p => p.id === ps.id ? { ...p, title: e.target.value } : p))} className="w-full p-2.5 border rounded-xl text-xs" />
                       ))}
-                      <div className="flex justify-between pt-2">
-                        <button type="button" onClick={() => setWizardStep(1)} className="px-5 py-2 border rounded-xl text-xs font-bold">Back</button>
-                        <button type="button" onClick={() => setWizardStep(3)} className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">Next</button>
+                      <div className="flex justify-between">
+                        <button type="button" onClick={() => setWizardStep(1)} className="px-4 py-2 border rounded-xl text-xs">Back</button>
+                        <button type="button" onClick={() => setWizardStep(3)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs">Next</button>
                       </div>
                     </div>
                   )}
 
                   {wizardStep === 3 && (
                     <div className="space-y-4">
-                      <h4 className="font-bold text-slate-900 text-xs">Indian Rupees Reward Split</h4>
-                      {prizes.map((pz, idx) => (
-                        <div key={idx} className="flex gap-2 items-center">
-                          <input
-                            type="text"
-                            value={pz.title}
-                            onChange={(e) => setPrizes(prizes.map((p, i) => i === idx ? { ...p, title: e.target.value } : p))}
-                            className="flex-1 px-3 py-1.5 border rounded-lg text-xs"
-                          />
-                          <input
-                            type="text"
-                            value={pz.amount}
-                            onChange={(e) => setPrizes(prizes.map((p, i) => i === idx ? { ...p, amount: e.target.value } : p))}
-                            className="w-32 px-3 py-1.5 border rounded-lg text-xs font-bold text-emerald-600"
-                          />
+                      {prizes.map((p, idx) => (
+                        <div key={idx} className="flex gap-2">
+                          <input type="text" value={p.title} className="flex-1 p-2 border rounded-lg text-xs" />
+                          <input type="text" value={p.amount} className="w-32 p-2 border rounded-lg text-xs font-bold text-emerald-600" />
                         </div>
                       ))}
-                      <div className="flex justify-between pt-2">
-                        <button type="button" onClick={() => setWizardStep(2)} className="px-5 py-2 border rounded-xl text-xs font-bold">Back</button>
-                        <button type="button" onClick={() => setWizardStep(4)} className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">Next</button>
+                      <div className="flex justify-between">
+                        <button type="button" onClick={() => setWizardStep(2)} className="px-4 py-2 border rounded-xl text-xs">Back</button>
+                        <button type="button" onClick={() => setWizardStep(4)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs">Next</button>
                       </div>
                     </div>
                   )}
 
                   {wizardStep === 4 && (
                     <div className="space-y-4">
-                      <h4 className="font-bold text-slate-900 text-xs">Weights Selection (Sum to 100%)</h4>
-                      {rubrics.map((ru) => (
-                        <div key={ru.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
-                          <span className="text-xs font-semibold text-slate-700">{ru.name}</span>
-                          <input
-                            type="number"
-                            value={ru.weight}
-                            onChange={(e) => setRubrics(rubrics.map(r => r.id === ru.id ? { ...r, weight: parseInt(e.target.value, 10) || 0 } : r))}
-                            className="w-16 px-2 py-1 text-center border rounded-lg text-xs font-bold text-indigo-600"
-                          />
+                      {rubrics.map(r => (
+                        <div key={r.id} className="flex justify-between items-center p-3 border rounded-xl">
+                          <span className="text-xs font-semibold">{r.name}</span>
+                          <input type="number" value={r.weight} onChange={(e) => setRubrics(rubrics.map(ru => ru.id === r.id ? { ...ru, weight: parseInt(e.target.value, 10) || 0 } : ru))} className="w-16 p-1 border text-center text-xs" />
                         </div>
                       ))}
-                      <div className="flex justify-between pt-2">
-                        <button type="button" onClick={() => setWizardStep(3)} className="px-5 py-2 border rounded-xl text-xs font-bold">Back</button>
-                        <button type="submit" className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-100">
-                          Publish Live
-                        </button>
+                      <div className="flex justify-between">
+                        <button type="button" onClick={() => setWizardStep(3)} className="px-4 py-2 border rounded-xl text-xs">Back</button>
+                        <button type="submit" className="px-6 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Publish Hackathon</button>
                       </div>
                     </div>
                   )}
@@ -1088,7 +771,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
 
-          {/* TAB 4: REGISTRATIONS & TEAMS */}
+          {/* TAB 4: TEAMS */}
           {activeTab === 'teams' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -1118,11 +801,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       const isExpanded = expandedTeamId === t.id;
                       return (
                         <React.Fragment key={t.id}>
-                          {/* Main Row */}
-                          <tr
-                            onClick={() => setExpandedTeamId(isExpanded ? null : t.id)}
-                            className="hover:bg-slate-50/80 cursor-pointer transition-colors"
-                          >
+                          <tr onClick={() => setExpandedTeamId(isExpanded ? null : t.id)} className="hover:bg-slate-50/80 cursor-pointer transition-colors">
                             <td className="p-4 font-extrabold text-slate-900 flex items-center gap-2">
                               <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
                               {t.name}
@@ -1140,68 +819,36 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                               </span>
                             </td>
                             <td className="p-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                              <button
-                                onClick={() => {
-                                  onUpdateTeamStatus(t.id, 'Approved');
-                                  alert(`Team "${t.name}" Approved!`);
-                                }}
-                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] shadow-sm hover:scale-[1.02] transition-transform"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => {
-                                  onUpdateTeamStatus(t.id, 'Rejected');
-                                  alert(`Team "${t.name}" Rejected!`);
-                                }}
-                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-bold text-[10px] border border-rose-200 hover:scale-[1.02] transition-transform"
-                              >
-                                Reject
-                              </button>
+                              <button onClick={() => { onUpdateTeamStatus(t.id, 'Approved'); alert('Approved!'); }} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-[10px]">Approve</button>
+                              <button onClick={() => { onUpdateTeamStatus(t.id, 'Rejected'); alert('Rejected!'); }} className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg font-bold text-[10px] border border-rose-200">Reject</button>
                             </td>
                           </tr>
-
-                          {/* Expanded Detail Panel Row */}
                           {isExpanded && (
                             <tr className="bg-slate-50/70">
                               <td colSpan={6} className="p-5 border-t border-slate-100">
-                                <div className="space-y-4 max-w-4xl">
-                                  
-                                  {/* Justification details */}
+                                <div className="space-y-4">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1">
-                                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">💡 Project Idea / Description</span>
-                                      <p className="text-xs text-slate-700 font-medium leading-relaxed">
-                                        {t.description || 'No description supplied. Group plans to build custom solutions matching the hackathon tracks.'}
-                                      </p>
+                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl">
+                                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">💡 Project Description</span>
+                                      <p className="text-xs text-slate-700 mt-1">{t.description || 'No description provided.'}</p>
                                     </div>
-                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl space-y-1">
-                                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">❓ Why should we approve?</span>
-                                      <p className="text-xs text-slate-700 font-medium leading-relaxed">
-                                        {t.justification || 'No justification details provided by the team lead yet.'}
-                                      </p>
+                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl">
+                                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">❓ Justification</span>
+                                      <p className="text-xs text-slate-700 mt-1">{t.justification || 'No justification details.'}</p>
                                     </div>
                                   </div>
-
-                                  {/* Individual Members List */}
                                   <div className="space-y-2">
-                                    <span className="text-[10px] text-slate-400 font-extrabold uppercase px-1">👥 Group Members ({t.members.length})</span>
+                                    <span className="text-[10px] text-slate-400 font-extrabold uppercase px-1">👥 Team Members ({t.members.length})</span>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                      {t.members.map((member) => (
-                                        <div key={member.id} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-2.5">
-                                          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-650 flex items-center justify-center font-bold text-xs">
-                                            {member.name.charAt(0)}
-                                          </div>
-                                          <div className="truncate">
-                                            <div className="font-extrabold text-slate-800 truncate text-[11px]">{member.name}</div>
-                                            <div className="text-[9px] text-slate-450 truncate">{member.email}</div>
-                                            <div className="text-[9px] text-indigo-600 font-bold">{member.role}</div>
-                                          </div>
+                                      {t.members.map(member => (
+                                        <div key={member.id} className="p-3 bg-white border rounded-xl">
+                                          <div className="font-bold text-slate-800 text-[11px]">{member.name}</div>
+                                          <div className="text-[9px] text-slate-400">{member.email}</div>
+                                          <div className="text-[9px] text-indigo-650 font-bold">{member.role}</div>
                                         </div>
                                       ))}
                                     </div>
                                   </div>
-
                                 </div>
                               </td>
                             </tr>
@@ -1215,21 +862,200 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
 
-          {/* TAB 5: JUDGES */}
+          {/* TAB 5: JUDGES AND RUBRICS EVALUATION CONTROLS */}
           {activeTab === 'judges' && (
             <div className="space-y-6">
-              <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-sm space-y-4">
-                <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-indigo-600 animate-pulse" /> Evaluation & Grading Rules
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Appointed judges grade submissions from 1 to 10. The system then automatically multiplies by each weight to compute the team's standing.
-                </p>
+              
+              {/* Infographic block explaining workflow */}
+              <div className="p-6 bg-gradient-to-tr from-indigo-900 to-indigo-950 border border-indigo-950 rounded-3xl shadow-md text-white space-y-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black uppercase text-indigo-300 tracking-wider">Evaluation Process</span>
+                  <h3 className="text-lg font-black tracking-tight flex items-center gap-2">
+                    <Award className="w-5 h-5 text-indigo-400 animate-pulse" /> ⚖️ How Judges Evaluate & Score submissions
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs pt-2">
+                  <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl">
+                    <div className="font-bold text-indigo-300 text-[10px] uppercase">Step 01: Assign Track</div>
+                    <p className="text-slate-350 text-[11px] mt-1">Judges are assigned to specific challenge statement tracks based on their expertise.</p>
+                  </div>
+                  <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl">
+                    <div className="font-bold text-indigo-300 text-[10px] uppercase">Step 02: Scoring Rubrics</div>
+                    <p className="text-slate-350 text-[11px] mt-1">Judges review project code and assign scores (1 to 10) on preset criteria weights.</p>
+                  </div>
+                  <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl">
+                    <div className="font-bold text-indigo-300 text-[10px] uppercase">Step 03: Standings Sync</div>
+                    <p className="text-slate-350 text-[11px] mt-1">Weighted standings update in real-time, pushing top solutions to the Leaderboard.</p>
+                  </div>
+                </div>
               </div>
+
+              {/* Grid: Add Judge Form & Judges List */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                {/* Add Judge Form */}
+                <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                  <h4 className="font-extrabold text-slate-905 text-sm flex items-center gap-1.5">
+                    <Plus className="w-4 h-4 text-indigo-600" /> Appoint New Judge
+                  </h4>
+                  
+                  <form onSubmit={handleAddJudge} className="space-y-3.5 text-xs">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Judge Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Shaik Ansar Ali"
+                        value={newJudgeName}
+                        onChange={(e) => setNewJudgeName(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g. ansar@judge.io"
+                        value={newJudgeEmail}
+                        onChange={(e) => setNewJudgeEmail(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Expertise Domain</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Machine Learning, Cryptography"
+                        value={newJudgeExpertise}
+                        onChange={(e) => setNewJudgeExpertise(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Assigned Event Track</label>
+                      <select
+                        value={newJudgeTrack}
+                        onChange={(e) => setNewJudgeTrack(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-xl font-semibold"
+                      >
+                        <option value="Generative AI">Generative AI</option>
+                        <option value="Agentic Coding">Agentic Coding</option>
+                        <option value="Green Tech">Green Tech</option>
+                        <option value="General Track">General Track</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md"
+                    >
+                      Save Judge Details
+                    </button>
+                  </form>
+                </div>
+
+                {/* Judges Table */}
+                <div className="lg:col-span-8 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between">
+                  <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <span className="text-xs font-black text-slate-900 uppercase">Appointed panel ({judges.length})</span>
+                    <span className="text-[10px] text-slate-400 font-bold">Active Evaluators</span>
+                  </div>
+
+                  <div className="overflow-x-auto flex-1">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b bg-slate-50 font-bold text-slate-500 text-[10px]">
+                          <th className="p-3">Name</th>
+                          <th className="p-3">Track</th>
+                          <th className="p-3">Expertise</th>
+                          <th className="p-3 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {judges.map(j => (
+                          <tr key={j.id} className="hover:bg-slate-50/40">
+                            <td className="p-3 font-bold text-slate-900">
+                              <div>{j.name}</div>
+                              <div className="text-[9px] text-slate-400 font-semibold font-mono">{j.email}</div>
+                            </td>
+                            <td className="p-3 text-indigo-600 font-bold">{j.assignedTrack}</td>
+                            <td className="p-3 text-slate-500 font-medium">{j.expertise}</td>
+                            <td className="p-3 text-right">
+                              <button
+                                onClick={() => handleDeleteJudge(j.id)}
+                                className="px-2.5 py-1 text-rose-600 hover:bg-rose-50 rounded-lg font-bold"
+                              >
+                                Revoke
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Submissions Scores Listing */}
+              <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-sm">Graded Hackathon Submissions</h4>
+                    <p className="text-[10px] text-slate-450 mt-0.5">Real-time inspection of rubric evaluations</p>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-650 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-xl">
+                    {submissions.length} Total Submissions
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b bg-slate-50 font-bold text-slate-500 text-[10px] uppercase">
+                        <th className="p-4">Submission Project</th>
+                        <th className="p-4">Team Name</th>
+                        <th className="p-4">Evaluation Status</th>
+                        <th className="p-4">Average Grade</th>
+                        <th className="p-4 text-right">Inspect Rubrics</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {submissions.map((sub, idx) => (
+                        <tr key={sub.id || idx} className="hover:bg-slate-50/50">
+                          <td className="p-4 font-bold text-slate-900">{sub.title}</td>
+                          <td className="p-4 text-slate-600 font-medium">{sub.teamName}</td>
+                          <td className="p-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold border ${
+                              sub.evaluated ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              {sub.evaluated ? 'GRADED' : 'PENDING'}
+                            </span>
+                          </td>
+                          <td className="p-4 font-mono font-black text-slate-900 text-sm">
+                            {sub.evaluated ? `${sub.averageScore} / 10` : 'Not Graded Yet'}
+                          </td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => alert(`Project: ${sub.title}\nGit: ${sub.repoUrl || 'N/A'}\nAverage: ${sub.averageScore || 'Pending'}`)}
+                              className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-655 font-bold rounded-lg"
+                            >
+                              Inspect Scores
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           )}
 
-          {/* TAB 7: ANNOUNCEMENTS BROADCASTER */}
+          {/* TAB 7: BROADCASTER */}
           {activeTab === 'broadcast' && (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xl max-w-2xl mx-auto space-y-6">
               <div>

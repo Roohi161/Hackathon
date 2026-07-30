@@ -327,6 +327,7 @@ export function App() {
         <OrganizerWorkspace
           hackathons={hackathons}
           teams={teams}
+          submissions={submissions}
           announcements={announcements}
           onCreateHackathon={handleCreateHackathon}
           onDeleteHackathon={handleDeleteHackathon}
