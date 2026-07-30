@@ -623,7 +623,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         setSearchQuery(searchInputValue);
                       }
                     }}
-                    className="w-full pl-11 pr-24 py-3 text-xs font-bold rounded-2xl border border-slate-200/80 bg-slate-50/60 placeholder:text-slate-400 placeholder:italic focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-550/10 transition-all duration-300 shadow-inner"
+                    className="w-full pl-11 pr-24 py-3 text-xs font-bold rounded-2xl border border-slate-200/80 bg-slate-50/60 placeholder:text-slate-400 placeholder:italic focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all duration-300 shadow-inner"
                   />
                   <button
                     onClick={() => setSearchQuery(searchInputValue)}
