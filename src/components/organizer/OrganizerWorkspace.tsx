@@ -67,8 +67,11 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   // Org State & Switcher
   const [currentOrg, setCurrentOrg] = useState('TechCorp India Labs');
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'live' | 'upcoming' | 'ended'>('All');
+  const [timeframeFilter, setTimeframeFilter] = useState<'All' | 'recently' | '12days' | '1month'>('All');
+  const [selectedDetailHackathon, setSelectedDetailHackathon] = useState<Hackathon | null>(null);
 
   // Modals & Popups
   const [showNotifications, setShowNotifications] = useState(false);
@@ -286,7 +289,18 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
     const matchesSearch = h.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           h.organizerName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || h.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+    
+    let matchesTimeframe = true;
+    const ageInDays = h.id === 'hack-1' ? 15 : h.id === 'hack-2' ? 2 : h.id === 'hack-3' ? 25 : 1;
+    if (timeframeFilter === 'recently') {
+      matchesTimeframe = ageInDays <= 3;
+    } else if (timeframeFilter === '12days') {
+      matchesTimeframe = ageInDays <= 12;
+    } else if (timeframeFilter === '1month') {
+      matchesTimeframe = ageInDays <= 30;
+    }
+    
+    return matchesSearch && matchesStatus && matchesTimeframe;
   });
 
   const handleWizardSubmit = (e: React.FormEvent) => {
@@ -576,19 +590,87 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           {/* TAB 2: MY HACKATHONS */}
           {activeTab === 'hackathons' && (
             <div className="space-y-6">
+              
+              {/* Header section with Create Button */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                   <h3 className="text-xl font-extrabold text-slate-950">Active Hackathons</h3>
-                  <p className="text-xs text-slate-550">Monitor active user-provided card banners</p>
+                  <p className="text-xs text-slate-550">Monitor active hackathons and review submissions scoring</p>
                 </div>
-                <button onClick={() => { setActiveTab('create'); setWizardStep(1); }} className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm">
+                <button onClick={() => { setActiveTab('create'); setWizardStep(1); }} className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-colors">
                   <Plus className="w-4 h-4" /> Add Hackathon
                 </button>
               </div>
 
+              {/* Filtering & Searching Controls Row */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                
+                {/* Search Input and Search Button */}
+                <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+                  <input
+                    type="text"
+                    placeholder="Search by title or organizer..."
+                    value={searchInputValue}
+                    onChange={(e) => setSearchInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setSearchQuery(searchInputValue);
+                      }
+                    }}
+                    className="flex-1 px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 focus:bg-white transition-colors"
+                  />
+                  <button
+                    onClick={() => setSearchQuery(searchInputValue)}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                  >
+                    Search
+                  </button>
+                </div>
+
+                {/* Filters Group (Timeframe + Status) */}
+                <div className="flex flex-wrap items-center gap-3">
+                  
+                  {/* Timeframe Filter Dropdown */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Timeframe:</span>
+                    <select
+                      value={timeframeFilter}
+                      onChange={(e) => setTimeframeFilter(e.target.value as any)}
+                      className="px-3 py-2 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50 cursor-pointer"
+                    >
+                      <option value="All">All Time</option>
+                      <option value="recently">Recently (≤ 3 Days)</option>
+                      <option value="12days">Within 12 Days</option>
+                      <option value="1month">Within 1 Month</option>
+                    </select>
+                  </div>
+
+                  {/* Status Filter Dropdown */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Status:</span>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as any)}
+                      className="px-3 py-2 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50 cursor-pointer"
+                    >
+                      <option value="All">All Statuses</option>
+                      <option value="live">Live</option>
+                      <option value="upcoming">Upcoming</option>
+                      <option value="ended">Ended</option>
+                    </select>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Hackathons Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredHackathons.map((h) => (
-                  <div key={h.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <div
+                    key={h.id}
+                    onClick={() => setSelectedDetailHackathon(h)}
+                    className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                  >
                     <div className="h-40 relative overflow-hidden">
                       <img src={h.banner} alt={h.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
@@ -606,7 +688,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           <div className="font-extrabold text-slate-800">{h.participantsCount}</div>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
                         <span className="text-[10px] text-slate-400 font-black uppercase">{h.mode}</span>
                         <div className="flex gap-2">
                           <button
@@ -635,6 +717,121 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   </div>
                 ))}
               </div>
+
+              {/* Hackathon Detail Modal Overlay */}
+              <AnimatePresence>
+                {selectedDetailHackathon && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <motion.div
+                      initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                      className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-2xl w-full flex flex-col max-h-[85vh] relative"
+                    >
+                      {/* Modal Banner */}
+                      <div className="h-48 relative shrink-0">
+                        <img src={selectedDetailHackathon.banner} alt={selectedDetailHackathon.title} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                        <button
+                          onClick={() => setSelectedDetailHackathon(null)}
+                          className="absolute top-4 right-4 p-2 bg-slate-950/60 text-white rounded-full hover:bg-slate-900 transition-colors"
+                        >
+                          ✕
+                        </button>
+                        <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
+                          <span className="px-2.5 py-0.5 bg-emerald-600 text-white rounded-full text-[9px] font-bold uppercase">{selectedDetailHackathon.status}</span>
+                          <h3 className="text-lg font-black">{selectedDetailHackathon.title}</h3>
+                          <p className="text-[10px] text-slate-300 font-medium">{selectedDetailHackathon.tagline}</p>
+                        </div>
+                      </div>
+
+                      {/* Modal Scroll Content */}
+                      <div className="p-6 overflow-y-auto space-y-5 text-xs">
+                        
+                        {/* Event summary grid */}
+                        <div className="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 font-bold text-slate-800">
+                          <div>
+                            <span className="text-[9px] text-slate-400 uppercase font-bold block mb-0.5">Prize Pool</span>
+                            <span className="text-sm text-emerald-600 font-black">{selectedDetailHackathon.prizePool}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 block mb-0.5">Mode / Format</span>
+                            <span className="text-xs uppercase">{selectedDetailHackathon.mode}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 block mb-0.5">Registrations</span>
+                            <span>{selectedDetailHackathon.participantsCount} Hackers</span>
+                          </div>
+                        </div>
+
+                        {/* Event description */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">About the Event</span>
+                          <p className="text-slate-650 leading-relaxed font-medium">
+                            {selectedDetailHackathon.description || 'Join elite developers to solve challenging, localized software development tracks. Build scalable APIs, responsive client frameworks, or machine learning pipelines.'}
+                          </p>
+                        </div>
+
+                        {/* Tracks and challenge statements */}
+                        {selectedDetailHackathon.problemStatements && selectedDetailHackathon.problemStatements.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Challenge Tracks</span>
+                            <div className="space-y-2">
+                              {selectedDetailHackathon.problemStatements.map(ps => (
+                                <div key={ps.id} className="p-3.5 bg-slate-50 border rounded-xl space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="font-extrabold text-indigo-650 font-mono text-[10px]">{ps.track}</span>
+                                    <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">{ps.difficulty || 'Intermediate'}</span>
+                                  </div>
+                                  <div className="font-bold text-slate-900">{ps.title}</div>
+                                  <p className="text-slate-500 leading-relaxed text-[11px]">{ps.description}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Prizes Breakdown Table */}
+                        {selectedDetailHackathon.prizeBreakdown && selectedDetailHackathon.prizeBreakdown.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Prizes Distribution</span>
+                            <div className="border border-slate-200 rounded-xl overflow-hidden">
+                              <table className="w-full text-left text-xs border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-50 font-bold border-b text-[9px] text-slate-500">
+                                    <th className="p-2.5">Winner</th>
+                                    <th className="p-2.5 text-right">Award Sum</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                                  {selectedDetailHackathon.prizeBreakdown.map((p, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2.5">{p.title}</td>
+                                      <td className="p-2.5 text-right text-emerald-600 font-bold">{p.amount}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+
+                      {/* Modal Footer */}
+                      <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+                        <button
+                          onClick={() => setSelectedDetailHackathon(null)}
+                          className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs shadow-md"
+                        >
+                          Close Details
+                        </button>
+                      </div>
+
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
