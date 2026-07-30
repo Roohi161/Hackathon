@@ -57,6 +57,16 @@ export async function saveHackathonToDb(hackathonData: any) {
   }
 }
 
+export async function deleteHackathonFromDb(id: string) {
+  try {
+    const res = await api.delete(`/api/hackathons/${id}`);
+    return res.status === 200;
+  } catch (err) {
+    console.warn('⚠️ Could not delete hackathon from PostgreSQL:', err);
+    return false;
+  }
+}
+
 export async function getJudgesFromDb() {
   try {
     const res = await api.get('/api/judges');

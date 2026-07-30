@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getDbHealth, getHackathonsFromDb, saveHackathonToDb, saveTeamToDb } from './services/api';
+import { getDbHealth, getHackathonsFromDb, saveHackathonToDb, saveTeamToDb, deleteHackathonFromDb } from './services/api';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { TeamModal } from './components/TeamModal';
@@ -258,6 +258,7 @@ export function App() {
 
   const handleDeleteHackathon = (hackathonId: string) => {
     setHackathons(hackathons.filter(h => h.id !== hackathonId));
+    deleteHackathonFromDb(hackathonId);
   };
 
   const handleUpdateTeamStatus = (teamId: string, status: 'Approved' | 'Rejected') => {

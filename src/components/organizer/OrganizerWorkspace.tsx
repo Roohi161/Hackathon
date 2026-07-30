@@ -602,14 +602,20 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 </button>
               </div>
 
-              {/* Filtering & Searching Controls Row */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+              {/* Filtering & Searching Controls Row (Premium Glassmorphism layout) */}
+              <div className="bg-white/80 backdrop-blur-xl p-4.5 rounded-3xl border border-slate-200/60 shadow-lg shadow-indigo-100/40 flex flex-wrap items-center justify-between gap-5 transition-all">
                 
-                {/* Search Input and Search Button */}
-                <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+                {/* Search Container with rounded glassmorphism, search icon, focus glow, placeholder animation */}
+                <div className="flex items-center flex-1 min-w-[290px] relative group">
+                  <div className="absolute left-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                  </div>
                   <input
                     type="text"
-                    placeholder="Search by title or organizer..."
+                    placeholder="Search active hackathons by title, host or tracks..."
                     value={searchInputValue}
                     onChange={(e) => setSearchInputValue(e.target.value)}
                     onKeyDown={(e) => {
@@ -617,26 +623,33 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         setSearchQuery(searchInputValue);
                       }
                     }}
-                    className="flex-1 px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 focus:bg-white transition-colors"
+                    className="w-full pl-11 pr-24 py-3 text-xs font-bold rounded-2xl border border-slate-200/80 bg-slate-50/60 placeholder:text-slate-400 placeholder:italic focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-550/10 transition-all duration-300 shadow-inner"
                   />
                   <button
                     onClick={() => setSearchQuery(searchInputValue)}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                    className="absolute right-2 px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-[10px] font-black uppercase tracking-wider rounded-xl shadow-md shadow-indigo-100 transition-all hover:scale-[1.02]"
                   >
                     Search
                   </button>
                 </div>
 
-                {/* Filters Group (Timeframe + Status) */}
-                <div className="flex flex-wrap items-center gap-3">
+                {/* Filters Group (Timeframe + Status) with inline filter icon */}
+                <div className="flex flex-wrap items-center gap-4.5 bg-slate-50/70 border border-slate-150 p-2.5 rounded-2xl">
                   
+                  <div className="flex items-center gap-1.5 text-indigo-600 pl-1">
+                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                    </svg>
+                    <span className="text-[10px] font-black uppercase tracking-wider hidden sm:inline">Filters</span>
+                  </div>
+
                   {/* Timeframe Filter Dropdown */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">Timeframe:</span>
+                  <div className="flex items-center gap-1.5 border-l border-slate-200/80 pl-3">
+                    <span className="text-[9px] text-slate-400 font-extrabold uppercase">Time:</span>
                     <select
                       value={timeframeFilter}
                       onChange={(e) => setTimeframeFilter(e.target.value as any)}
-                      className="px-3 py-2 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50 cursor-pointer"
+                      className="px-3 py-1.5 text-xs font-extrabold text-slate-700 border border-slate-200 rounded-xl bg-white cursor-pointer hover:bg-slate-50/80 transition-colors focus:ring-2 focus:ring-indigo-500/20 outline-none"
                     >
                       <option value="All">All Time</option>
                       <option value="recently">Recently (≤ 3 Days)</option>
@@ -646,12 +659,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   </div>
 
                   {/* Status Filter Dropdown */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">Status:</span>
+                  <div className="flex items-center gap-1.5 border-l border-slate-200/80 pl-3">
+                    <span className="text-[9px] text-slate-400 font-extrabold uppercase">Status:</span>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value as any)}
-                      className="px-3 py-2 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50 cursor-pointer"
+                      className="px-3 py-1.5 text-xs font-extrabold text-slate-700 border border-slate-200 rounded-xl bg-white cursor-pointer hover:bg-slate-50/80 transition-colors focus:ring-2 focus:ring-indigo-500/20 outline-none"
                     >
                       <option value="All">All Statuses</option>
                       <option value="live">Live</option>

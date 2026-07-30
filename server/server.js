@@ -77,11 +77,37 @@ app.post('/api/hackathons', async (req, res) => {
     const query = `
       INSERT INTO hackathons (id, title, organizer_name, organizer_initials, status, mode, prize_pool, time_left, difficulty, tags, image_gradient, featured, category)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        organizer_name = EXCLUDED.organizer_name,
+        organizer_initials = EXCLUDED.organizer_initials,
+        status = EXCLUDED.status,
+        mode = EXCLUDED.mode,
+        prize_pool = EXCLUDED.prize_pool,
+        time_left = EXCLUDED.time_left,
+        difficulty = EXCLUDED.difficulty,
+        tags = EXCLUDED.tags,
+        image_gradient = EXCLUDED.image_gradient,
+        featured = EXCLUDED.featured,
+        category = EXCLUDED.category
       RETURNING *;
     `;
     const values = [id || `h-${Date.now()}`, title, organizer_name, organizer_initials || 'HC', status || 'Live', mode || 'Online', prize_pool, time_left || '2 Days Left', difficulty || 'Intermediate', tags || [], image_gradient || 'from-indigo-600 to-purple-600', featured || false, category || 'General'];
     const result = await pool.query(query, values);
     res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/hackathons/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM hackathons WHERE id = $1 RETURNING *', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Hackathon not found' });
+    }
+    res.json({ message: 'Hackathon deleted successfully', deleted: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
