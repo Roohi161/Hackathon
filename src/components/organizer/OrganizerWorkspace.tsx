@@ -28,6 +28,7 @@ interface OrganizerWorkspaceProps {
   onDeleteHackathon: (hackathonId: string) => void;
   onUpdateTeamStatus: (teamId: string, status: 'Approved' | 'Rejected') => void;
   onBroadcastAnnouncement: (announcement: Announcement) => void;
+  onLogout?: () => void;
 }
 
 interface CustomDateItem {
@@ -52,7 +53,8 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   onCreateHackathon,
   onDeleteHackathon,
   onUpdateTeamStatus,
-  onBroadcastAnnouncement
+  onBroadcastAnnouncement,
+  onLogout
 }) => {
   const [activeTab, setActiveTab] = useState<
     | 'overview'
@@ -545,7 +547,10 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
               {showProfileDropdown && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-2 w-52 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50">
                   <button onClick={() => setActiveTab('settings')} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs font-semibold">Settings</button>
-                  <button onClick={() => alert('Logged out.')} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs font-bold text-rose-600">Logout</button>
+                  <button onClick={() => { if (onLogout) onLogout(); else window.location.reload(); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 text-xs font-bold text-rose-600 flex items-center justify-between">
+                    <span>Logout</span>
+                    <span className="text-[10px]">🚪</span>
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -579,6 +584,13 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 {item.label}
               </button>
             ))}
+            
+            <button
+              onClick={() => { if (onLogout) onLogout(); else window.location.reload(); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all border border-rose-100/60 mt-2"
+            >
+              <span>🚪 Logout Workspace</span>
+            </button>
           </div>
 
           {/* Stats widget */}

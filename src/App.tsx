@@ -334,6 +334,7 @@ export function App() {
           onDeleteHackathon={handleDeleteHackathon}
           onUpdateTeamStatus={handleUpdateTeamStatus}
           onBroadcastAnnouncement={handleBroadcastAnnouncement}
+          onLogout={handleLogout}
         />
       </div>
     );
