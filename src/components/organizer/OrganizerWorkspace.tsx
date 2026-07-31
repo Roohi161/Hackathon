@@ -107,6 +107,16 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
     }
   ]);
 
+  // Global Floating Chat Drawer state
+  const [showGlobalFloatingChat, setShowGlobalFloatingChat] = useState(false);
+  const [floatingChatMode, setFloatingChatMode] = useState<'public' | 'private'>('public');
+  const [floatingTargetUser, setFloatingTargetUser] = useState('');
+  const [floatingInput, setFloatingInput] = useState('');
+  const [floatingMessages, setFloatingMessages] = useState<any[]>([
+    { id: 'f1', sender: 'Elena (Vercel India)', text: 'Hello! Welcome to the new global floating workspace. Let me know if you want to sync.', isPrivate: false, time: '11:40 AM' },
+    { id: 'f2', sender: 'Suresh (AI Agents Forum)', text: 'Type a target username above to start a private encrypted conversation directly.', isPrivate: true, targetUser: 'You', time: '11:45 AM' }
+  ]);
+
   // Modals & Popups
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCalendarDropdown, setShowCalendarDropdown] = useState(false);
@@ -2002,6 +2012,154 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
         </main>
+      </div>
+
+      {/* GLOBAL FLOATING CHAT WIDGET */}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+        {/* Floating Chat Window */}
+        <AnimatePresence>
+          {showGlobalFloatingChat && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
+              className="bg-white/95 backdrop-blur-xl border border-slate-250/80 shadow-2xl rounded-3xl w-80 sm:w-96 h-[460px] mb-4 flex flex-col overflow-hidden border-indigo-100"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-650 p-4 text-white flex justify-between items-center shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💬</span>
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider">Workspace Live Chat</h4>
+                    <p className="text-[9px] text-slate-200 font-medium">Coordinated Messaging Network</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowGlobalFloatingChat(false)}
+                  className="text-white hover:text-slate-200 text-xs font-black bg-white/10 hover:bg-white/20 w-6 h-6 rounded-full flex items-center justify-center transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Chat Scope Switcher (Public vs Private) */}
+              <div className="bg-slate-50 border-b border-slate-150 p-2.5 shrink-0 flex items-center justify-between gap-2">
+                <div className="flex gap-1.5 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setFloatingChatMode('public')}
+                    className={`flex-1 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border text-center ${
+                      floatingChatMode === 'public' ? 'bg-indigo-600 text-white border-indigo-650 shadow-sm' : 'bg-white text-slate-550 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    Public Room
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFloatingChatMode('private')}
+                    className={`flex-1 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border text-center ${
+                      floatingChatMode === 'private' ? 'bg-indigo-600 text-white border-indigo-650 shadow-sm' : 'bg-white text-slate-550 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    Private DM 🔒
+                  </button>
+                </div>
+              </div>
+
+              {/* Target Username Input (Only when Private DM is selected) */}
+              {floatingChatMode === 'private' && (
+                <div className="bg-pink-50/50 border-b border-pink-100/60 p-2 shrink-0 flex items-center gap-2">
+                  <span className="text-[9px] font-black uppercase text-pink-700 shrink-0">To Username:</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter target username (e.g. elena)..."
+                    value={floatingTargetUser}
+                    onChange={(e) => setFloatingTargetUser(e.target.value)}
+                    className="flex-1 px-2.5 py-1 text-[10px] font-bold text-slate-700 bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-pink-500/30 focus:border-pink-500 outline-none"
+                  />
+                </div>
+              )}
+
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/30">
+                {floatingMessages
+                  .filter(m => floatingChatMode === 'public' ? !m.isPrivate : m.isPrivate)
+                  .map(m => (
+                    <div key={m.id} className={`space-y-1 max-w-[85%] text-xs ${m.sender.startsWith('You') ? 'ml-auto' : ''}`}>
+                      <div className="flex justify-between items-center px-1 text-[9px] text-slate-400 font-bold">
+                        <span>{m.sender}</span>
+                        <span>{m.time}</span>
+                      </div>
+                      <div className={`p-3 rounded-2xl border shadow-sm font-semibold leading-relaxed ${
+                        m.sender.startsWith('You')
+                          ? 'bg-indigo-600 text-white border-indigo-650 rounded-tr-none'
+                          : 'bg-white text-slate-750 border-slate-200 rounded-tl-none'
+                      }`}>
+                        {m.isPrivate && m.targetUser && (
+                          <div className="text-[8px] font-black uppercase text-pink-700 mb-1">🔒 DM to {m.targetUser}</div>
+                        )}
+                        {m.text}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {/* Compose Message Form */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!floatingInput.trim()) return;
+                  if (floatingChatMode === 'private' && !floatingTargetUser.trim()) {
+                    alert('Please enter a target username/email to send this private DM.');
+                    return;
+                  }
+                  const newMsg = {
+                    id: `fl-${Date.now()}`,
+                    sender: 'You (' + currentOrg + ')',
+                    text: floatingInput,
+                    isPrivate: floatingChatMode === 'private',
+                    targetUser: floatingChatMode === 'private' ? floatingTargetUser : undefined,
+                    time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                  };
+                  setFloatingMessages([...floatingMessages, newMsg]);
+                  setFloatingInput('');
+                }}
+                className="p-3 bg-slate-50 border-t border-slate-150 shrink-0 flex gap-2 items-center"
+              >
+                <input
+                  type="text"
+                  placeholder={floatingChatMode === 'public' ? "Type public message..." : `Private DM to ${floatingTargetUser || 'user'}...`}
+                  value={floatingInput}
+                  onChange={(e) => setFloatingInput(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl border text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl text-xs font-black uppercase shadow transition-transform active:scale-95"
+                >
+                  Send
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Floating Chat Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setShowGlobalFloatingChat(!showGlobalFloatingChat)}
+          className="w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-650 text-white flex items-center justify-center shadow-2xl hover:scale-110 hover:shadow-indigo-200/50 transition-all duration-300 relative"
+          title="Toggle Collaboration Chat Drawer"
+        >
+          <span className="text-xl">💬</span>
+          {!showGlobalFloatingChat && (
+            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce">
+              2
+            </span>
+          )}
+        </button>
       </div>
     </div>
   );
