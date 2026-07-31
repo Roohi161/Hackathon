@@ -11,14 +11,19 @@
 
   body {
     background:
-      radial-gradient(ellipse 70% 55% at 8%  15%, #EEF4FF 0%, transparent 60%),
-      radial-gradient(ellipse 65% 50% at 92% 12%, #FDF2FF 0%, transparent 55%),
-      radial-gradient(ellipse 60% 55% at 88% 85%, #FFF6EC 0%, transparent 55%),
-      radial-gradient(ellipse 70% 55% at 5%  90%, #EAFBFF 0%, transparent 55%),
-      radial-gradient(ellipse 50% 45% at 50% 50%, #EEF4FF 0%, transparent 65%),
-      linear-gradient(145deg, #F5F7FF 0%, #EEF4FF 22%, #F5F7FF 44%, #FDF2FF 66%, #FFF6EC 82%, #EAFBFF 100%);
+      /* Cyber Grid Line Pattern Overlay */
+      linear-gradient(to right, rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+      /* Vibrant Aurora Gradient Waves */
+      radial-gradient(circle 900px at 15% 10%, rgba(99, 102, 241, 0.16) 0%, transparent 70%),
+      radial-gradient(circle 800px at 85% 15%, rgba(168, 85, 247, 0.16) 0%, transparent 65%),
+      radial-gradient(circle 950px at 80% 85%, rgba(236, 72, 153, 0.14) 0%, transparent 70%),
+      radial-gradient(circle 850px at 20% 85%, rgba(6, 182, 212, 0.15) 0%, transparent 65%),
+      radial-gradient(circle 600px at 50% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 75%),
+      linear-gradient(135deg, #090d16 0%, #111827 25%, #0f172a 50%, #1e1b4b 75%, #090d16 100%);
+    background-size: 36px 36px, 36px 36px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
     background-attachment: fixed;
-    color: #1e293b;
+    color: #f8fafc;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
@@ -28,25 +33,25 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #c7d2fe #f1f5f9;
+    scrollbar-color: #6366f1 #090d16;
   }
 
   ::selection {
-    background: rgba(99, 102, 241, 0.2);
-    color: #1e293b;
+    background: rgba(168, 85, 247, 0.4);
+    color: #ffffff;
   }
 }
 
 /* ========================================
-   GLASSMORPHISM SYSTEM (Light)
+   FUTURISTIC GLASSMORPHISM & CARD SYSTEM
    ======================================== */
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.06), 0 1px 3px rgba(0,0,0,0.04);
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
 }
 
 .glass-panel-hover {
@@ -54,60 +59,68 @@
 }
 
 .glass-panel-hover:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(30, 27, 75, 0.88);
+  border-color: rgba(168, 85, 247, 0.45);
   box-shadow:
-    0 20px 40px -12px rgba(99, 102, 241, 0.12),
-    0 0 0 1px rgba(99, 102, 241, 0.08);
+    0 20px 50px -12px rgba(168, 85, 247, 0.3),
+    0 0 25px rgba(99, 102, 241, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-4px);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(238, 242, 255, 0.6) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 2px 16px rgba(99, 102, 241, 0.05);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 .glass-card-premium {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(238, 242, 255, 0.7) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.07);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.88) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.18);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-premium:hover {
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(168, 85, 247, 0.65);
   box-shadow:
-    0 25px 50px -12px rgba(99, 102, 241, 0.15),
-    0 0 0 1px rgba(99, 102, 241, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 25px 60px -12px rgba(168, 85, 247, 0.38),
+    0 0 35px rgba(99, 102, 241, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transform: translateY(-6px);
 }
 
 /* ========================================
-   GRADIENT SYSTEM
+   AURORA & NEON GRADIENT SYSTEM
    ======================================== */
 
 .gradient-text {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0284c7 100%);
+  background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-neon {
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #f43f5e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-warm {
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #fbbf24 0%, #f87171 50%, #f472b6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0284c7 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
 }
 
 .gradient-bg-warm {
@@ -116,8 +129,20 @@
 
 .gradient-glow {
   box-shadow:
-    0 0 20px rgba(99, 102, 241, 0.25),
-    0 0 60px rgba(99, 102, 241, 0.08);
+    0 0 25px rgba(99, 102, 241, 0.45),
+    0 0 70px rgba(168, 85, 247, 0.25);
+}
+
+.neon-glow-cyan {
+  box-shadow:
+    0 0 20px rgba(56, 189, 248, 0.45),
+    0 0 50px rgba(56, 189, 248, 0.2);
+}
+
+.neon-glow-purple {
+  box-shadow:
+    0 0 20px rgba(168, 85, 247, 0.45),
+    0 0 50px rgba(168, 85, 247, 0.2);
 }
 
 .gradient-border {
@@ -128,9 +153,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  padding: 1px;
+  padding: 1.5px;
   border-radius: inherit;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed, #0284c7);
+  background: linear-gradient(135deg, #6366f1, #a855f7, #06b6d4);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -138,39 +163,40 @@
 }
 
 /* ========================================
-   BUTTON SYSTEM
+   FUTURISTIC BUTTON SYSTEM
    ======================================== */
 
 .btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
   color: white;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45), 0 0 15px rgba(168, 85, 247, 0.25);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.55), 0 0 25px rgba(99, 102, 241, 0.45);
+  transform: translateY(-2px) scale(1.01);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  color: #374151;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  color: #f1f5f9;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:hover {
-  background: rgba(238, 242, 255, 0.9);
-  border-color: rgba(99, 102, 241, 0.3);
-  transform: translateY(-1px);
+  background: rgba(51, 65, 85, 0.95);
+  border-color: rgba(168, 85, 247, 0.55);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25);
 }
 
 /* ========================================
