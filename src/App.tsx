@@ -16,7 +16,6 @@ import { SidebarNavigation } from './components/layout/SidebarNavigation';
 // Participant Components
 import { HackathonList } from './components/participant/HackathonList';
 import { HackathonDetail } from './components/participant/HackathonDetail';
-import { ParticipantOnboarding } from './components/participant/ParticipantOnboarding';
 import { ParticipantDashboard } from './components/participant/ParticipantDashboard';
 import { ParticipantMainDashboard } from './components/participant/ParticipantMainDashboard';
 import { TeamsWorkspaceView } from './components/participant/TeamsWorkspaceView';
@@ -169,9 +168,12 @@ export function App() {
 
   // Login Handler
   const handleLogin = (role: UserRole, user: AuthenticatedUser) => {
-    setLoggedInUser(user);
-    localStorage.setItem('hackathon_user', JSON.stringify(user));
+    const fullUser = { ...user, profileComplete: true };
+    setLoggedInUser(fullUser);
+    localStorage.setItem('hackathon_user', JSON.stringify(fullUser));
     localStorage.setItem('hackathon_is_auth', 'true');
+    setShowLogin(false);
+    setShowSignup(false);
     setCurrentRole(role);
     setIsAuthenticated(true);
     // Set the default tab for the role
@@ -217,12 +219,6 @@ export function App() {
 
   const handleSubmitProject = (newSubmission: ProjectSubmission) => {
     setSubmissions([newSubmission, ...submissions]);
-  };
-
-  const handleProfileComplete = (updatedUser: AuthenticatedUser) => {
-    setLoggedInUser({ ...updatedUser, profileComplete: true });
-    localStorage.setItem('hc_user', JSON.stringify({ ...updatedUser, profileComplete: true }));
-    setActiveTab('dashboard');
   };
 
   // Organizer Handlers
@@ -395,58 +391,52 @@ export function App() {
           {/* PARTICIPANT VIEWS */}
           {currentRole === 'participant' && (
             <>
-              {(!loggedInUser?.profileComplete && activeTab === 'onboarding') ? (
-                <ParticipantOnboarding user={loggedInUser!} onComplete={handleProfileComplete} />
-              ) : (
-                <>
-                  {activeTab === 'dashboard' && (
-                    <ParticipantMainDashboard
-                      user={loggedInUser!}
-                      hackathons={hackathons}
-                      onViewHackathon={handleSelectHackathon}
-                      onNavigateTab={setActiveTab}
-                    />
-                  )}
-                  {activeTab === 'explore' && (
-                    <HackathonList
-                      hackathons={hackathons}
-                      onSelectHackathon={handleSelectHackathon}
-                    />
-                  )}
-                  {activeTab === 'my-hackathons' && (
-                    <ParticipantDashboard 
-                      user={loggedInUser!} 
-                      allHackathons={hackathons} 
-                      onViewHackathon={handleSelectHackathon}
-                    />
-                  )}
-                  {activeTab === 'teams' && (
-                    <TeamsWorkspaceView />
-                  )}
-                  {activeTab === 'projects' && (
-                    <ProjectWorkspaceView />
-                  )}
-                  {activeTab === 'learning' && (
-                    <LearningCenterView />
-                  )}
-                  {activeTab === 'certificates' && (
-                    <CertificatesView />
-                  )}
-                  {activeTab === 'calendar' && (
-                    <CalendarView />
-                  )}
-                  {activeTab === 'messages' && (
-                    <MessagesView />
-                  )}
-                  {activeTab === 'detail' && selectedHackathon && (
-                    <HackathonDetail
-                      hackathon={selectedHackathon}
-                      onBack={() => setActiveTab('dashboard')}
-                      onOpenTeamRegistration={() => setIsTeamRegModalOpen(true)}
-                      onOpenSubmissionModal={() => setIsSubmissionModalOpen(true)}
-                    />
-                  )}
-                </>
+              {(activeTab === 'explore' || !['dashboard', 'my-hackathons', 'teams', 'projects', 'learning', 'certificates', 'calendar', 'messages', 'detail', 'leaderboard', 'profile', 'settings', 'ai-assistant'].includes(activeTab)) && (
+                <HackathonList
+                  hackathons={hackathons}
+                  onSelectHackathon={handleSelectHackathon}
+                />
+              )}
+              {activeTab === 'dashboard' && (
+                <ParticipantMainDashboard
+                  user={loggedInUser!}
+                  hackathons={hackathons}
+                  onViewHackathon={handleSelectHackathon}
+                  onNavigateTab={setActiveTab}
+                />
+              )}
+              {activeTab === 'my-hackathons' && (
+                <ParticipantDashboard 
+                  user={loggedInUser!} 
+                  allHackathons={hackathons} 
+                  onViewHackathon={handleSelectHackathon}
+                />
+              )}
+              {activeTab === 'teams' && (
+                <TeamsWorkspaceView />
+              )}
+              {activeTab === 'projects' && (
+                <ProjectWorkspaceView />
+              )}
+              {activeTab === 'learning' && (
+                <LearningCenterView />
+              )}
+              {activeTab === 'certificates' && (
+                <CertificatesView />
+              )}
+              {activeTab === 'calendar' && (
+                <CalendarView />
+              )}
+              {activeTab === 'messages' && (
+                <MessagesView />
+              )}
+              {activeTab === 'detail' && selectedHackathon && (
+                <HackathonDetail
+                  hackathon={selectedHackathon}
+                  onBack={() => setActiveTab('dashboard')}
+                  onOpenTeamRegistration={() => setIsTeamRegModalOpen(true)}
+                  onOpenSubmissionModal={() => setIsSubmissionModalOpen(true)}
+                />
               )}
               {activeTab === 'leaderboard' && (
                 <LeaderboardView
