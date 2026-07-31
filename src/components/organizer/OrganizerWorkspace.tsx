@@ -1639,49 +1639,78 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
           {/* TAB 7.5: CONNECT HUB */}
           {activeTab === 'connect' && (
-            <div className="w-full max-w-7xl mx-auto space-y-6 pb-12">
+            <div className="w-full max-w-[1400px] mx-auto space-y-8 pb-16 animate-fade-in">
               
-              {/* Header Banner - Clean, Modern Enterprise SaaS Header */}
-              <div className="bg-white p-7 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-200">
-                      💬
+              {/* Asymmetric Header Banner: Deep Gradient + Mesh Glass Overlay */}
+              <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 sm:p-10 rounded-[28px] shadow-2xl border border-white/10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                {/* Glowing decorative ambient orb background */}
+                <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] pointer-events-none"></div>
+                <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+                <div className="relative z-10 space-y-2 max-w-2xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold backdrop-blur-md mb-1">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+                    <span>Organizer Hub • Realtime Collaboration Network</span>
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                    Connect & Coordinate Sprints
+                  </h2>
+                  <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
+                    Prevent event collisions, align prize pool distribution dates, and chat directly with verified hackathon organizers across India.
+                  </p>
+                </div>
+
+                {/* Right Side Stats & Quick Controls */}
+                <div className="relative z-10 flex flex-wrap items-center gap-4">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 px-5 py-3 rounded-2xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-black text-sm shadow-md">
+                      4
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                        Organizer Connect Hub
-                      </h3>
-                      <p className="text-xs text-slate-500 font-medium">Collaborate with fellow organizers, align schedules, and coordinate event dates seamlessly</p>
+                      <span className="text-xs text-slate-300 block font-medium">Active Hosts</span>
+                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Online Now
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 px-5 py-3 rounded-2xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-400 to-purple-400 flex items-center justify-center text-slate-950 font-black text-sm shadow-md">
+                      📅
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-300 block font-medium">Active Sync</span>
+                      <span className="text-sm font-bold text-white">0 Collisions</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/60 shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>4 Organizers Online</span>
-                </div>
               </div>
 
-              {/* Main Grid: 3-column directory on Left (4 cols) & Full Chat Area on Right (8 cols) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Asymmetric 12-Column Grid Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {/* LEFT SIDE (4 Cols): Directory & Event Schedules */}
+                {/* LEFT SIDE (4 Cols): Directory & Event Schedules Cards */}
                 <div className="lg:col-span-4 space-y-6">
                   
-                  {/* Active Organizers List */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        👥 Active Organizers
-                      </h4>
-                      <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">3 Active</span>
+                  {/* Glassmorphic Organizer Directory Panel */}
+                  <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[24px] border border-slate-200/80 shadow-xl shadow-slate-100/60 space-y-5">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-150">
+                      <div>
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                          👥 Verified Organizers
+                        </h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Select a host to initiate private DM</p>
+                      </div>
+                      <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 rounded-full">
+                        3 Online
+                      </span>
                     </div>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       {[
-                        { name: 'Elena Rostova', org: 'Vercel India Hub', email: 'elena@vercel.com', initial: 'EV', color: 'bg-violet-600' },
-                        { name: 'Suresh Kumar', org: 'AI Agents Forum', email: 'suresh@aiagents.org', initial: 'SK', color: 'bg-blue-600' },
-                        { name: 'KVS Bhavya Sri', org: 'TechCorp India Labs', email: 'bhavya@hackathoncentral.io', initial: 'KB', color: 'bg-rose-500' }
+                        { name: 'Elena Rostova', role: 'Lead Organizer', org: 'Vercel India Hub', email: 'elena@vercel.com', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', status: 'Online' },
+                        { name: 'Suresh Kumar', role: 'Community Host', org: 'AI Agents Forum', email: 'suresh@aiagents.org', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', status: 'Online' },
+                        { name: 'KVS Bhavya Sri', role: 'Executive Producer', org: 'TechCorp India Labs', email: 'bhavya@hackathoncentral.io', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', status: 'Online' }
                       ].map((o, idx) => (
                         <div
                           key={idx}
@@ -1689,59 +1718,69 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                             setChatScope('private');
                             setPrivateRecipient(o.name);
                           }}
-                          className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                          className={`group flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-300 cursor-pointer ${
                             chatScope === 'private' && privateRecipient === o.name
-                              ? 'bg-indigo-50/70 border-indigo-200 shadow-xs'
-                              : 'bg-slate-50/60 border-slate-150 hover:bg-slate-100/60 hover:border-slate-200'
+                              ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-indigo-500/40 shadow-md shadow-indigo-100/50 scale-[1.01]'
+                              : 'bg-slate-50/60 border-slate-200/70 hover:bg-white hover:border-slate-300 hover:shadow-md'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <div className={`w-9 h-9 rounded-lg ${o.color} text-white flex items-center justify-center font-bold text-xs shadow-xs`}>
-                                {o.initial}
-                              </div>
-                              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                          <div className="flex items-center gap-3.5">
+                            <div className="relative shrink-0">
+                              <img
+                                src={o.avatar}
+                                alt={o.name}
+                                className="w-10 h-10 rounded-xl object-cover ring-2 ring-indigo-500/20 group-hover:ring-indigo-500 transition-all"
+                              />
+                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
                             </div>
-                            <div>
-                              <span className="text-xs font-bold text-slate-800 block">{o.name}</span>
-                              <span className="text-[10px] text-slate-500 font-medium block">{o.org}</span>
+                            <div className="space-y-0.5">
+                              <span className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors block">{o.name}</span>
+                              <span className="text-[11px] text-slate-500 font-medium block">{o.org}</span>
                             </div>
                           </div>
+
                           <button
                             type="button"
-                            className="text-[10px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 px-2.5 py-1 rounded-lg transition-colors"
+                            className="text-[11px] font-bold text-indigo-600 bg-white group-hover:bg-indigo-600 group-hover:text-white border border-indigo-200 group-hover:border-indigo-600 px-3 py-1.5 rounded-xl transition-all shadow-xs"
                           >
-                            Chat 💬
+                            DM
                           </button>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Coordinated Hackathon Schedules */}
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                        📅 Event Schedules
-                      </h4>
-                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">No Overlaps</span>
+                  {/* Coordinated Timeline Schedules */}
+                  <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[24px] border border-slate-200/80 shadow-xl shadow-slate-100/60 space-y-5">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-150">
+                      <div>
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                          📅 Coordinated Timeline Calendar
+                        </h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Realtime date alignment across organizers</p>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-full">
+                        Synced
+                      </span>
                     </div>
 
-                    <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                    <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
                       {[
-                        { id: 'h1', title: 'AI Innovation Challenge 2026', organizer: 'TechCorp India Labs', dates: 'Sep 01 - Sep 07', badge: 'Active' },
-                        { id: 'h2', title: 'Vercel Web3 Builder Sprint', organizer: 'Vercel India Hub', dates: 'Sep 15 - Sep 22', badge: 'Scheduled' },
-                        { id: 'h3', title: 'Smart Cities Hackathon 2026', organizer: 'Green Tech Coalition', dates: 'Oct 10 - Oct 15', badge: 'Upcoming' },
-                        { id: 'h4', title: 'FinTech Disrupt Challenge', organizer: 'Apex Bank Labs', dates: 'Nov 05 - Nov 10', badge: 'Planning' }
-                      ].map(h => (
-                        <div key={h.id} className="p-3.5 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-2 hover:bg-white hover:shadow-sm transition-all">
-                          <div className="flex justify-between items-start gap-2">
-                            <h5 className="font-bold text-slate-800 text-xs">{h.title}</h5>
-                            <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-md shrink-0">{h.badge}</span>
+                        { title: 'AI Innovation Challenge 2026', org: 'TechCorp India Labs', start: 'Sep 01', end: 'Sep 07', status: 'Live Now', statusColor: 'bg-emerald-500 text-white' },
+                        { title: 'Vercel Web3 Builder Sprint', org: 'Vercel India Hub', start: 'Sep 15', end: 'Sep 22', status: 'Confirmed', statusColor: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+                        { title: 'Smart Cities Hackathon 2026', org: 'Green Tech Coalition', start: 'Oct 10', end: 'Oct 15', status: 'Upcoming', statusColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
+                        { title: 'FinTech Disrupt Challenge', org: 'Apex Bank Labs', start: 'Nov 05', end: 'Nov 10', status: 'Planning', statusColor: 'bg-slate-100 text-slate-600 border border-slate-200' }
+                      ].map((item, i) => (
+                        <div key={i} className="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2.5 hover:bg-white hover:shadow-md hover:border-slate-300 transition-all duration-300">
+                          <div className="flex items-center justify-between gap-2">
+                            <h5 className="font-bold text-slate-900 text-xs sm:text-sm">{item.title}</h5>
+                            <span className={`text-[9px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0 ${item.statusColor}`}>
+                              {item.status}
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium pt-1 border-t border-slate-150">
-                            <span>{h.organizer}</span>
-                            <span className="font-bold text-indigo-600">{h.dates}</span>
+                          <div className="flex justify-between items-center text-xs text-slate-500 font-medium pt-1 border-t border-slate-200/60">
+                            <span>{item.org}</span>
+                            <span className="font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">{item.start} — {item.end}</span>
                           </div>
                         </div>
                       ))}
@@ -1750,36 +1789,37 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                 </div>
 
-                {/* RIGHT SIDE (8 Cols): Slack/Linear Style Clean Chat Experience */}
-                <div className="lg:col-span-8 bg-white border border-slate-200/80 shadow-sm rounded-2xl flex flex-col h-[720px] overflow-hidden">
+                {/* RIGHT SIDE (8 Cols): Floating SaaS Collaboration Chat Window */}
+                <div className="lg:col-span-8 bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-2xl shadow-slate-200/50 rounded-[28px] flex flex-col h-[750px] overflow-hidden">
                   
-                  {/* Chat Panel Header */}
-                  <div className="bg-slate-50/90 border-b border-slate-200/80 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                  {/* Chat Window Sticky Header */}
+                  <div className="bg-slate-50/90 backdrop-blur-md border-b border-slate-200/80 px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-indigo-700 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-indigo-200">
                         {chatScope === 'public' ? '📢' : '🔒'}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-slate-900">
-                            {chatScope === 'public' ? 'Public Organizer Channel' : `Private Message: ${privateRecipient}`}
-                          </h4>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2.5">
+                          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                            {chatScope === 'public' ? 'Public Organizer Network' : `Direct DM with ${privateRecipient}`}
+                          </h3>
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         </div>
-                        <p className="text-[11px] text-slate-500 font-medium">
-                          {chatScope === 'public' ? 'Broadcast messages visible to all event organizers' : 'Encrypted direct message channel'}
+                        <p className="text-xs text-slate-500 font-medium">
+                          {chatScope === 'public' ? 'Broadcast channel accessible by all event organizers' : 'Private end-to-end encrypted direct message'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Scope Selector Tabs */}
-                    <div className="flex bg-slate-200/70 p-1 rounded-xl gap-1 shrink-0">
+                    {/* Scope Selector Tabs - Pill Style */}
+                    <div className="flex bg-slate-200/80 p-1.5 rounded-2xl gap-1.5 shrink-0 self-start sm:self-auto">
                       <button
                         type="button"
                         onClick={() => setChatScope('public')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
                           chatScope === 'public'
-                            ? 'bg-white text-indigo-600 shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-white text-indigo-600 shadow-md shadow-slate-200/80 scale-[1.02]'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                         }`}
                       >
                         📢 Public Room
@@ -1787,10 +1827,10 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       <button
                         type="button"
                         onClick={() => setChatScope('private')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
                           chatScope === 'private'
-                            ? 'bg-white text-indigo-600 shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-white text-indigo-600 shadow-md shadow-slate-200/80 scale-[1.02]'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                         }`}
                       >
                         🔒 Private DM
@@ -1798,39 +1838,42 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     </div>
                   </div>
 
-                  {/* Pinned Announcement Bar */}
-                  <div className="bg-amber-50/80 border-b border-amber-200/60 px-6 py-2.5 shrink-0 flex items-center gap-2.5 text-xs text-amber-900">
-                    <span className="font-bold text-amber-700 shrink-0">📌 Pinned:</span>
-                    <span className="font-medium truncate">September hackathon schedule alignment phase is active. Please post your finalized start & end dates.</span>
+                  {/* Pinned Announcement Alert Box */}
+                  <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-amber-500/10 border-b border-amber-200/60 px-8 py-3 shrink-0 flex items-center justify-between gap-3 text-xs text-amber-900">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="px-2 py-0.5 bg-amber-500 text-white rounded-md text-[10px] font-black uppercase tracking-wider shrink-0">Pinned</span>
+                      <span className="font-semibold truncate">Finalize your September hackathon prize dates by Sep 10th to prevent participant collisions.</span>
+                    </div>
+                    <span className="text-amber-700 font-bold shrink-0">Rule #4</span>
                   </div>
 
-                  {/* Messages Feed */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40">
+                  {/* Messages Feed Area */}
+                  <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/30">
                     {connectMessages
                       .filter(m => chatScope === 'public' ? !m.isPrivate : m.isPrivate)
                       .map((m: any) => {
                         const isMe = m.sender.startsWith('You');
                         return (
-                          <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1 group`}>
-                            {/* Sender Info */}
-                            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 px-1">
-                              <span className="text-slate-800 font-bold">{m.sender}</span>
+                          <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1.5 group animate-fade-in`}>
+                            {/* Sender Info Row */}
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 px-1">
+                              <span className="text-slate-900 font-bold">{m.sender}</span>
                               {m.isPrivate && (
-                                <span className="text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded">🔒 Private</span>
+                                <span className="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">🔒 Private</span>
                               )}
-                              <span>• {m.time}</span>
+                              <span className="text-slate-400 font-medium">• {m.time}</span>
                             </div>
 
-                            {/* Message Bubble - Clean typography, elegant background & crisp text */}
-                            <div className={`max-w-[80%] p-4 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed shadow-xs transition-all ${
+                            {/* Message Bubble - Soft rounded corners & excellent readability */}
+                            <div className={`max-w-[78%] p-5 rounded-[22px] text-xs sm:text-sm font-medium leading-relaxed transition-all shadow-sm ${
                               isMe
-                                ? 'bg-indigo-600 text-white rounded-tr-none'
-                                : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
+                                ? 'bg-indigo-600 text-white rounded-tr-none shadow-indigo-200'
+                                : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none shadow-slate-100'
                             }`}>
                               {m.text}
                             </div>
 
-                            {/* Emoji Reaction List */}
+                            {/* Emoji Reaction Pills */}
                             <div className="flex flex-wrap items-center gap-1.5 px-1">
                               {m.reactions && m.reactions.map((r: any, rIdx: number) => (
                                 <button
@@ -1848,15 +1891,15 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                                     });
                                     setConnectMessages(updated as any);
                                   }}
-                                  className="px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-600 flex items-center gap-1 shadow-2xs transition-all"
+                                  className="px-2.5 py-1 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/90 text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
                                 >
                                   <span>{r.emoji}</span>
-                                  <span className="text-[10px] font-bold text-slate-500">{r.count}</span>
+                                  <span className="text-[11px] font-bold text-slate-500">{r.count}</span>
                                 </button>
                               ))}
 
-                              {/* Hover Emoji Quick Reactions */}
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Hover Quick Emoji Reactions */}
+                              <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 {['👍', '❤️', '🔥', '🎉'].map(emoji => (
                                   <button
                                     key={emoji}
@@ -1878,7 +1921,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                                       });
                                       setConnectMessages(updated as any);
                                     }}
-                                    className="p-1 rounded hover:bg-slate-200/60 text-xs transition-colors"
+                                    className="p-1 rounded-lg hover:bg-slate-200/70 text-sm transition-transform hover:scale-125"
                                   >
                                     {emoji}
                                   </button>
@@ -1889,28 +1932,28 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         );
                       })}
 
-                    {/* Active Typing Indicator */}
-                    <div className="flex items-center gap-2 text-xs text-slate-400 font-medium py-1">
+                    {/* Animated Typing Indicator */}
+                    <div className="flex items-center gap-2.5 text-xs text-slate-400 font-medium py-1">
                       <div className="flex gap-1 items-center">
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                       </div>
                       <span>Elena Rostova is typing...</span>
                     </div>
                   </div>
 
-                  {/* Message Composer Area */}
-                  <div className="p-4 bg-white border-t border-slate-200/80 shrink-0 space-y-3">
+                  {/* Sticky Message Composer Box */}
+                  <div className="p-5 bg-white border-t border-slate-200/80 shrink-0 space-y-3">
                     
-                    {/* Private Recipient Selection Dropdown */}
+                    {/* Private Recipient Picker (Visible for DM mode) */}
                     {chatScope === 'private' && (
                       <div className="flex items-center gap-2 px-1">
-                        <span className="text-xs font-bold text-slate-700">Recipient:</span>
+                        <span className="text-xs font-bold text-slate-700">Direct Recipient:</span>
                         <select
                           value={privateRecipient}
                           onChange={(e) => setPrivateRecipient(e.target.value)}
-                          className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="px-3.5 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
                         >
                           <option value="Elena Rostova">Elena Rostova (Vercel India Hub)</option>
                           <option value="Suresh Kumar">Suresh Kumar (AI Agents Forum)</option>
@@ -1934,30 +1977,30 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         setConnectMessages([...connectMessages, newMsg]);
                         setChatMessageInput('');
                       }}
-                      className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl p-2 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
+                      className="flex items-center gap-3 bg-slate-50 border border-slate-200/90 rounded-2xl p-2.5 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all duration-300"
                     >
                       {/* Attachment & Emoji Quick Actions */}
-                      <div className="flex items-center gap-1 text-slate-400 px-1 border-r border-slate-200 pr-2">
-                        <button type="button" onClick={() => alert('File attachment feature enabled for organizers.')} className="p-1.5 hover:text-slate-700 hover:bg-slate-200/50 rounded-lg transition-colors" title="Attach file">
+                      <div className="flex items-center gap-1.5 text-slate-400 px-1 border-r border-slate-200/80 pr-2.5">
+                        <button type="button" onClick={() => alert('File attachment feature enabled for organizers.')} className="p-2 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-all" title="Attach file">
                           📎
                         </button>
-                        <button type="button" onClick={() => setChatMessageInput(prev => prev + ' 👍')} className="p-1.5 hover:text-slate-700 hover:bg-slate-200/50 rounded-lg transition-colors" title="Add Emoji">
+                        <button type="button" onClick={() => setChatMessageInput(prev => prev + ' 👍')} className="p-2 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-all" title="Add Emoji">
                           😀
                         </button>
                       </div>
 
                       <input
                         type="text"
-                        placeholder={chatScope === 'public' ? "Type a message to all organizers..." : `Direct message to ${privateRecipient}...`}
+                        placeholder={chatScope === 'public' ? "Write a message to all organizers..." : `Direct message to ${privateRecipient}...`}
                         value={chatMessageInput}
                         onChange={(e) => setChatMessageInput(e.target.value)}
-                        className="flex-1 text-xs sm:text-sm font-medium text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
+                        className="flex-1 text-xs sm:text-sm font-medium text-slate-900 bg-transparent outline-none placeholder:text-slate-400"
                       />
 
                       {/* Premium Solid Indigo Send Button with Send Icon */}
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow transition-all flex items-center gap-2 active:scale-95 shrink-0"
+                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 shrink-0"
                       >
                         <span>Send</span>
                         <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
