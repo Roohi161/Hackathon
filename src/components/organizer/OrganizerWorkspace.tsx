@@ -61,6 +61,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
     | 'teams'
     | 'judges'
     | 'broadcast'
+    | 'connect'
     | 'settings'
   >('overview');
 
@@ -72,6 +73,14 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [statusFilter, setStatusFilter] = useState<'All' | 'live' | 'upcoming' | 'ended'>('All');
   const [timeframeFilter, setTimeframeFilter] = useState<'All' | 'recently' | '12days' | '1month'>('All');
   const [selectedDetailHackathon, setSelectedDetailHackathon] = useState<Hackathon | null>(null);
+  const [modalSlideIndex, setModalSlideIndex] = useState(0);
+
+  // Organizer Chat state
+  const [chatMessageInput, setChatMessageInput] = useState('');
+  const [connectMessages, setConnectMessages] = useState([
+    { id: 'm1', sender: 'Elena (Vercel India)', text: 'Hey guys! We are scheduling our Web3 Summit in mid September. Any overlapping events around that time?', time: '10:30 AM' },
+    { id: 'm2', sender: 'Suresh (AI Agents Forum)', text: 'Our Multimodal AI Summit starts Sep 1st. Good to schedule it later in Sep to avoid splitting attendees!', time: '10:45 AM' }
+  ]);
 
   // Modals & Popups
   const [showNotifications, setShowNotifications] = useState(false);
@@ -521,6 +530,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
               { id: 'teams', label: 'Registrations', icon: Users },
               { id: 'judges', label: 'Judges & Rubrics', icon: Award },
               { id: 'broadcast', label: 'Broadcaster', icon: Megaphone },
+              { id: 'connect', label: 'Connect Hub', icon: Sparkle },
               { id: 'settings', label: 'Workspace Settings', icon: Settings },
             ].map(item => (
               <button
@@ -696,7 +706,23 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500 text-white">{h.status}</span>
                       <div className="absolute bottom-4 left-4 right-4 text-white font-extrabold text-sm leading-tight">{h.title}</div>
                     </div>
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                      {/* Timeline Info */}
+                      <div className="space-y-1 text-[10px] text-slate-500 font-semibold border-b pb-2">
+                        <div className="flex justify-between">
+                          <span>📅 Starts:</span>
+                          <span className="text-slate-800 font-bold">{h.startDate ? new Date(h.startDate).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '01/09/2026, 09:00 AM'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>📅 Ends:</span>
+                          <span className="text-slate-800 font-bold">{h.endDate ? new Date(h.endDate).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '07/09/2026, 11:59 PM'}</span>
+                        </div>
+                        <div className="flex justify-between text-indigo-650">
+                          <span>⏳ Time Left:</span>
+                          <span className="font-extrabold uppercase">{(h as any).timeLeft || '12 Days Left'}</span>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100">
                         <div>
                           <div className="text-slate-400 text-[9px] uppercase font-bold">Prize Pool</div>
@@ -755,7 +781,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           onClick={() => setSelectedDetailHackathon(null)}
                           className="absolute top-4 right-4 p-2 bg-slate-950/60 text-white rounded-full hover:bg-slate-900 transition-colors"
                         >
-                          ✕
                         </button>
                         <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
                           <span className="px-2.5 py-0.5 bg-emerald-600 text-white rounded-full text-[9px] font-bold uppercase">{selectedDetailHackathon.status}</span>
@@ -764,193 +789,267 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         </div>
                       </div>
 
+                      {/* Modal Slide Selector Indicators */}
+                      <div className="bg-slate-50 border-b border-slate-100 px-6 py-3 shrink-0 flex items-center justify-between">
+                        <div className="flex gap-2">
+                          {['📄 Description', '👥 Registrations', '⚖️ Scores & Grades', '🏆 Winners Summary'].map((slideLabel, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setModalSlideIndex(idx)}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wide transition-all ${
+                                modalSlideIndex === idx ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-505 hover:bg-slate-200/60'
+                              }`}
+                            >
+                              {slideLabel}
+                            </button>
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-extrabold text-slate-400">Slide {modalSlideIndex + 1} of 4</span>
+                      </div>
+
                       {/* Modal Scroll Content */}
-                      <div className="p-6 overflow-y-auto space-y-5 text-xs">
+                      <div className="p-6 overflow-y-auto flex-1 text-xs">
                         
-                        {/* Event summary grid */}
-                        <div className="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 font-bold text-slate-800">
-                          <div>
-                            <span className="text-[9px] text-slate-400 uppercase font-bold block mb-0.5">Prize Pool</span>
-                            <span className="text-sm text-emerald-600 font-black">{selectedDetailHackathon.prizePool}</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-slate-400 block mb-0.5">Mode / Format</span>
-                            <span className="text-xs uppercase">{selectedDetailHackathon.mode}</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-slate-400 block mb-0.5">Registrations</span>
-                            <span>{selectedDetailHackathon.participantsCount} Hackers</span>
-                          </div>
-                        </div>
-
-                        {/* Event description */}
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">About the Event</span>
-                          <p className="text-slate-650 leading-relaxed font-medium">
-                            {selectedDetailHackathon.description || 'Join elite developers to solve challenging, localized software development tracks. Build scalable APIs, responsive client frameworks, or machine learning pipelines.'}
-                          </p>
-                        </div>
-
-                        {/* Tracks and challenge statements */}
-                        {selectedDetailHackathon.problemStatements && selectedDetailHackathon.problemStatements.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Challenge Tracks</span>
-                            <div className="space-y-2">
-                              {selectedDetailHackathon.problemStatements.map(ps => (
-                                <div key={ps.id} className="p-3.5 bg-slate-50 border rounded-xl space-y-1">
-                                  <div className="flex justify-between items-center">
-                                    <span className="font-extrabold text-indigo-650 font-mono text-[10px]">{ps.track}</span>
-                                    <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">{ps.difficulty || 'Intermediate'}</span>
-                                  </div>
-                                  <div className="font-bold text-slate-900">{ps.title}</div>
-                                  <p className="text-slate-500 leading-relaxed text-[11px]">{ps.description}</p>
-                                </div>
-                              ))}
+                        {/* Slide 0: General Overview & Description */}
+                        {modalSlideIndex === 0 && (
+                          <div className="space-y-5 animate-fade-in">
+                            {/* Event summary grid */}
+                            <div className="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 font-bold text-slate-800">
+                              <div>
+                                <span className="text-[9px] text-slate-400 uppercase font-bold block mb-0.5">Prize Pool</span>
+                                <span className="text-sm text-emerald-600 font-black">{selectedDetailHackathon.prizePool}</span>
+                              </div>
+                              <div>
+                                <span className="text-[9px] text-slate-400 block mb-0.5">Mode / Format</span>
+                                <span className="text-xs uppercase">{selectedDetailHackathon.mode}</span>
+                              </div>
+                              <div>
+                                <span className="text-[9px] text-slate-400 block mb-0.5">Registrations</span>
+                                <span>{selectedDetailHackathon.participantsCount} Hackers</span>
+                              </div>
                             </div>
-                          </div>
-                        )}
 
-                         {/* Prizes Breakdown Table */}
-                        {selectedDetailHackathon.prizeBreakdown && selectedDetailHackathon.prizeBreakdown.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Prizes Distribution</span>
-                            <div className="border border-slate-200 rounded-xl overflow-hidden">
-                              <table className="w-full text-left text-xs border-collapse">
-                                <thead>
-                                  <tr className="bg-slate-50 font-bold border-b text-[9px] text-slate-500">
-                                    <th className="p-2.5">Winner</th>
-                                    <th className="p-2.5 text-right">Award Sum</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                                  {selectedDetailHackathon.prizeBreakdown.map((p, idx) => (
-                                    <tr key={idx}>
-                                      <td className="p-2.5">{p.title}</td>
-                                      <td className="p-2.5 text-right text-emerald-600 font-bold">{p.amount}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">About the Event</span>
+                              <p className="text-slate-650 leading-relaxed font-medium">
+                                {selectedDetailHackathon.description || 'Join elite developers to solve challenging, localized software development tracks. Build scalable APIs, responsive client frameworks, or machine learning pipelines.'}
+                              </p>
                             </div>
-                          </div>
-                        )}
 
-                        {/* Live Registrations, Grades, and Standings Section */}
-                        {(() => {
-                          const hackTeams = teams.filter(t => t.hackathonId === selectedDetailHackathon.id);
-                          const hackSubmissions = submissions.filter(s => s.hackathonId === selectedDetailHackathon.id);
-                          const evaluatedSubs = hackSubmissions.filter(s => s.evaluated).sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
-
-                          return (
-                            <div className="space-y-5 border-t pt-4">
-                              
-                              {/* 1. Registered Groups & Hacker Count */}
+                            {selectedDetailHackathon.problemStatements && selectedDetailHackathon.problemStatements.length > 0 && (
                               <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Registered Teams ({hackTeams.length})</span>
-                                  <span className="text-[9px] font-bold text-indigo-650 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
-                                    {hackTeams.reduce((acc, curr) => acc + curr.members.length, 0)} Total Participants
-                                  </span>
-                                </div>
-                                
-                                {hackTeams.length === 0 ? (
-                                  <div className="p-3 text-center bg-slate-50 border border-dashed rounded-xl text-slate-400 font-semibold text-[10px]">
-                                    No teams have registered for this event yet.
-                                  </div>
-                                ) : (
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {hackTeams.map(t => (
-                                      <div key={t.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                                        <div className="flex justify-between items-start">
-                                          <div className="font-extrabold text-slate-800">{t.name}</div>
-                                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                                            t.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                                          }`}>{t.status}</span>
-                                        </div>
-                                        <div className="text-[9px] text-slate-450">
-                                          <div>Code: <span className="font-bold text-slate-700">{t.inviteCode}</span></div>
-                                          <div>Size: <span className="font-bold text-slate-700">{t.members.length} Members</span></div>
-                                        </div>
+                                <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Challenge Tracks</span>
+                                <div className="space-y-2">
+                                  {selectedDetailHackathon.problemStatements.map(ps => (
+                                    <div key={ps.id} className="p-3.5 bg-slate-50 border rounded-xl space-y-1">
+                                      <div className="flex justify-between items-center">
+                                        <span className="font-extrabold text-indigo-650 font-mono text-[10px]">{ps.track}</span>
+                                        <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">{ps.difficulty || 'Intermediate'}</span>
                                       </div>
-                                    ))}
-                                  </div>
-                                )}
+                                      <div className="font-bold text-slate-900">{ps.title}</div>
+                                      <p className="text-slate-500 leading-relaxed text-[11px]">{ps.description}</p>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
+                            )}
 
-                              {/* 2. Graded Scores list */}
+                            {selectedDetailHackathon.prizeBreakdown && selectedDetailHackathon.prizeBreakdown.length > 0 && (
                               <div className="space-y-2">
-                                <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Submissions Evaluation & Scores</span>
-                                {hackSubmissions.length === 0 ? (
-                                  <div className="p-3 text-center bg-slate-50 border border-dashed rounded-xl text-slate-400 font-semibold text-[10px]">
-                                    No project submissions uploaded for this event.
-                                  </div>
-                                ) : (
-                                  <div className="border border-slate-200 rounded-xl overflow-hidden">
-                                    <table className="w-full text-left text-xs border-collapse">
-                                      <thead>
-                                        <tr className="bg-slate-50 font-bold border-b text-[9px] text-slate-500">
-                                          <th className="p-2">Submission</th>
-                                          <th className="p-2">Team</th>
-                                          <th className="p-2">Status</th>
-                                          <th className="p-2 text-right">Avg Score</th>
+                                <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Prizes Distribution</span>
+                                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                                  <table className="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                      <tr className="bg-slate-50 font-bold border-b text-[9px] text-slate-500">
+                                        <th className="p-2.5">Winner</th>
+                                        <th className="p-2.5 text-right">Award Sum</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                                      {selectedDetailHackathon.prizeBreakdown.map((p, idx) => (
+                                        <tr key={idx}>
+                                          <td className="p-2.5">{p.title}</td>
+                                          <td className="p-2.5 text-right text-emerald-600 font-bold">{p.amount}</td>
                                         </tr>
-                                      </thead>
-                                      <tbody className="divide-y divide-slate-100 font-medium text-slate-750">
-                                        {hackSubmissions.map(s => (
-                                          <tr key={s.id}>
-                                            <td className="p-2 font-bold text-slate-800">{s.title}</td>
-                                            <td className="p-2">{s.teamName}</td>
-                                            <td className="p-2 text-[8px] font-black uppercase text-indigo-650">{s.evaluated ? 'Graded' : 'Pending'}</td>
-                                            <td className="p-2 text-right font-mono font-bold text-slate-900">{s.evaluated ? `${s.averageScore}/10` : '—'}</td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                )}
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
                               </div>
+                            )}
+                          </div>
+                        )}
 
-                              {/* 3. Prize Winners standings (Leaderboard top 3) */}
-                              <div className="space-y-2">
-                                <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">🏆 Event Winners Standings</span>
-                                {evaluatedSubs.length === 0 ? (
-                                  <div className="p-3 text-center bg-slate-50 border border-dashed rounded-xl text-slate-400 font-semibold text-[10px]">
-                                    Standings will update dynamically once judges grade the project submissions.
+                        {/* Slide 1: Registration Details */}
+                        {modalSlideIndex === 1 && (
+                          <div className="space-y-5 animate-fade-in">
+                            {(() => {
+                              const hackTeams = teams.filter(t => t.hackathonId === selectedDetailHackathon.id);
+                              return (
+                                <div className="space-y-4">
+                                  <div className="flex justify-between items-center bg-indigo-50 border border-indigo-100 p-4 rounded-2xl">
+                                    <div>
+                                      <span className="text-[9px] font-black uppercase text-indigo-500">Registered headcount</span>
+                                      <div className="text-lg font-black text-indigo-955">{hackTeams.reduce((acc, curr) => acc + curr.members.length, 0)} Total Participants</div>
+                                    </div>
+                                    <div className="text-right">
+                                      <span className="text-[9px] font-black uppercase text-slate-400 block">Groups Count</span>
+                                      <span className="font-extrabold text-slate-800 text-sm">{hackTeams.length} Teams</span>
+                                    </div>
                                   </div>
-                                ) : (
+
                                   <div className="space-y-2">
-                                    {evaluatedSubs.slice(0, 3).map((s, idx) => {
-                                      const rankLabels = ['🥇 1st Place Champion', '🥈 2nd Place Runner-Up', '🥉 3rd Place Third Stand'];
-                                      const rankColors = ['bg-amber-50 text-amber-700 border-amber-200', 'bg-slate-100 text-slate-700 border-slate-200', 'bg-orange-50 text-orange-700 border-orange-200'];
-                                      
-                                      return (
-                                        <div key={s.id} className={`p-3 border rounded-xl flex items-center justify-between ${rankColors[idx] || 'bg-slate-50 text-slate-600'}`}>
-                                          <div>
-                                            <div className="text-[9px] font-extrabold uppercase">{rankLabels[idx] || `Rank #${idx + 1}`}</div>
-                                            <div className="font-extrabold text-slate-900 text-xs">{s.teamName}</div>
-                                            <div className="text-[9px] font-medium text-slate-500">Project: {s.title}</div>
+                                    <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Registrations List</span>
+                                    {hackTeams.length === 0 ? (
+                                      <div className="p-6 text-center bg-slate-50 border border-dashed rounded-3xl text-slate-400 font-semibold">
+                                        No teams have registered for this event yet.
+                                      </div>
+                                    ) : (
+                                      <div className="grid grid-cols-1 gap-3">
+                                        {hackTeams.map(t => (
+                                          <div key={t.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center">
+                                            <div>
+                                              <div className="font-extrabold text-slate-900 text-xs">{t.name}</div>
+                                              <div className="text-[9px] text-slate-450 mt-0.5">Leader: <span className="font-semibold">{t.leaderEmail}</span></div>
+                                              <div className="text-[9px] text-slate-450">Size: <span className="font-semibold text-slate-700">{t.members.length} Members</span></div>
+                                            </div>
+                                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase border ${
+                                              t.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                                            }`}>{t.status}</span>
                                           </div>
-                                          <div className="text-right">
-                                            <span className="font-mono font-black text-xs block">{s.averageScore}/10</span>
-                                            <span className="text-[8px] font-black uppercase text-emerald-600">Graded</span>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
 
-                            </div>
-                          );
-                        })()}
+                        {/* Slide 2: Evaluation Grades & Submissions Scores */}
+                        {modalSlideIndex === 2 && (
+                          <div className="space-y-4 animate-fade-in">
+                            {(() => {
+                              const hackSubmissions = submissions.filter(s => s.hackathonId === selectedDetailHackathon.id);
+                              return (
+                                <div className="space-y-3">
+                                  <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Project Grades Check</span>
+                                  {hackSubmissions.length === 0 ? (
+                                    <div className="p-6 text-center bg-slate-50 border border-dashed rounded-3xl text-slate-400 font-semibold">
+                                      No submissions uploaded for this event.
+                                    </div>
+                                  ) : (
+                                    <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                      <table className="w-full text-left text-xs border-collapse">
+                                        <thead>
+                                          <tr className="bg-slate-50 font-bold border-b text-[9px] text-slate-500">
+                                            <th className="p-3">Project Title</th>
+                                            <th className="p-3">Team Name</th>
+                                            <th className="p-3">Status</th>
+                                            <th className="p-3 text-right">Avg Grade</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 font-medium text-slate-750">
+                                          {hackSubmissions.map(s => (
+                                            <tr key={s.id}>
+                                              <td className="p-3 font-bold text-slate-800">{s.title}</td>
+                                              <td className="p-3">{s.teamName}</td>
+                                              <td className="p-3">
+                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                                  s.evaluated ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+                                                }`}>{s.evaluated ? 'Graded' : 'Pending'}</span>
+                                              </td>
+                                              <td className="p-3 text-right font-mono font-bold text-slate-900">{s.evaluated ? `${s.averageScore}/10` : '—'}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        {/* Slide 3: Standings & Brief Summary */}
+                        {modalSlideIndex === 3 && (
+                          <div className="space-y-5 animate-fade-in">
+                            {(() => {
+                              const hackSubmissions = submissions.filter(s => s.hackathonId === selectedDetailHackathon.id);
+                              const evaluatedSubs = hackSubmissions.filter(s => s.evaluated).sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
+                              
+                              return (
+                                <div className="space-y-4">
+                                  
+                                  {/* Leaderboard standings */}
+                                  <div className="space-y-2">
+                                    <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">🏆 Standings & Winners</span>
+                                    {evaluatedSubs.length === 0 ? (
+                                      <div className="p-4 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-semibold">
+                                        Standings will appear once grades are assigned.
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {evaluatedSubs.slice(0, 3).map((s, idx) => {
+                                          const rankLabels = ['🥇 Grand Winner (60%)', '🥈 Runner-Up (30%)', '🥉 Third Winner (10%)'];
+                                          const rankColors = ['bg-amber-50 border-amber-250 text-amber-800', 'bg-slate-100 border-slate-200 text-slate-800', 'bg-orange-50 border-orange-250 text-orange-800'];
+                                          return (
+                                            <div key={s.id} className={`p-4 border rounded-2xl flex justify-between items-center ${rankColors[idx] || 'bg-slate-50 text-slate-700'}`}>
+                                              <div>
+                                                <div className="text-[8px] font-black uppercase text-indigo-650">{rankLabels[idx]}</div>
+                                                <div className="font-extrabold text-slate-900 text-xs mt-0.5">{s.teamName}</div>
+                                                <p className="text-[9px] text-slate-400 font-bold">Project: {s.title}</p>
+                                              </div>
+                                              <span className="font-mono font-black text-xs">{s.averageScore}/10</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Brief summary overlay info card */}
+                                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                                    <span className="text-[9px] font-black text-slate-450 uppercase tracking-wider block">📝 Event Summary Overview</span>
+                                    <p className="text-slate-650 leading-relaxed font-semibold text-[11px]">
+                                      The event **{selectedDetailHackathon.title}** is organized by **{selectedDetailHackathon.organizerName || currentOrg}** with a total reward sum of **{selectedDetailHackathon.prizePool}** distributed among developers. 
+                                      {evaluatedSubs.length > 0 ? ` Standard evaluations successfully grade ${evaluatedSubs.length} submissions.` : ' Submissions are pending judge panel grading.'}
+                                    </p>
+                                  </div>
+
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
 
                       </div>
 
-                      {/* Modal Footer */}
-                      <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+                      {/* Modal Footer (Slide Navigation + Close buttons) */}
+                      <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0">
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={modalSlideIndex === 0}
+                            onClick={() => setModalSlideIndex(prev => Math.max(0, prev - 1))}
+                            className="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl disabled:opacity-40"
+                          >
+                            ← Prev Slide
+                          </button>
+                          <button
+                            type="button"
+                            disabled={modalSlideIndex === 3}
+                            onClick={() => setModalSlideIndex(prev => Math.min(3, prev + 1))}
+                            className="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl disabled:opacity-40"
+                          >
+                            Next Slide →
+                          </button>
+                        </div>
                         <button
-                          onClick={() => setSelectedDetailHackathon(null)}
+                          onClick={() => { setSelectedDetailHackathon(null); setModalSlideIndex(0); }}
                           className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs shadow-md"
                         >
                           Close Details
@@ -1500,6 +1599,115 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   Broadcast & Schedule Notifications
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* TAB 7.5: CONNECT HUB */}
+          {activeTab === 'connect' && (
+            <div className="w-full max-w-6xl mx-auto space-y-6">
+              
+              <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex-wrap gap-4">
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                    💬 Organizer Connect Hub
+                  </h3>
+                  <p className="text-xs text-slate-500">Coordinate timelines, review event schedules, and chat with other hosts to prevent overlaps</p>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100 flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span> Live Coordination Online
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* 1. Global Timelines List */}
+                <div className="lg:col-span-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                  <div className="border-b pb-3">
+                    <h4 className="text-sm font-extrabold text-slate-900">📅 Coordinated Event Schedules</h4>
+                    <p className="text-[10px] text-slate-400">All registered organizer schedules to prevent date clashes</p>
+                  </div>
+
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {[
+                      { id: 'h1', title: 'AI Innovation Challenge 2026', organizer: 'TechCorp India Labs', start: '01/09/2026', end: '07/09/2026', tracks: 'Generative AI, Agentic Coding' },
+                      { id: 'h2', title: 'Vercel Web3 Builder Sprint', organizer: 'Vercel India Hub', start: '15/09/2026', end: '22/09/2026', tracks: 'Web3, Serverless' },
+                      { id: 'h3', title: 'Smart Cities Hackathon 2026', organizer: 'Green Tech Coalition', start: '10/10/2026', end: '15/10/2026', tracks: 'Green Tech, IoT' },
+                      { id: 'h4', title: 'FinTech Disrupt Challenge', organizer: 'Apex Bank Labs', start: '05/11/2026', end: '10/11/2026', tracks: 'Decentralized Finance' }
+                    ].map(h => (
+                      <div key={h.id} className="p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl transition-colors space-y-1.5">
+                        <div className="flex justify-between items-start">
+                          <span className="font-extrabold text-slate-800 text-xs">{h.title}</span>
+                          <span className="text-[8px] font-black uppercase text-indigo-650 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">{h.organizer}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-semibold">
+                          <div>Starts: <span className="text-slate-850 font-bold">{h.start}</span></div>
+                          <div>Ends: <span className="text-slate-850 font-bold">{h.end}</span></div>
+                        </div>
+                        <div className="text-[9px] text-slate-400 font-medium">Tracks: <span className="text-slate-650 font-bold">{h.tracks}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Interactive Chatbox */}
+                <div className="lg:col-span-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col h-[550px]">
+                  <div className="border-b pb-3 shrink-0 flex justify-between items-center">
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-900">💬 Organizer Coordination Chat</h4>
+                      <p className="text-[10px] text-slate-400">Direct instant messaging between event organizers</p>
+                    </div>
+                    <span className="text-[9px] font-bold text-indigo-650">3 Active Organizers</span>
+                  </div>
+
+                  {/* Messages container */}
+                  <div className="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1">
+                    {connectMessages.map(m => (
+                      <div key={m.id} className="space-y-1 text-xs">
+                        <div className="flex justify-between items-center px-1">
+                          <span className="font-black text-indigo-650 text-[10px]">{m.sender}</span>
+                          <span className="text-[9px] text-slate-400 font-bold">{m.time}</span>
+                        </div>
+                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 leading-relaxed font-semibold">
+                          {m.text}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Input form */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!chatMessageInput.trim()) return;
+                      const newMsg = {
+                        id: `msg-${Date.now()}`,
+                        sender: 'You (' + currentOrg + ')',
+                        text: chatMessageInput,
+                        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                      };
+                      setConnectMessages([...connectMessages, newMsg]);
+                      setChatMessageInput('');
+                    }}
+                    className="flex gap-2 shrink-0 pt-3 border-t"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Type a message to coordinate dates..."
+                      value={chatMessageInput}
+                      onChange={(e) => setChatMessageInput(e.target.value)}
+                      className="flex-1 px-4 py-2.5 rounded-xl border text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold uppercase shadow"
+                    >
+                      Send
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+
             </div>
           )}
 
