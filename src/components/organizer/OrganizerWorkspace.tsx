@@ -1641,9 +1641,8 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           {activeTab === 'connect' && (
             <div className="w-full max-w-[1400px] mx-auto space-y-8 pb-16 animate-fade-in">
               
-              {/* Asymmetric Header Banner: Deep Gradient + Mesh Glass Overlay */}
+              {/* 1. TOP SECTION: Asymmetric Header Banner */}
               <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-8 sm:p-10 rounded-[28px] shadow-2xl border border-white/10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                {/* Glowing decorative ambient orb background */}
                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] pointer-events-none"></div>
                 <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -1660,7 +1659,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   </p>
                 </div>
 
-                {/* Right Side Stats & Quick Controls */}
                 <div className="relative z-10 flex flex-wrap items-center gap-4">
                   <div className="bg-white/10 backdrop-blur-md border border-white/15 px-5 py-3 rounded-2xl flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-black text-sm shadow-md">
@@ -1686,20 +1684,62 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 </div>
               </div>
 
-              {/* Asymmetric 12-Column Grid Layout */}
+              {/* 2. TOP FULL-WIDTH CARD: Coordinated Timeline Calendar */}
+              <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[28px] border border-slate-200/90 shadow-xl shadow-slate-100/70 space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-150 gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">📅</span>
+                      <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Coordinated Timeline Calendar</h3>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">Realtime date alignment & hackathon schedules across all participating organizers</p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live Schedule Synced</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {[
+                    { title: 'AI Innovation Challenge 2026', org: 'TechCorp India Labs', start: 'Sep 01', end: 'Sep 07', tracks: 'GenAI, Agents', status: 'Live Now', statusColor: 'bg-emerald-500 text-white' },
+                    { title: 'Vercel Web3 Builder Sprint', org: 'Vercel India Hub', start: 'Sep 15', end: 'Sep 22', tracks: 'Web3, Serverless', status: 'Confirmed', statusColor: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
+                    { title: 'Smart Cities Hackathon 2026', org: 'Green Tech Coalition', start: 'Oct 10', end: 'Oct 15', tracks: 'IoT, Green Tech', status: 'Upcoming', statusColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
+                    { title: 'FinTech Disrupt Challenge', org: 'Apex Bank Labs', start: 'Nov 05', end: 'Nov 10', tracks: 'DeFi, Payments', status: 'Planning', statusColor: 'bg-slate-100 text-slate-600 border border-slate-200' }
+                  ].map((item, i) => (
+                    <div key={i} className="p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 hover:bg-white hover:shadow-lg hover:border-slate-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0 ${item.statusColor}`}>
+                            {item.status}
+                          </span>
+                          <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{item.tracks}</span>
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 text-sm leading-snug">{item.title}</h4>
+                        <p className="text-xs text-slate-500 font-medium">{item.org}</p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                        <span className="text-slate-400 font-medium">Dates:</span>
+                        <span className="font-extrabold text-slate-800">{item.start} — {item.end}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. BOTTOM SECTION: Verified Organizers List + Chat Area */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {/* LEFT SIDE (4 Cols): Directory & Event Schedules Cards */}
+                {/* LEFT (4 Cols): Verified Organizers Directory */}
                 <div className="lg:col-span-4 space-y-6">
-                  
-                  {/* Glassmorphic Organizer Directory Panel */}
-                  <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[24px] border border-slate-200/80 shadow-xl shadow-slate-100/60 space-y-5">
+                  <div className="bg-white/90 backdrop-blur-xl p-6 rounded-[28px] border border-slate-200/90 shadow-xl shadow-slate-100/70 space-y-5">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-150">
                       <div>
                         <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
                           👥 Verified Organizers
                         </h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Select a host to initiate private DM</p>
+                        <p className="text-[11px] text-slate-500 font-medium">Select an organizer to start chatting</p>
                       </div>
                       <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2.5 py-1 rounded-full">
                         3 Online
@@ -1749,50 +1789,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       ))}
                     </div>
                   </div>
-
-                  {/* Coordinated Timeline Schedules */}
-                  <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[24px] border border-slate-200/80 shadow-xl shadow-slate-100/60 space-y-5">
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-150">
-                      <div>
-                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                          📅 Coordinated Timeline Calendar
-                        </h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Realtime date alignment across organizers</p>
-                      </div>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-full">
-                        Synced
-                      </span>
-                    </div>
-
-                    <div className="space-y-3.5 max-h-[360px] overflow-y-auto pr-1">
-                      {[
-                        { title: 'AI Innovation Challenge 2026', org: 'TechCorp India Labs', start: 'Sep 01', end: 'Sep 07', status: 'Live Now', statusColor: 'bg-emerald-500 text-white' },
-                        { title: 'Vercel Web3 Builder Sprint', org: 'Vercel India Hub', start: 'Sep 15', end: 'Sep 22', status: 'Confirmed', statusColor: 'bg-indigo-100 text-indigo-700 border border-indigo-200' },
-                        { title: 'Smart Cities Hackathon 2026', org: 'Green Tech Coalition', start: 'Oct 10', end: 'Oct 15', status: 'Upcoming', statusColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
-                        { title: 'FinTech Disrupt Challenge', org: 'Apex Bank Labs', start: 'Nov 05', end: 'Nov 10', status: 'Planning', statusColor: 'bg-slate-100 text-slate-600 border border-slate-200' }
-                      ].map((item, i) => (
-                        <div key={i} className="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2.5 hover:bg-white hover:shadow-md hover:border-slate-300 transition-all duration-300">
-                          <div className="flex items-center justify-between gap-2">
-                            <h5 className="font-bold text-slate-900 text-xs sm:text-sm">{item.title}</h5>
-                            <span className={`text-[9px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0 ${item.statusColor}`}>
-                              {item.status}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-slate-500 font-medium pt-1 border-t border-slate-200/60">
-                            <span>{item.org}</span>
-                            <span className="font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">{item.start} — {item.end}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                 </div>
 
-                {/* RIGHT SIDE (8 Cols): Floating SaaS Collaboration Chat Window */}
-                <div className="lg:col-span-8 bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-2xl shadow-slate-200/50 rounded-[28px] flex flex-col h-[750px] overflow-hidden">
+                {/* RIGHT (8 Cols): Collaboration Chat Workspace Window */}
+                <div className="lg:col-span-8 bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-2xl shadow-slate-200/50 rounded-[28px] flex flex-col h-[720px] overflow-hidden">
                   
-                  {/* Chat Window Sticky Header */}
+                  {/* Chat Header */}
                   <div className="bg-slate-50/90 backdrop-blur-md border-b border-slate-200/80 px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-indigo-700 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-indigo-200">
@@ -1838,7 +1840,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     </div>
                   </div>
 
-                  {/* Pinned Announcement Alert Box */}
+                  {/* Pinned Announcement Box */}
                   <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-amber-500/10 border-b border-amber-200/60 px-8 py-3 shrink-0 flex items-center justify-between gap-3 text-xs text-amber-900">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="px-2 py-0.5 bg-amber-500 text-white rounded-md text-[10px] font-black uppercase tracking-wider shrink-0">Pinned</span>
@@ -1855,7 +1857,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         const isMe = m.sender.startsWith('You');
                         return (
                           <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1.5 group animate-fade-in`}>
-                            {/* Sender Info Row */}
+                            {/* Sender Info */}
                             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 px-1">
                               <span className="text-slate-900 font-bold">{m.sender}</span>
                               {m.isPrivate && (
@@ -1864,7 +1866,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                               <span className="text-slate-400 font-medium">• {m.time}</span>
                             </div>
 
-                            {/* Message Bubble - Soft rounded corners & excellent readability */}
+                            {/* Message Bubble */}
                             <div className={`max-w-[78%] p-5 rounded-[22px] text-xs sm:text-sm font-medium leading-relaxed transition-all shadow-sm ${
                               isMe
                                 ? 'bg-indigo-600 text-white rounded-tr-none shadow-indigo-200'
@@ -1873,7 +1875,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                               {m.text}
                             </div>
 
-                            {/* Emoji Reaction Pills */}
+                            {/* Emoji Reactions */}
                             <div className="flex flex-wrap items-center gap-1.5 px-1">
                               {m.reactions && m.reactions.map((r: any, rIdx: number) => (
                                 <button
@@ -1945,8 +1947,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                   {/* Sticky Message Composer Box */}
                   <div className="p-5 bg-white border-t border-slate-200/80 shrink-0 space-y-3">
-                    
-                    {/* Private Recipient Picker (Visible for DM mode) */}
                     {chatScope === 'private' && (
                       <div className="flex items-center gap-2 px-1">
                         <span className="text-xs font-bold text-slate-700">Direct Recipient:</span>
@@ -1979,7 +1979,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       }}
                       className="flex items-center gap-3 bg-slate-50 border border-slate-200/90 rounded-2xl p-2.5 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all duration-300"
                     >
-                      {/* Attachment & Emoji Quick Actions */}
                       <div className="flex items-center gap-1.5 text-slate-400 px-1 border-r border-slate-200/80 pr-2.5">
                         <button type="button" onClick={() => alert('File attachment feature enabled for organizers.')} className="p-2 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-all" title="Attach file">
                           📎
@@ -1997,7 +1996,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         className="flex-1 text-xs sm:text-sm font-medium text-slate-900 bg-transparent outline-none placeholder:text-slate-400"
                       />
 
-                      {/* Premium Solid Indigo Send Button with Send Icon */}
                       <button
                         type="submit"
                         className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 shrink-0"
