@@ -11,14 +11,18 @@
 
   body {
     background:
-      radial-gradient(ellipse 70% 55% at 8%  15%, #EEF4FF 0%, transparent 60%),
-      radial-gradient(ellipse 65% 50% at 92% 12%, #FDF2FF 0%, transparent 55%),
-      radial-gradient(ellipse 60% 55% at 88% 85%, #FFF6EC 0%, transparent 55%),
-      radial-gradient(ellipse 70% 55% at 5%  90%, #EAFBFF 0%, transparent 55%),
-      radial-gradient(ellipse 50% 45% at 50% 50%, #EEF4FF 0%, transparent 65%),
-      linear-gradient(145deg, #F5F7FF 0%, #EEF4FF 22%, #F5F7FF 44%, #FDF2FF 66%, #FFF6EC 82%, #EAFBFF 100%);
+      /* Subtle Cyber Dot-Grid Pattern */
+      radial-gradient(rgba(99, 102, 241, 0.12) 1.5px, transparent 1.5px),
+      /* Multi-layered Vibrant Light Aurora Meshes */
+      radial-gradient(ellipse 90% 70% at 5%  10%, rgba(199, 210, 254, 0.5) 0%, transparent 65%),
+      radial-gradient(ellipse 85% 65% at 95% 12%, rgba(245, 208, 254, 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 70% at 88% 88%, rgba(254, 215, 170, 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 90% 75% at 8%  92%, rgba(186, 230, 253, 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 50% 45%, rgba(221, 214, 254, 0.4) 0%, transparent 70%),
+      linear-gradient(140deg, #FAFAFE 0%, #F1F5F9 20%, #EEF2FF 40%, #F5F3FF 60%, #FFF7ED 80%, #F0FDFA 100%);
+    background-size: 32px 32px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
     background-attachment: fixed;
-    color: #1e293b;
+    color: #0f172a;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
@@ -28,25 +32,28 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #c7d2fe #f1f5f9;
+    scrollbar-color: #818cf8 #f1f5f9;
   }
 
   ::selection {
-    background: rgba(99, 102, 241, 0.2);
-    color: #1e293b;
+    background: rgba(129, 140, 248, 0.25);
+    color: #1e1b4b;
   }
 }
 
 /* ========================================
-   GLASSMORPHISM SYSTEM (Light)
+   LIGHT GLASSMORPHISM & CARD ELEVATION
    ======================================== */
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.06), 0 1px 3px rgba(0,0,0,0.04);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow:
+    0 10px 30px -10px rgba(99, 102, 241, 0.08),
+    0 2px 6px -1px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .glass-panel-hover {
@@ -54,53 +61,56 @@
 }
 
 .glass-panel-hover:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(99, 102, 241, 0.35);
   box-shadow:
-    0 20px 40px -12px rgba(99, 102, 241, 0.12),
-    0 0 0 1px rgba(99, 102, 241, 0.08);
+    0 22px 45px -12px rgba(99, 102, 241, 0.16),
+    0 0 20px rgba(168, 85, 247, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
   transform: translateY(-4px);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(238, 242, 255, 0.6) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 2px 16px rgba(99, 102, 241, 0.05);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(238, 242, 255, 0.75) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.06);
 }
 
 .glass-card-premium {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(238, 242, 255, 0.7) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.07);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 244, 256, 0.85) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 8px 30px rgba(99, 102, 241, 0.09),
+    0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-premium:hover {
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(168, 85, 247, 0.45);
   box-shadow:
-    0 25px 50px -12px rgba(99, 102, 241, 0.15),
-    0 0 0 1px rgba(99, 102, 241, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 25px 55px -12px rgba(99, 102, 241, 0.2),
+    0 0 30px rgba(168, 85, 247, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
   transform: translateY(-6px);
 }
 
 /* ========================================
-   GRADIENT SYSTEM
+   VIBRANT LIGHT GRADIENT SYSTEM
    ======================================== */
 
 .gradient-text {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0284c7 100%);
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #0284c7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-warm {
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #d97706 0%, #dc2626 50%, #db2777 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -116,8 +126,8 @@
 
 .gradient-glow {
   box-shadow:
-    0 0 20px rgba(99, 102, 241, 0.25),
-    0 0 60px rgba(99, 102, 241, 0.08);
+    0 0 25px rgba(99, 102, 241, 0.3),
+    0 0 60px rgba(168, 85, 247, 0.15);
 }
 
 .gradient-border {
@@ -128,7 +138,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  padding: 1px;
+  padding: 1.5px;
   border-radius: inherit;
   background: linear-gradient(135deg, #4f46e5, #7c3aed, #0284c7);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -137,29 +147,40 @@
   pointer-events: none;
 }
 
+/* Section Identity Mesh Utility Classes */
+.section-aurora-indigo {
+  background: radial-gradient(circle 600px at 10% 20%, rgba(199, 210, 254, 0.4) 0%, transparent 70%),
+              radial-gradient(circle 500px at 90% 80%, rgba(186, 230, 253, 0.4) 0%, transparent 70%);
+}
+
+.section-aurora-purple {
+  background: radial-gradient(circle 600px at 90% 20%, rgba(245, 208, 254, 0.4) 0%, transparent 70%),
+              radial-gradient(circle 500px at 10% 80%, rgba(221, 214, 254, 0.4) 0%, transparent 70%);
+}
+
 /* ========================================
-   BUTTON SYSTEM
+   LIGHT THEME BUTTON SYSTEM
    ======================================== */
 
 .btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0284c7 100%);
   color: white;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.45);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  color: #374151;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  color: #1e293b;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
@@ -168,9 +189,10 @@
 }
 
 .btn-secondary:hover {
-  background: rgba(238, 242, 255, 0.9);
-  border-color: rgba(99, 102, 241, 0.3);
-  transform: translateY(-1px);
+  background: rgba(238, 242, 255, 0.95);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.12);
 }
 
 /* ========================================
