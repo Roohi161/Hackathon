@@ -77,9 +77,34 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
   // Organizer Chat state
   const [chatMessageInput, setChatMessageInput] = useState('');
+  const [chatScope, setChatScope] = useState<'public' | 'private'>('public');
+  const [privateRecipient, setPrivateRecipient] = useState('Elena (Vercel India)');
   const [connectMessages, setConnectMessages] = useState([
-    { id: 'm1', sender: 'Elena (Vercel India)', text: 'Hey guys! We are scheduling our Web3 Summit in mid September. Any overlapping events around that time?', time: '10:30 AM' },
-    { id: 'm2', sender: 'Suresh (AI Agents Forum)', text: 'Our Multimodal AI Summit starts Sep 1st. Good to schedule it later in Sep to avoid splitting attendees!', time: '10:45 AM' }
+    { 
+      id: 'm1', 
+      sender: 'Elena (Vercel India)', 
+      text: 'Hey guys! We are scheduling our Web3 Summit in mid September. Any overlapping events around that time?', 
+      time: '10:30 AM',
+      isPrivate: false,
+      reactions: [{ emoji: '👍', count: 2 }, { emoji: '🔥', count: 1 }]
+    },
+    { 
+      id: 'm2', 
+      sender: 'Suresh (AI Agents Forum)', 
+      text: 'Our Multimodal AI Summit starts Sep 1st. Good to schedule it later in Sep to avoid splitting attendees!', 
+      time: '10:45 AM',
+      isPrivate: false,
+      reactions: [{ emoji: '❤️', count: 3 }]
+    },
+    {
+      id: 'm3',
+      sender: 'Elena (Vercel India)',
+      text: 'Let\'s align our developer budget pools to offer higher cash prize payouts.',
+      time: '11:02 AM',
+      isPrivate: true,
+      recipient: 'You (TechCorp India Labs)',
+      reactions: []
+    }
   ]);
 
   // Modals & Popups
@@ -1618,92 +1643,302 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 
-                {/* 1. Global Timelines List */}
-                <div className="lg:col-span-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                  <div className="border-b pb-3">
-                    <h4 className="text-sm font-extrabold text-slate-900">📅 Coordinated Event Schedules</h4>
-                    <p className="text-[10px] text-slate-400">All registered organizer schedules to prevent date clashes</p>
+                {/* 1. Left Column: Global Timelines & Partner Directory */}
+                <div className="lg:col-span-5 space-y-6 flex flex-col justify-between">
+                  
+                  {/* Coordinated Schedules List */}
+                  <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-md space-y-4">
+                    <div className="border-b pb-3 flex justify-between items-center">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">📅 Coordinated Event Schedules</h4>
+                        <p className="text-[10px] text-slate-400">All registered organizer schedules to prevent overlaps</p>
+                      </div>
+                      <span className="text-[9px] font-black text-indigo-650 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-xl">Sync Active</span>
+                    </div>
+
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                      {[
+                        { id: 'h1', title: 'AI Innovation Challenge 2026', organizer: 'TechCorp India Labs', start: '01/09/2026', end: '07/09/2026', tracks: 'Generative AI, Agentic Coding' },
+                        { id: 'h2', title: 'Vercel Web3 Builder Sprint', organizer: 'Vercel India Hub', start: '15/09/2026', end: '22/09/2026', tracks: 'Web3, Serverless' },
+                        { id: 'h3', title: 'Smart Cities Hackathon 2026', organizer: 'Green Tech Coalition', start: '10/10/2026', end: '15/10/2026', tracks: 'Green Tech, IoT' },
+                        { id: 'h4', title: 'FinTech Disrupt Challenge', organizer: 'Apex Bank Labs', start: '05/11/2026', end: '10/11/2026', tracks: 'Decentralized Finance' }
+                      ].map(h => (
+                        <div key={h.id} className="p-3 bg-slate-50/50 hover:bg-slate-100/50 border border-slate-200 rounded-2xl transition-all duration-300 space-y-1.5 hover:shadow-sm">
+                          <div className="flex justify-between items-start">
+                            <span className="font-extrabold text-slate-850 text-xs">{h.title}</span>
+                            <span className="text-[8px] font-black uppercase text-indigo-650 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded-lg">{h.organizer}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-450 font-semibold">
+                            <div>Starts: <span className="text-slate-800 font-bold">{h.start}</span></div>
+                            <div>Ends: <span className="text-slate-800 font-bold">{h.end}</span></div>
+                          </div>
+                          <div className="text-[9px] text-slate-400 font-medium border-t border-slate-200/50 pt-1">Tracks: <span className="text-indigo-600 font-semibold">{h.tracks}</span></div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-                    {[
-                      { id: 'h1', title: 'AI Innovation Challenge 2026', organizer: 'TechCorp India Labs', start: '01/09/2026', end: '07/09/2026', tracks: 'Generative AI, Agentic Coding' },
-                      { id: 'h2', title: 'Vercel Web3 Builder Sprint', organizer: 'Vercel India Hub', start: '15/09/2026', end: '22/09/2026', tracks: 'Web3, Serverless' },
-                      { id: 'h3', title: 'Smart Cities Hackathon 2026', organizer: 'Green Tech Coalition', start: '10/10/2026', end: '15/10/2026', tracks: 'Green Tech, IoT' },
-                      { id: 'h4', title: 'FinTech Disrupt Challenge', organizer: 'Apex Bank Labs', start: '05/11/2026', end: '10/11/2026', tracks: 'Decentralized Finance' }
-                    ].map(h => (
-                      <div key={h.id} className="p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl transition-colors space-y-1.5">
-                        <div className="flex justify-between items-start">
-                          <span className="font-extrabold text-slate-800 text-xs">{h.title}</span>
-                          <span className="text-[8px] font-black uppercase text-indigo-650 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">{h.organizer}</span>
+                  {/* Active Partner Organizers Directory */}
+                  <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-md space-y-4">
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">👥 active organizers directory</h4>
+                      <p className="text-[10px] text-slate-400">Direct message other hosts privately or tag in channels</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      {[
+                        { name: 'Elena (Vercel India)', email: 'elena@vercel.com', initial: 'EV', color: 'from-violet-500 to-indigo-500' },
+                        { name: 'Suresh (AI Agents Forum)', email: 'suresh@aiagents.org', initial: 'SA', color: 'from-cyan-500 to-blue-500' },
+                        { name: 'KVS Bhavya Sri (TechCorp)', email: 'bhavya@hackathoncentral.io', initial: 'KB', color: 'from-pink-500 to-rose-500' }
+                      ].map((o, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setChatScope('private');
+                            setPrivateRecipient(o.name);
+                          }}
+                          className="flex items-center justify-between p-2.5 hover:bg-slate-50 border border-transparent hover:border-slate-150 rounded-2xl transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${o.color} text-white flex items-center justify-center font-bold text-xs shadow-md`}>
+                                {o.initial}
+                              </div>
+                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                            </div>
+                            <div>
+                              <span className="text-xs font-bold text-slate-900 block group-hover:text-indigo-600 transition-colors">{o.name}</span>
+                              <span className="text-[9px] text-slate-400 font-mono">{o.email}</span>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-black text-indigo-650 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">DM Partner</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-semibold">
-                          <div>Starts: <span className="text-slate-850 font-bold">{h.start}</span></div>
-                          <div>Ends: <span className="text-slate-850 font-bold">{h.end}</span></div>
-                        </div>
-                        <div className="text-[9px] text-slate-400 font-medium">Tracks: <span className="text-slate-650 font-bold">{h.tracks}</span></div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
+
                 </div>
 
-                {/* 2. Interactive Chatbox */}
-                <div className="lg:col-span-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col h-[550px]">
-                  <div className="border-b pb-3 shrink-0 flex justify-between items-center">
-                    <div>
-                      <h4 className="text-sm font-extrabold text-slate-900">💬 Organizer Coordination Chat</h4>
-                      <p className="text-[10px] text-slate-400">Direct instant messaging between event organizers</p>
-                    </div>
-                    <span className="text-[9px] font-bold text-indigo-650">3 Active Organizers</span>
-                  </div>
-
-                  {/* Messages container */}
-                  <div className="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1">
-                    {connectMessages.map(m => (
-                      <div key={m.id} className="space-y-1 text-xs">
-                        <div className="flex justify-between items-center px-1">
-                          <span className="font-black text-indigo-650 text-[10px]">{m.sender}</span>
-                          <span className="text-[9px] text-slate-400 font-bold">{m.time}</span>
-                        </div>
-                        <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 leading-relaxed font-semibold">
-                          {m.text}
-                        </div>
+                {/* 2. Right Column: Slack/Discord Style Collaboration Workspace panel */}
+                <div className="lg:col-span-7 bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-2xl rounded-3xl flex flex-col h-[650px] overflow-hidden">
+                  
+                  {/* Sticky Header with chat scope details */}
+                  <div className="bg-slate-50/80 backdrop-blur-md px-6 py-4.5 border-b border-slate-200/80 shrink-0 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-100">
+                        {chatScope === 'public' ? '📢' : '🔒'}
                       </div>
-                    ))}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-black text-slate-900 uppercase">
+                            {chatScope === 'public' ? 'Global Broadcast Channel' : `Direct DM: ${privateRecipient}`}
+                          </h4>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        </div>
+                        <p className="text-[10px] text-slate-450 font-bold">
+                          {chatScope === 'public' ? 'Messages visible to all registered hosts' : 'Private chat thread (End-to-End Encrypted)'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setChatScope('public')}
+                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
+                          chatScope === 'public' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                        }`}
+                      >
+                        Public Broadcast
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setChatScope('private')}
+                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
+                          chatScope === 'private' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                        }`}
+                      >
+                        Private DM
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Input form */}
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      if (!chatMessageInput.trim()) return;
-                      const newMsg = {
-                        id: `msg-${Date.now()}`,
-                        sender: 'You (' + currentOrg + ')',
-                        text: chatMessageInput,
-                        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-                      };
-                      setConnectMessages([...connectMessages, newMsg]);
-                      setChatMessageInput('');
-                    }}
-                    className="flex gap-2 shrink-0 pt-3 border-t"
-                  >
-                    <input
-                      type="text"
-                      placeholder="Type a message to coordinate dates..."
-                      value={chatMessageInput}
-                      onChange={(e) => setChatMessageInput(e.target.value)}
-                      className="flex-1 px-4 py-2.5 rounded-xl border text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold uppercase shadow"
+                  {/* Pinned Messages Banner */}
+                  <div className="bg-amber-50/60 border-b border-amber-100 px-6 py-2 shrink-0 flex items-center gap-2">
+                    <span className="text-xs">📌</span>
+                    <p className="text-[10px] text-amber-800 font-bold truncate">
+                      <span className="uppercase text-[9px] font-black bg-amber-200/80 px-1.5 py-0.5 rounded mr-1">Pinned Announcement</span> 
+                      Deadline for Sep coordination calendar matches is scheduled for Sep 10th. Please submit timelines!
+                    </p>
+                  </div>
+
+                  {/* Messages Area */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/30">
+                    {connectMessages
+                      .filter(m => chatScope === 'public' ? !m.isPrivate : m.isPrivate)
+                      .map((m: any) => (
+                        <div key={m.id} className="space-y-1.5 max-w-[85%] group relative animate-fade-in">
+                          
+                          {/* Sender details */}
+                          <div className="flex items-center gap-2 px-1">
+                            <span className="font-extrabold text-[10px] text-slate-900">{m.sender}</span>
+                            {m.isPrivate && (
+                              <span className="text-[8px] font-black uppercase text-pink-700 bg-pink-50 border border-pink-200 px-1.5 py-0.5 rounded">🔒 Private</span>
+                            )}
+                            <span className="text-[8px] text-slate-400 font-bold">{m.time}</span>
+                          </div>
+
+                          {/* Message box */}
+                          <div className={`p-4.5 rounded-3xl shadow-sm text-xs font-semibold leading-relaxed border transition-all hover:shadow-md ${
+                            m.sender.startsWith('You') 
+                              ? 'bg-gradient-to-br from-indigo-650 to-purple-650 text-white border-indigo-650 rounded-tr-none' 
+                              : 'bg-white text-slate-750 border-slate-200 rounded-tl-none'
+                          }`}>
+                            {m.text}
+                          </div>
+
+                          {/* Interactive Emoji Reactions */}
+                          <div className="flex flex-wrap items-center gap-1.5 px-2">
+                            {m.reactions && m.reactions.map((r: any, rIdx: number) => (
+                              <button
+                                key={rIdx}
+                                type="button"
+                                onClick={() => {
+                                  // Live reaction increment on click
+                                  const updated = connectMessages.map(item => {
+                                    if (item.id === m.id) {
+                                      const updatedReactions = item.reactions.map((reac, idx) => 
+                                        idx === rIdx ? { ...reac, count: reac.count + 1 } : reac
+                                      );
+                                      return { ...item, reactions: updatedReactions };
+                                    }
+                                    return item;
+                                  });
+                                  setConnectMessages(updated as any);
+                                }}
+                                className="px-2 py-0.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-all"
+                              >
+                                <span>{r.emoji}</span>
+                                <span className="text-[8px] font-black font-mono">{r.count}</span>
+                              </button>
+                            ))}
+
+                            {/* Click to add reaction picker */}
+                            {(!m.reactions || m.reactions.length < 3) && (
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {['👍', '❤️', '🔥', '🎉'].map(emoji => (
+                                  <button
+                                    key={emoji}
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = connectMessages.map(item => {
+                                        if (item.id === m.id) {
+                                          const reactions = item.reactions || [];
+                                          const existing = reactions.find(re => re.emoji === emoji);
+                                          let updatedReactions;
+                                          if (existing) {
+                                            updatedReactions = reactions.map(re => re.emoji === emoji ? { ...re, count: re.count + 1 } : re);
+                                          } else {
+                                            updatedReactions = [...reactions, { emoji, count: 1 }];
+                                          }
+                                          return { ...item, reactions: updatedReactions };
+                                        }
+                                        return item;
+                                      });
+                                      setConnectMessages(updated as any);
+                                    }}
+                                    className="p-1 rounded hover:bg-slate-150 text-[10px] transition-colors"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+                      ))}
+
+                    {/* Cute typing indicator */}
+                    <div className="flex items-center gap-2 px-1 text-[10px] text-slate-400 font-bold py-1.5 animate-pulse">
+                      <div className="flex gap-1 items-center">
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                      </div>
+                      <span>Elena (Vercel India) is typing...</span>
+                    </div>
+
+                  </div>
+
+                  {/* Message Input Composer Area */}
+                  <div className="p-4 bg-slate-50/80 border-t border-slate-200/80 shrink-0 space-y-3">
+                    
+                    {/* Recipient Dropdown (Visible only for Private DM scope) */}
+                    {chatScope === 'private' && (
+                      <div className="flex items-center gap-2 px-2">
+                        <span className="text-[9px] font-black uppercase text-pink-700">🔒 Direct Recipient:</span>
+                        <select
+                          value={privateRecipient}
+                          onChange={(e) => setPrivateRecipient(e.target.value)}
+                          className="px-2.5 py-1 text-[10px] font-bold text-slate-700 border border-slate-200 bg-white rounded-lg outline-none"
+                        >
+                          <option value="Elena (Vercel India)">Elena (Vercel India)</option>
+                          <option value="Suresh (AI Agents Forum)">Suresh (AI Agents Forum)</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!chatMessageInput.trim()) return;
+                        const newMsg = {
+                          id: `msg-${Date.now()}`,
+                          sender: 'You (' + currentOrg + ')',
+                          text: chatMessageInput,
+                          time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+                          isPrivate: chatScope === 'private',
+                          recipient: chatScope === 'private' ? privateRecipient : undefined,
+                          reactions: []
+                        };
+                        setConnectMessages([...connectMessages, newMsg]);
+                        setChatMessageInput('');
+                      }}
+                      className="flex gap-2 items-center bg-white border border-slate-200/80 p-2 rounded-2xl shadow-inner focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all duration-300"
                     >
-                      Send
-                    </button>
-                  </form>
+                      {/* Composer attachment icons shortcuts */}
+                      <div className="flex items-center gap-1.5 px-2">
+                        <button type="button" onClick={() => alert('Attachments disabled for sandbox environment.')} className="text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-xl transition-all" title="Add File Attachment">
+                          📎
+                        </button>
+                        <button type="button" onClick={() => setChatMessageInput(prev => prev + ' 👍')} className="text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-xl transition-all" title="Insert Emoji 👍">
+                          😀
+                        </button>
+                        <button type="button" onClick={() => alert('GIF search panel is loading...')} className="text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-xl transition-all text-[10px] font-black tracking-tighter" title="Add GIF">
+                          GIF
+                        </button>
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder={chatScope === 'public' ? "Coordinate dates public message..." : `Private DM to ${privateRecipient}...`}
+                        value={chatMessageInput}
+                        onChange={(e) => setChatMessageInput(e.target.value)}
+                        className="flex-1 px-3 py-2 text-xs font-semibold focus:outline-none bg-transparent"
+                      />
+
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-650 hover:opacity-90 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md hover:scale-[1.02] transition-all flex items-center gap-1"
+                      >
+                        Send {chatScope === 'private' && '🔒'}
+                      </button>
+                    </form>
+                  </div>
+
                 </div>
 
               </div>
