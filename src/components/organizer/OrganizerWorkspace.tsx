@@ -1639,70 +1639,49 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
           {/* TAB 7.5: CONNECT HUB */}
           {activeTab === 'connect' && (
-            <div className="w-full max-w-6xl mx-auto space-y-8 pb-8">
+            <div className="w-full max-w-7xl mx-auto space-y-6 pb-12">
               
-              {/* Header Banner - breathable padding and typography */}
-              <div className="flex justify-between items-center bg-white p-8 rounded-3xl border border-slate-100 shadow-lg shadow-indigo-50 flex-wrap gap-6 transition-all duration-300">
+              {/* Header Banner - Clean, Modern Enterprise SaaS Header */}
+              <div className="bg-white p-7 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="space-y-1">
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    💬 Organizer Connect Hub
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 font-semibold leading-relaxed">Coordinate timelines, review event schedules, and chat with other hosts to prevent overlaps</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-200">
+                      💬
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+                        Organizer Connect Hub
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">Collaborate with fellow organizers, align schedules, and coordinate event dates seamlessly</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="px-4.5 py-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-extrabold border border-emerald-100 flex items-center gap-2 shadow-sm">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span> Live Coordination Online
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/60 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>4 Organizers Online</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+              {/* Main Grid: 3-column directory on Left (4 cols) & Full Chat Area on Right (8 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {/* 1. Left Column: Global Timelines & Partner Directory */}
-                <div className="lg:col-span-5 space-y-8 flex flex-col justify-between">
+                {/* LEFT SIDE (4 Cols): Directory & Event Schedules */}
+                <div className="lg:col-span-4 space-y-6">
                   
-                  {/* Coordinated Schedules List */}
-                  <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-150 shadow-xl shadow-slate-100/50 space-y-6">
-                    <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">📅 Coordinated Event Schedules</h4>
-                        <p className="text-[10px] text-slate-400">All registered organizer schedules to prevent overlaps</p>
-                      </div>
-                      <span className="text-[9px] font-black text-indigo-650 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl">Sync Active</span>
+                  {/* Active Organizers List */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                        👥 Active Organizers
+                      </h4>
+                      <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">3 Active</span>
                     </div>
 
-                    <div className="space-y-4 max-h-[320px] overflow-y-auto pr-1">
+                    <div className="space-y-2.5">
                       {[
-                        { id: 'h1', title: 'AI Innovation Challenge 2026', organizer: 'TechCorp India Labs', start: '01/09/2026', end: '07/09/2026', tracks: 'Generative AI, Agentic Coding' },
-                        { id: 'h2', title: 'Vercel Web3 Builder Sprint', organizer: 'Vercel India Hub', start: '15/09/2026', end: '22/09/2026', tracks: 'Web3, Serverless' },
-                        { id: 'h3', title: 'Smart Cities Hackathon 2026', organizer: 'Green Tech Coalition', start: '10/10/2026', end: '15/10/2026', tracks: 'Green Tech, IoT' },
-                        { id: 'h4', title: 'FinTech Disrupt Challenge', organizer: 'Apex Bank Labs', start: '05/11/2026', end: '10/11/2026', tracks: 'Decentralized Finance' }
-                      ].map(h => (
-                        <div key={h.id} className="p-4 bg-slate-50/50 hover:bg-slate-100/50 border border-slate-200 rounded-2xl transition-all duration-300 space-y-2 hover:-translate-y-0.5 hover:shadow-md">
-                          <div className="flex justify-between items-start gap-2">
-                            <span className="font-black text-slate-850 text-xs sm:text-sm tracking-tight">{h.title}</span>
-                            <span className="text-[8px] font-black uppercase text-indigo-650 bg-indigo-50 border border-indigo-150 px-2.5 py-1 rounded-lg shrink-0">{h.organizer}</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3 text-[10px] text-slate-450 font-bold">
-                            <div>Starts: <span className="text-slate-800 font-extrabold">{h.start}</span></div>
-                            <div>Ends: <span className="text-slate-800 font-extrabold">{h.end}</span></div>
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-bold border-t border-slate-200/50 pt-2">Tracks: <span className="text-indigo-600 font-black">{h.tracks}</span></div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Active Partner Organizers Directory */}
-                  <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-150 shadow-xl shadow-slate-100/50 space-y-6">
-                    <div>
-                      <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">👥 active organizers directory</h4>
-                      <p className="text-[10px] text-slate-400">Direct message other hosts privately or tag in channels</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      {[
-                        { name: 'Elena (Vercel India)', email: 'elena@vercel.com', initial: 'EV', color: 'from-violet-500 to-indigo-500' },
-                        { name: 'Suresh (AI Agents Forum)', email: 'suresh@aiagents.org', initial: 'SA', color: 'from-cyan-500 to-blue-500' },
-                        { name: 'KVS Bhavya Sri (TechCorp)', email: 'bhavya@hackathoncentral.io', initial: 'KB', color: 'from-pink-500 to-rose-500' }
+                        { name: 'Elena Rostova', org: 'Vercel India Hub', email: 'elena@vercel.com', initial: 'EV', color: 'bg-violet-600' },
+                        { name: 'Suresh Kumar', org: 'AI Agents Forum', email: 'suresh@aiagents.org', initial: 'SK', color: 'bg-blue-600' },
+                        { name: 'KVS Bhavya Sri', org: 'TechCorp India Labs', email: 'bhavya@hackathoncentral.io', initial: 'KB', color: 'bg-rose-500' }
                       ].map((o, idx) => (
                         <div
                           key={idx}
@@ -1710,21 +1689,60 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                             setChatScope('private');
                             setPrivateRecipient(o.name);
                           }}
-                          className="flex items-center justify-between p-3 hover:bg-slate-50 border border-transparent hover:border-slate-150 rounded-2xl transition-all cursor-pointer group"
+                          className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                            chatScope === 'private' && privateRecipient === o.name
+                              ? 'bg-indigo-50/70 border-indigo-200 shadow-xs'
+                              : 'bg-slate-50/60 border-slate-150 hover:bg-slate-100/60 hover:border-slate-200'
+                          }`}
                         >
-                          <div className="flex items-center gap-3.5">
+                          <div className="flex items-center gap-3">
                             <div className="relative">
-                              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${o.color} text-white flex items-center justify-center font-black text-xs shadow-md`}>
+                              <div className={`w-9 h-9 rounded-lg ${o.color} text-white flex items-center justify-center font-bold text-xs shadow-xs`}>
                                 {o.initial}
                               </div>
-                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
                             </div>
                             <div>
-                              <span className="text-xs sm:text-sm font-black text-slate-900 block group-hover:text-indigo-600 transition-colors">{o.name}</span>
-                              <span className="text-[9px] text-slate-400 font-mono font-bold">{o.email}</span>
+                              <span className="text-xs font-bold text-slate-800 block">{o.name}</span>
+                              <span className="text-[10px] text-slate-500 font-medium block">{o.org}</span>
                             </div>
                           </div>
-                          <span className="text-[9px] font-black text-indigo-650 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">DM Partner</span>
+                          <button
+                            type="button"
+                            className="text-[10px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 px-2.5 py-1 rounded-lg transition-colors"
+                          >
+                            Chat 💬
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Coordinated Hackathon Schedules */}
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                        📅 Event Schedules
+                      </h4>
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">No Overlaps</span>
+                    </div>
+
+                    <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                      {[
+                        { id: 'h1', title: 'AI Innovation Challenge 2026', organizer: 'TechCorp India Labs', dates: 'Sep 01 - Sep 07', badge: 'Active' },
+                        { id: 'h2', title: 'Vercel Web3 Builder Sprint', organizer: 'Vercel India Hub', dates: 'Sep 15 - Sep 22', badge: 'Scheduled' },
+                        { id: 'h3', title: 'Smart Cities Hackathon 2026', organizer: 'Green Tech Coalition', dates: 'Oct 10 - Oct 15', badge: 'Upcoming' },
+                        { id: 'h4', title: 'FinTech Disrupt Challenge', organizer: 'Apex Bank Labs', dates: 'Nov 05 - Nov 10', badge: 'Planning' }
+                      ].map(h => (
+                        <div key={h.id} className="p-3.5 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-2 hover:bg-white hover:shadow-sm transition-all">
+                          <div className="flex justify-between items-start gap-2">
+                            <h5 className="font-bold text-slate-800 text-xs">{h.title}</h5>
+                            <span className="text-[9px] font-semibold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-md shrink-0">{h.badge}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium pt-1 border-t border-slate-150">
+                            <span>{h.organizer}</span>
+                            <span className="font-bold text-indigo-600">{h.dates}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1732,113 +1750,113 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                 </div>
 
-                {/* 2. Right Column: Slack/Discord Style Collaboration Workspace panel */}
-                <div className="lg:col-span-7 bg-white/95 backdrop-blur-xl border border-slate-150 shadow-2xl rounded-3xl flex flex-col h-[700px] overflow-hidden">
+                {/* RIGHT SIDE (8 Cols): Slack/Linear Style Clean Chat Experience */}
+                <div className="lg:col-span-8 bg-white border border-slate-200/80 shadow-sm rounded-2xl flex flex-col h-[720px] overflow-hidden">
                   
-                  {/* Sticky Header with chat scope details */}
-                  <div className="bg-slate-50/80 backdrop-blur-md px-8 py-5 border-b border-slate-200/50 shrink-0 flex justify-between items-center">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-11 h-11 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-100">
+                  {/* Chat Panel Header */}
+                  <div className="bg-slate-50/90 border-b border-slate-200/80 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
                         {chatScope === 'public' ? '📢' : '🔒'}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase">
-                            {chatScope === 'public' ? 'Global Broadcast Channel' : `Direct DM: ${privateRecipient}`}
+                          <h4 className="text-sm font-bold text-slate-900">
+                            {chatScope === 'public' ? 'Public Organizer Channel' : `Private Message: ${privateRecipient}`}
                           </h4>
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         </div>
-                        <p className="text-[10px] text-slate-450 font-bold">
-                          {chatScope === 'public' ? 'Messages visible to all registered hosts' : 'Private chat thread (End-to-End Encrypted)'}
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {chatScope === 'public' ? 'Broadcast messages visible to all event organizers' : 'Encrypted direct message channel'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
+                    {/* Scope Selector Tabs */}
+                    <div className="flex bg-slate-200/70 p-1 rounded-xl gap-1 shrink-0">
                       <button
                         type="button"
                         onClick={() => setChatScope('public')}
-                        className={`px-3.5 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
-                          chatScope === 'public' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          chatScope === 'public'
+                            ? 'bg-white text-indigo-600 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
-                        Public Broadcast
+                        📢 Public Room
                       </button>
                       <button
                         type="button"
                         onClick={() => setChatScope('private')}
-                        className={`px-3.5 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
-                          chatScope === 'private' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          chatScope === 'private'
+                            ? 'bg-white text-indigo-600 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
-                        Private DM
+                        🔒 Private DM
                       </button>
                     </div>
                   </div>
 
-                  {/* Pinned Messages Banner */}
-                  <div className="bg-amber-50/60 border-b border-amber-100 px-8 py-3 shrink-0 flex items-center gap-2">
-                    <span className="text-xs">📌</span>
-                    <p className="text-[10px] text-amber-800 font-bold truncate">
-                      <span className="uppercase text-[9px] font-black bg-amber-200/85 px-2 py-0.5 rounded mr-2">Pinned Announcement</span> 
-                      Deadline for Sep coordination calendar matches is scheduled for Sep 10th. Please submit timelines!
-                    </p>
+                  {/* Pinned Announcement Bar */}
+                  <div className="bg-amber-50/80 border-b border-amber-200/60 px-6 py-2.5 shrink-0 flex items-center gap-2.5 text-xs text-amber-900">
+                    <span className="font-bold text-amber-700 shrink-0">📌 Pinned:</span>
+                    <span className="font-medium truncate">September hackathon schedule alignment phase is active. Please post your finalized start & end dates.</span>
                   </div>
 
-                  {/* Messages Area */}
-                  <div className="flex-1 overflow-y-auto p-8 space-y-5 bg-slate-50/30">
+                  {/* Messages Feed */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40">
                     {connectMessages
                       .filter(m => chatScope === 'public' ? !m.isPrivate : m.isPrivate)
-                      .map((m: any) => (
-                        <div key={m.id} className="space-y-2 max-w-[85%] group relative animate-fade-in">
-                          
-                          {/* Sender details */}
-                          <div className="flex items-center gap-2 px-1">
-                            <span className="font-black text-[10px] text-slate-900">{m.sender}</span>
-                            {m.isPrivate && (
-                              <span className="text-[8px] font-black uppercase text-pink-700 bg-pink-50 border border-pink-200 px-2 py-0.5 rounded-lg">🔒 Private</span>
-                            )}
-                            <span className="text-[8px] text-slate-400 font-bold">{m.time}</span>
-                          </div>
+                      .map((m: any) => {
+                        const isMe = m.sender.startsWith('You');
+                        return (
+                          <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1 group`}>
+                            {/* Sender Info */}
+                            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 px-1">
+                              <span className="text-slate-800 font-bold">{m.sender}</span>
+                              {m.isPrivate && (
+                                <span className="text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded">🔒 Private</span>
+                              )}
+                              <span>• {m.time}</span>
+                            </div>
 
-                          {/* Message box - enlarged chat bubbles and increased line height */}
-                          <div className={`p-5 rounded-3xl shadow-sm text-xs sm:text-sm font-semibold leading-relaxed border transition-all hover:shadow-md ${
-                            m.sender.startsWith('You') 
-                              ? 'bg-gradient-to-br from-indigo-650 to-purple-650 text-white border-indigo-650 rounded-tr-none' 
-                              : 'bg-white text-slate-750 border-slate-200 rounded-tl-none'
-                          }`}>
-                            {m.text}
-                          </div>
+                            {/* Message Bubble - Clean typography, elegant background & crisp text */}
+                            <div className={`max-w-[80%] p-4 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed shadow-xs transition-all ${
+                              isMe
+                                ? 'bg-indigo-600 text-white rounded-tr-none'
+                                : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
+                            }`}>
+                              {m.text}
+                            </div>
 
-                          {/* Interactive Emoji Reactions */}
-                          <div className="flex flex-wrap items-center gap-1.5 px-2">
-                            {m.reactions && m.reactions.map((r: any, rIdx: number) => (
-                              <button
-                                key={rIdx}
-                                type="button"
-                                onClick={() => {
-                                  // Live reaction increment on click
-                                  const updated = connectMessages.map(item => {
-                                    if (item.id === m.id) {
-                                      const updatedReactions = item.reactions.map((reac, idx) => 
-                                        idx === rIdx ? { ...reac, count: reac.count + 1 } : reac
-                                      );
-                                      return { ...item, reactions: updatedReactions };
-                                    }
-                                    return item;
-                                  });
-                                  setConnectMessages(updated as any);
-                                }}
-                                className="px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-650 flex items-center gap-1.5 transition-all"
-                              >
-                                <span>{r.emoji}</span>
-                                <span className="text-[8px] font-black font-mono">{r.count}</span>
-                              </button>
-                            ))}
+                            {/* Emoji Reaction List */}
+                            <div className="flex flex-wrap items-center gap-1.5 px-1">
+                              {m.reactions && m.reactions.map((r: any, rIdx: number) => (
+                                <button
+                                  key={rIdx}
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = connectMessages.map(item => {
+                                      if (item.id === m.id) {
+                                        const updatedReactions = item.reactions.map((reac, idx) => 
+                                          idx === rIdx ? { ...reac, count: reac.count + 1 } : reac
+                                        );
+                                        return { ...item, reactions: updatedReactions };
+                                      }
+                                      return item;
+                                    });
+                                    setConnectMessages(updated as any);
+                                  }}
+                                  className="px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-600 flex items-center gap-1 shadow-2xs transition-all"
+                                >
+                                  <span>{r.emoji}</span>
+                                  <span className="text-[10px] font-bold text-slate-500">{r.count}</span>
+                                </button>
+                              ))}
 
-                            {/* Click to add reaction picker */}
-                            {(!m.reactions || m.reactions.length < 3) && (
-                              <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Hover Emoji Quick Reactions */}
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {['👍', '❤️', '🔥', '🎉'].map(emoji => (
                                   <button
                                     key={emoji}
@@ -1860,44 +1878,42 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                                       });
                                       setConnectMessages(updated as any);
                                     }}
-                                    className="p-1 rounded hover:bg-slate-150 text-[10px] transition-colors"
+                                    className="p-1 rounded hover:bg-slate-200/60 text-xs transition-colors"
                                   >
                                     {emoji}
                                   </button>
                                 ))}
                               </div>
-                            )}
+                            </div>
                           </div>
+                        );
+                      })}
 
-                        </div>
-                      ))}
-
-                    {/* Cute typing indicator */}
-                    <div className="flex items-center gap-2.5 px-1 text-[10px] text-slate-400 font-bold py-2 animate-pulse">
+                    {/* Active Typing Indicator */}
+                    <div className="flex items-center gap-2 text-xs text-slate-400 font-medium py-1">
                       <div className="flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                       </div>
-                      <span>Elena (Vercel India) is typing...</span>
+                      <span>Elena Rostova is typing...</span>
                     </div>
-
                   </div>
 
-                  {/* Message Input Composer Area */}
-                  <div className="p-6 bg-slate-50/80 border-t border-slate-200/50 shrink-0 space-y-4">
+                  {/* Message Composer Area */}
+                  <div className="p-4 bg-white border-t border-slate-200/80 shrink-0 space-y-3">
                     
-                    {/* Recipient Dropdown (Visible only for Private DM scope) */}
+                    {/* Private Recipient Selection Dropdown */}
                     {chatScope === 'private' && (
-                      <div className="flex items-center gap-2 px-2">
-                        <span className="text-[9px] font-black uppercase text-pink-700">🔒 Direct Recipient:</span>
+                      <div className="flex items-center gap-2 px-1">
+                        <span className="text-xs font-bold text-slate-700">Recipient:</span>
                         <select
                           value={privateRecipient}
                           onChange={(e) => setPrivateRecipient(e.target.value)}
-                          className="px-2.5 py-1 text-[10px] font-bold text-slate-700 border border-slate-200 bg-white rounded-lg outline-none"
+                          className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500"
                         >
-                          <option value="Elena (Vercel India)">Elena (Vercel India)</option>
-                          <option value="Suresh (AI Agents Forum)">Suresh (AI Agents Forum)</option>
+                          <option value="Elena Rostova">Elena Rostova (Vercel India Hub)</option>
+                          <option value="Suresh Kumar">Suresh Kumar (AI Agents Forum)</option>
                         </select>
                       </div>
                     )}
@@ -1918,34 +1934,35 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         setConnectMessages([...connectMessages, newMsg]);
                         setChatMessageInput('');
                       }}
-                      className="flex gap-2.5 items-center bg-white border border-slate-200/80 p-3 rounded-2xl shadow-inner focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all duration-300"
+                      className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl p-2 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
                     >
-                      {/* Composer attachment icons shortcuts */}
-                      <div className="flex items-center gap-1.5 px-2">
-                        <button type="button" onClick={() => alert('Attachments disabled for sandbox environment.')} className="text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-xl transition-all" title="Add File Attachment">
+                      {/* Attachment & Emoji Quick Actions */}
+                      <div className="flex items-center gap-1 text-slate-400 px-1 border-r border-slate-200 pr-2">
+                        <button type="button" onClick={() => alert('File attachment feature enabled for organizers.')} className="p-1.5 hover:text-slate-700 hover:bg-slate-200/50 rounded-lg transition-colors" title="Attach file">
                           📎
                         </button>
-                        <button type="button" onClick={() => setChatMessageInput(prev => prev + ' 👍')} className="text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-xl transition-all" title="Insert Emoji 👍">
+                        <button type="button" onClick={() => setChatMessageInput(prev => prev + ' 👍')} className="p-1.5 hover:text-slate-700 hover:bg-slate-200/50 rounded-lg transition-colors" title="Add Emoji">
                           😀
-                        </button>
-                        <button type="button" onClick={() => alert('GIF search panel is loading...')} className="text-slate-400 hover:text-slate-650 p-1.5 hover:bg-slate-50 rounded-xl transition-all text-[10px] font-black tracking-tighter" title="Add GIF">
-                          GIF
                         </button>
                       </div>
 
                       <input
                         type="text"
-                        placeholder={chatScope === 'public' ? "Coordinate dates public message..." : `Private DM to ${privateRecipient}...`}
+                        placeholder={chatScope === 'public' ? "Type a message to all organizers..." : `Direct message to ${privateRecipient}...`}
                         value={chatMessageInput}
                         onChange={(e) => setChatMessageInput(e.target.value)}
-                        className="flex-1 px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none bg-transparent"
+                        className="flex-1 text-xs sm:text-sm font-medium text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
                       />
 
+                      {/* Premium Solid Indigo Send Button with Send Icon */}
                       <button
                         type="submit"
-                        className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-650 hover:opacity-90 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md hover:scale-[1.02] transition-all flex items-center gap-1"
+                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow transition-all flex items-center gap-2 active:scale-95 shrink-0"
                       >
-                        Send {chatScope === 'private' && '🔒'}
+                        <span>Send</span>
+                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
                       </button>
                     </form>
                   </div>
