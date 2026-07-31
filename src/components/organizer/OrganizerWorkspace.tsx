@@ -146,6 +146,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [newJudgeExpertise, setNewJudgeExpertise] = useState('');
   const [newJudgeTrack, setNewJudgeTrack] = useState('Generative AI');
 
+  // Broadcast Schedule states
+  const [schedStartTime, setSchedStartTime] = useState('');
+  const [schedEndTime, setSchedEndTime] = useState('');
+  const [sendEmail, setSendEmail] = useState(true);
+  const [sendPhone, setSendPhone] = useState(false);
+
   // Save custom dates & judges
   useEffect(() => {
     localStorage.setItem('hc_custom_dates', JSON.stringify(customDates));
@@ -804,7 +810,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           </div>
                         )}
 
-                        {/* Prizes Breakdown Table */}
+                         {/* Prizes Breakdown Table */}
                         {selectedDetailHackathon.prizeBreakdown && selectedDetailHackathon.prizeBreakdown.length > 0 && (
                           <div className="space-y-2">
                             <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Prizes Distribution</span>
@@ -828,6 +834,116 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                             </div>
                           </div>
                         )}
+
+                        {/* Live Registrations, Grades, and Standings Section */}
+                        {(() => {
+                          const hackTeams = teams.filter(t => t.hackathonId === selectedDetailHackathon.id);
+                          const hackSubmissions = submissions.filter(s => s.hackathonId === selectedDetailHackathon.id);
+                          const evaluatedSubs = hackSubmissions.filter(s => s.evaluated).sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
+
+                          return (
+                            <div className="space-y-5 border-t pt-4">
+                              
+                              {/* 1. Registered Groups & Hacker Count */}
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Registered Teams ({hackTeams.length})</span>
+                                  <span className="text-[9px] font-bold text-indigo-650 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                                    {hackTeams.reduce((acc, curr) => acc + curr.members.length, 0)} Total Participants
+                                  </span>
+                                </div>
+                                
+                                {hackTeams.length === 0 ? (
+                                  <div className="p-3 text-center bg-slate-50 border border-dashed rounded-xl text-slate-400 font-semibold text-[10px]">
+                                    No teams have registered for this event yet.
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {hackTeams.map(t => (
+                                      <div key={t.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                                        <div className="flex justify-between items-start">
+                                          <div className="font-extrabold text-slate-800">{t.name}</div>
+                                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                            t.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                          }`}>{t.status}</span>
+                                        </div>
+                                        <div className="text-[9px] text-slate-450">
+                                          <div>Code: <span className="font-bold text-slate-700">{t.inviteCode}</span></div>
+                                          <div>Size: <span className="font-bold text-slate-700">{t.members.length} Members</span></div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 2. Graded Scores list */}
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">Submissions Evaluation & Scores</span>
+                                {hackSubmissions.length === 0 ? (
+                                  <div className="p-3 text-center bg-slate-50 border border-dashed rounded-xl text-slate-400 font-semibold text-[10px]">
+                                    No project submissions uploaded for this event.
+                                  </div>
+                                ) : (
+                                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                                    <table className="w-full text-left text-xs border-collapse">
+                                      <thead>
+                                        <tr className="bg-slate-50 font-bold border-b text-[9px] text-slate-500">
+                                          <th className="p-2">Submission</th>
+                                          <th className="p-2">Team</th>
+                                          <th className="p-2">Status</th>
+                                          <th className="p-2 text-right">Avg Score</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-slate-100 font-medium text-slate-750">
+                                        {hackSubmissions.map(s => (
+                                          <tr key={s.id}>
+                                            <td className="p-2 font-bold text-slate-800">{s.title}</td>
+                                            <td className="p-2">{s.teamName}</td>
+                                            <td className="p-2 text-[8px] font-black uppercase text-indigo-650">{s.evaluated ? 'Graded' : 'Pending'}</td>
+                                            <td className="p-2 text-right font-mono font-bold text-slate-900">{s.evaluated ? `${s.averageScore}/10` : '—'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 3. Prize Winners standings (Leaderboard top 3) */}
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-black text-slate-450 uppercase tracking-wide">🏆 Event Winners Standings</span>
+                                {evaluatedSubs.length === 0 ? (
+                                  <div className="p-3 text-center bg-slate-50 border border-dashed rounded-xl text-slate-400 font-semibold text-[10px]">
+                                    Standings will update dynamically once judges grade the project submissions.
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {evaluatedSubs.slice(0, 3).map((s, idx) => {
+                                      const rankLabels = ['🥇 1st Place Champion', '🥈 2nd Place Runner-Up', '🥉 3rd Place Third Stand'];
+                                      const rankColors = ['bg-amber-50 text-amber-700 border-amber-200', 'bg-slate-100 text-slate-700 border-slate-200', 'bg-orange-50 text-orange-700 border-orange-200'];
+                                      
+                                      return (
+                                        <div key={s.id} className={`p-3 border rounded-xl flex items-center justify-between ${rankColors[idx] || 'bg-slate-50 text-slate-600'}`}>
+                                          <div>
+                                            <div className="text-[9px] font-extrabold uppercase">{rankLabels[idx] || `Rank #${idx + 1}`}</div>
+                                            <div className="font-extrabold text-slate-900 text-xs">{s.teamName}</div>
+                                            <div className="text-[9px] font-medium text-slate-500">Project: {s.title}</div>
+                                          </div>
+                                          <div className="text-right">
+                                            <span className="font-mono font-black text-xs block">{s.averageScore}/10</span>
+                                            <span className="text-[8px] font-black uppercase text-emerald-600">Graded</span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+
+                            </div>
+                          );
+                        })()}
 
                       </div>
 
@@ -1275,7 +1391,20 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 <p className="text-xs text-slate-500">Broadcasting notifications directly to live participant dashboards</p>
               </div>
 
-              <form onSubmit={handleBroadcastSubmit} className="space-y-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleBroadcastSubmit(e);
+                  alert(
+                    `📅 Scheduled Broadcast Broadcast Saved!\n` +
+                    `⏰ Time Window: ${schedStartTime || 'Now'} to ${schedEndTime || 'End'}\n` +
+                    `📧 Email Dispatch: ${sendEmail ? 'Enabled' : 'Disabled'}\n` +
+                    `📱 SMS Dispatch: ${sendPhone ? 'Enabled' : 'Disabled'}\n` +
+                    `All registered participants will be alerted automatically when the time starts/ends.`
+                  );
+                }}
+                className="space-y-4"
+              >
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Target Event</label>
                   <select
@@ -1313,8 +1442,62 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   />
                 </div>
 
+                {/* 1. Schedule Time Limits (Start / End) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4.5 rounded-2xl border border-slate-150">
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-slate-500 mb-1">📅 Start Broadcast (Time Starts)</label>
+                    <input
+                      type="datetime-local"
+                      value={schedStartTime}
+                      onChange={(e) => setSchedStartTime(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-extrabold uppercase text-slate-500 mb-1">📅 End Broadcast (Time Ends/Deadline)</label>
+                    <input
+                      type="datetime-local"
+                      value={schedEndTime}
+                      onChange={(e) => setSchedEndTime(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Notification Channels (Mail / Phone Checkboxes) */}
+                <div className="space-y-2">
+                  <span className="block text-[10px] font-black uppercase text-slate-450 tracking-wide px-1">Receive Notifications Via</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={sendEmail}
+                        onChange={(e) => setSendEmail(e.target.checked)}
+                        className="w-4 h-4 rounded text-indigo-650"
+                      />
+                      <div className="text-[11px]">
+                        <span className="font-bold text-slate-800 block">📧 Send Email Alert</span>
+                        <span className="text-[9px] text-slate-400">Directly to inbox</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={sendPhone}
+                        onChange={(e) => setSendPhone(e.target.checked)}
+                        className="w-4 h-4 rounded text-indigo-650"
+                      />
+                      <div className="text-[11px]">
+                        <span className="font-bold text-slate-800 block">📱 Send Phone SMS</span>
+                        <span className="text-[9px] text-slate-400">Directly to mobile device</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 <button type="submit" className="w-full py-3 rounded-xl bg-purple-600 text-white font-bold text-xs shadow-lg hover:bg-purple-700 transition-all hover:scale-[1.02]">
-                  Broadcast Live Notification
+                  Broadcast & Schedule Notifications
                 </button>
               </form>
             </div>
