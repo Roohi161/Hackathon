@@ -32,7 +32,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [loginFailed, setLoginFailed] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,31 +42,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     setIsLoading(true);
     setError('');
     setTimeout(() => {
-      // Valid credentials for the 4 roles
-      const validCredentials = {
-        participant: { email: 'participant@hackathon.com', password: 'password123', name: 'Participant User' },
-        organizer: { email: 'organizer@hackathon.com', password: 'password123', name: 'Organizer Admin' },
-        judge: { email: 'judge@hackathon.com', password: 'password123', name: 'Judge Reviewer' },
-        admin: { email: 'admin@hackathon.com', password: 'password123', name: 'System Admin' }
-      };
+      // Dynamic name resolution for logged in user
+      let userName = 'Authenticated User';
+      if (role === 'participant') userName = 'Shaik Ansar Ali';
+      else if (role === 'organizer') userName = 'KVS Bhavya Sri';
+      else if (role === 'judge') userName = 'M Rohan Yaswanth';
+      else if (role === 'admin') userName = 'System Administrator';
 
-      const expected = validCredentials[role];
-
-      // Simulate failed login unless it matches the selected role's credentials
-      if (email !== expected.email || password !== expected.password) {
-        setIsLoading(false);
-        setError(`Invalid email or password for ${role}.`);
-        setLoginFailed(true);
-        return;
+      if (email.includes('@')) {
+        const parts = email.split('@')[0];
+        userName = parts.charAt(0).toUpperCase() + parts.slice(1);
       }
-      
+
       onLogin(role, {
-        name: expected.name,
+        name: userName,
         email: email,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
       });
       setIsLoading(false);
-    }, 800);
+    }, 400);
   };
 
   const handleSendOTP = (e: React.FormEvent) => {
@@ -195,13 +188,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
                       <button 
                         type="button" 
                         onClick={() => { 
-                          if (loginFailed) {
-                            setView('forgot_email'); setError(''); setSuccessMsg(''); 
-                          } else {
-                            setError('Forgot password can only be used after an invalid login attempt.');
-                          }
+                          setView('forgot_email'); setError(''); setSuccessMsg(''); 
                         }}
-                        className={`text-xs font-medium transition-colors ${loginFailed ? 'text-indigo-600 hover:text-indigo-700' : 'text-slate-400 cursor-not-allowed'}`}
+                        className="text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
                       >
                         Forgot password?
                       </button>
