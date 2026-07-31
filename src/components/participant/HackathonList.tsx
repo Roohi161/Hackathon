@@ -13,19 +13,24 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
   const [selectedMode, setSelectedMode] = useState<string>('all');
   const [selectedTrack, setSelectedTrack] = useState<string>('all');
 
-  // Extract all tracks
-  const allTracks = Array.from(new Set(hackathons.flatMap((h) => h.tracks)));
+  // Extract all tracks safely
+  const allTracks = Array.from(new Set(hackathons.flatMap((h) => h.tracks || [])));
 
-  // Filter logic
+  // Filter logic safely
   const filteredHackathons = hackathons.filter((item) => {
+    const titleStr = item.title || '';
+    const taglineStr = item.tagline || '';
+    const orgStr = item.organizerName || '';
+    const tracksArr = item.tracks || [];
+
     const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tagline.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.organizerName.toLowerCase().includes(searchTerm.toLowerCase());
+      titleStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      taglineStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      orgStr.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
     const matchesMode = selectedMode === 'all' || item.mode === selectedMode;
-    const matchesTrack = selectedTrack === 'all' || item.tracks.includes(selectedTrack);
+    const matchesTrack = selectedTrack === 'all' || tracksArr.includes(selectedTrack);
 
     return matchesSearch && matchesStatus && matchesMode && matchesTrack;
   });
@@ -202,7 +207,7 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
 
                 {/* Tracks Badges */}
                 <div className="flex flex-wrap gap-1.5">
-                  {hackathon.tracks.slice(0, 3).map((track, i) => (
+                  {(hackathon.tracks || []).slice(0, 3).map((track, i) => (
                     <span
                       key={i}
                       className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-600 border border-slate-200/80"
@@ -210,9 +215,9 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
                       {track}
                     </span>
                   ))}
-                  {hackathon.tracks.length > 3 && (
+                  {(hackathon.tracks || []).length > 3 && (
                     <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-400">
-                      +{hackathon.tracks.length - 3} more
+                      +{(hackathon.tracks || []).length - 3} more
                     </span>
                   )}
                 </div>
