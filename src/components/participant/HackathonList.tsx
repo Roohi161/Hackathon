@@ -28,15 +28,16 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
       taglineStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
       orgStr.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
-    const matchesMode = selectedMode === 'all' || item.mode === selectedMode;
-    const matchesTrack = selectedTrack === 'all' || tracksArr.includes(selectedTrack);
+    const matchesStatus = selectedStatus === 'all' || (item.status && item.status.toLowerCase() === selectedStatus.toLowerCase());
+    const matchesMode = selectedMode === 'all' || (item.mode && item.mode.toLowerCase() === selectedMode.toLowerCase());
+    const matchesTrack = selectedTrack === 'all' || tracksArr.some(t => t.toLowerCase() === selectedTrack.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesMode && matchesTrack;
   });
 
-  const getStatusBadge = (status: HackathonStatus) => {
-    switch (status) {
+  const getStatusBadge = (status: HackathonStatus | string) => {
+    const s = (status || '').toLowerCase();
+    switch (s) {
       case 'live':
         return (
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-white shadow-sm border border-emerald-400">
@@ -54,6 +55,13 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
         return (
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-900/80 text-slate-200 backdrop-blur-md border border-slate-700">
             ENDED
+          </span>
+        );
+      default:
+        return (
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500 text-white shadow-sm border border-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+            LIVE NOW
           </span>
         );
     }

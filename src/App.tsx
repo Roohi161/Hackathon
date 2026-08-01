@@ -226,30 +226,30 @@ export function App() {
     // Check if modifying existing
     setHackathons(prev => {
       const exists = prev.some(h => h.id === newHackathon.id);
-      if (exists) {
-        return prev.map(h => h.id === newHackathon.id ? newHackathon : h);
-      }
-      return [newHackathon, ...prev];
+      const updatedList = exists
+        ? prev.map(h => h.id === newHackathon.id ? newHackathon : h)
+        : [newHackathon, ...prev];
+      localStorage.setItem('hc_hackathons', JSON.stringify(updatedList));
+      return updatedList;
     });
 
     saveHackathonToDb({
       id: newHackathon.id,
       title: newHackathon.title,
-      organizer_name: newHackathon.organizerName,
+      organizer_name: newHackathon.organizerName || 'Organizer',
       organizer_initials: 'HC',
-      status: newHackathon.status,
-      mode: newHackathon.mode,
-      prize_pool: newHackathon.prizePool,
+      status: newHackathon.status || 'live',
+      mode: newHackathon.mode || 'online',
+      prize_pool: newHackathon.prizePool || '₹25,00,000',
       time_left: '2 Days Left',
-      difficulty: 'Intermediate',
-      tags: ['AI', 'Web3'],
-      image_gradient: 'from-indigo-600 to-purple-600',
-      featured: newHackathon.featured
+      difficulty: newHackathon.difficulty || 'Intermediate',
+      tags: newHackathon.tags || ['AI', 'Web3'],
+      image_gradient: newHackathon.imageGradient || 'from-indigo-600 to-purple-600',
+      featured: newHackathon.featured ?? true
     });
     
     setSelectedHackathon(newHackathon);
-    setActiveTab('hackathons');
-    alert('Hackathon successfully saved & synced to backend and database!');
+    alert('✨ Hackathon successfully published & instantly visible across Participant Hub!');
   };
 
   const handleDeleteHackathon = (hackathonId: string) => {
@@ -352,7 +352,7 @@ export function App() {
       />
 
       {/* Main Layout Wrapper */}
-      <div className="flex-1 max-w-7xl w-full mx-auto flex items-start">
+      <div className="flex-1 w-full mx-auto flex items-start px-2 sm:px-4 lg:px-6">
         
         {/* Sidebar Navigation */}
         <SidebarNavigation

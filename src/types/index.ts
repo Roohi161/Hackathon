@@ -119,6 +119,8 @@ export interface Hackathon {
   teamsCount: number;
   description: string;
   tags: string[];
+  difficulty?: string;
+  imageGradient?: string;
   eligibility?: string[]; // e.g. ['Student', 'Professional', 'React', 'Python']
 }
 
