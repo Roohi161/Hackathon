@@ -585,13 +585,6 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 {item.label}
               </button>
             ))}
-            
-            <button
-              onClick={() => { if (onLogout) onLogout(); else window.location.reload(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all border border-rose-100/60 mt-2"
-            >
-              <span>🚪 Logout Workspace</span>
-            </button>
           </div>
 
           {/* Stats widget */}
