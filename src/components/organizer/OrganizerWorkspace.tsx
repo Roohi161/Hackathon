@@ -15,7 +15,8 @@ import {
   History,
   Plus,
   Settings,
-  Sparkle
+  Sparkle,
+  CheckCircle2
 } from 'lucide-react';
 import type { Hackathon, Team, Announcement, ProblemStatement, RubricCriteria, PrizeItem, ProjectSubmission } from '../../types';
 
@@ -577,7 +578,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === item.id ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-650 hover:bg-slate-50 hover:translate-x-1'
+                  activeTab === item.id ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50 hover:translate-x-1'
                 }`}
               >
                 <item.icon className="w-4 h-4" />
@@ -1316,7 +1317,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                                         <div key={member.id} className="p-3 bg-white border rounded-xl">
                                           <div className="font-bold text-slate-800 text-[11px]">{member.name}</div>
                                           <div className="text-[9px] text-slate-400">{member.email}</div>
-                                          <div className="text-[9px] text-indigo-650 font-bold">{member.role}</div>
+                                          <div className="text-[9px] text-indigo-600 font-bold">{member.role}</div>
                                         </div>
                                       ))}
                                     </div>
@@ -1421,9 +1422,10 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                     <button
                       type="submit"
-                      className="w-full py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md"
+                      className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
                     >
-                      Save Judge Details
+                      <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                      <span>Save Judge Details</span>
                     </button>
                   </form>
                 </div>
