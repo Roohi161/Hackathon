@@ -1,88 +1,47 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateSubmissionDto } from './dto/create-submission.dto';
+import { CreateSubmissionDto, UpdateSubmissionDto } from './dto/submissions.dto';
 
 @Injectable()
 export class SubmissionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateSubmissionDto) {
-    const teamMember = await this.prisma.teamMember.findFirst({
-      where: {
-        userId,
-        teamId: dto.teamId,
-      },
-    });
-
-    if (!teamMember) {
-      throw new ForbiddenException('You must be a member of the team to submit a project');
-    }
-
-    const existingSubmission = await this.prisma.submission.findFirst({
-      where: { teamId: dto.teamId, hackathonId: dto.hackathonId },
-    });
-
-    if (existingSubmission) {
-      throw new ConflictException('Team has already submitted a project for this hackathon');
-    }
-
+  async createDraft(dto: CreateSubmissionDto, userId: string) {
+    // Check if team exists and user is member
     return this.prisma.submission.create({
       data: {
-        title: dto.title,
-        description: dto.description,
-        githubUrl: dto.githubUrl || null,
-        videoDemoUrl: dto.videoDemoUrl || null,
-        techStack: dto.techStack || [],
         teamId: dto.teamId,
         hackathonId: dto.hackathonId,
-      },
-      include: {
-        team: {
-          include: {
-            members: { include: { user: { select: { id: true, name: true, email: true } } } },
-          },
-        },
-      },
+        title: dto.title,
+        description: dto.description,
+        status: 'DRAFT',
+        submittedById: userId
+      } as any
     });
   }
 
-  async findByHackathon(hackathonId: string) {
-    return this.prisma.submission.findMany({
-      where: { hackathonId },
-      include: {
-        team: true,
-        scores: {
-          include: {
-            rubric: true,
-            judge: { select: { id: true, name: true, email: true } },
-          },
-        },
-      },
-    });
-  }
+  async updateDraft(id: string, dto: UpdateSubmissionDto, userId: string) {
+    const submission = await this.prisma.submission.findFirst({ where: { id } });
+    if (!submission) throw new NotFoundException('Submission not found');
+    if ((submission as any).status !== 'DRAFT') throw new ForbiddenException('Cannot edit non-draft submission');
 
-  async findOne(id: string) {
-    const submission = await this.prisma.submission.findUnique({
+    return this.prisma.submission.update({
       where: { id },
-      include: {
-        team: {
-          include: {
-            members: { include: { user: { select: { id: true, name: true, email: true } } } },
-          },
-        },
-        scores: {
-          include: {
-            rubric: true,
-            judge: { select: { id: true, name: true, email: true } },
-          },
-        },
-      },
+      data: dto as any
     });
+  }
 
-    if (!submission) {
-      throw new NotFoundException('Submission not found');
-    }
+  async finalizeSubmission(id: string, userId: string) {
+    const submission = await this.prisma.submission.findFirst({ where: { id } });
+    if (!submission) throw new NotFoundException('Submission not found');
+    
+    return this.prisma.submission.update({
+      where: { id },
+      data: { status: 'SUBMITTED', submittedAt: new Date() } as any
+    });
+  }
 
-    return submission;
+  async getTeamSubmissions(teamId: string) {
+    return this.prisma.submission.findMany({ where: { teamId } as any });
   }
 }

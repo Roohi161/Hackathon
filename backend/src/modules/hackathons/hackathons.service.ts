@@ -1,88 +1,50 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateHackathonDto } from './dto/create-hackathon.dto';
-import { UpdateHackathonDto } from './dto/update-hackathon.dto';
+import { CreateHackathonDto, UpdateHackathonDto } from './dto/hackathons.dto';
 
 @Injectable()
 export class HackathonsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(organizerId: string, dto: CreateHackathonDto) {
-    return this.prisma.hackathon.create({
-      data: {
-        title: dto.title,
-        description: dto.description,
-        startDate: new Date(dto.startDate),
-        endDate: new Date(dto.endDate),
-        status: dto.status || 'DRAFT',
-        organizerId,
-      },
-      include: {
-        organizer: {
-          select: { id: true, name: true, email: true },
-        },
-      },
-    });
-  }
-
-  async findAll(status?: string) {
-    const whereCondition = status ? { status } : {};
-    return this.prisma.hackathon.findMany({
-      where: whereCondition,
-      include: {
-        organizer: {
-          select: { id: true, name: true, email: true },
-        },
-        _count: {
-          select: { teams: true, submissions: true },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(skip: number, take: number, search?: string) {
+    const where = search ? { title: { contains: search, mode: 'insensitive' as any } } : {};
+    const [data, total] = await Promise.all([
+      this.prisma.hackathon.findMany({ where, skip, take }),
+      this.prisma.hackathon.count({ where }),
+    ]);
+    return { data, total, skip, take };
   }
 
   async findOne(id: string) {
-    const hackathon = await this.prisma.hackathon.findUnique({
-      where: { id },
-      include: {
-        organizer: { select: { id: true, name: true, email: true } },
-        rubrics: true,
-        announcements: { orderBy: { createdAt: 'desc' } },
-        _count: { select: { teams: true, submissions: true } },
-      },
-    });
-
-    if (!hackathon) {
-      throw new NotFoundException('Hackathon not found');
-    }
-
+    const hackathon = await this.prisma.hackathon.findFirst({ where: { id } });
+    if (!hackathon) throw new NotFoundException('Hackathon not found');
     return hackathon;
   }
 
-  async update(id: string, userId: string, dto: UpdateHackathonDto) {
-    const hackathon = await this.findOne(id);
-    if (hackathon.organizerId !== userId) {
-      throw new ForbiddenException('Only the hackathon organizer can update this event');
-    }
-
-    return this.prisma.hackathon.update({
-      where: { id },
-      data: {
-        ...(dto.title && { title: dto.title }),
-        ...(dto.description && { description: dto.description }),
-        ...(dto.startDate && { startDate: new Date(dto.startDate) }),
-        ...(dto.endDate && { endDate: new Date(dto.endDate) }),
-        ...(dto.status && { status: dto.status }),
-      },
+  async create(dto: CreateHackathonDto) {
+    return this.prisma.hackathon.create({
+      data: { ...dto, slug: (dto as any).slug || `hack-${Date.now()}`, status: 'DRAFT' } as any,
     });
   }
 
-  async remove(id: string, userId: string) {
+  async update(id: string, dto: UpdateHackathonDto) {
     const hackathon = await this.findOne(id);
-    if (hackathon.organizerId !== userId) {
-      throw new ForbiddenException('Only the hackathon organizer can delete this event');
-    }
+    return this.prisma.hackathon.update({
+      where: { id: hackathon.id },
+      data: dto as any,
+    });
+  }
 
-    return this.prisma.hackathon.delete({ where: { id } });
+  async remove(id: string) {
+    const hackathon = await this.findOne(id);
+    return this.prisma.hackathon.delete({ where: { id: hackathon.id } });
+  }
+
+  async clone(id: string) {
+    const hackathon = await this.findOne(id);
+    const { id: oldId, createdAt, updatedAt, ...rest } = hackathon as any;
+    return this.prisma.hackathon.create({
+      data: { ...rest, title: `${rest.title} (Copy)`, status: 'DRAFT' },
+    });
   }
 }

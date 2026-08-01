@@ -1,32 +1,38 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Put, Body, Param, UseGuards, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SubmissionsService } from './submissions.service';
-import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { CreateSubmissionDto, UpdateSubmissionDto } from './dto/submissions.dto';
 
 @ApiTags('Submissions')
-@ApiBearerAuth('JWT-auth')
-@Controller('submissions')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@Controller('submissions')
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Submit a project for a hackathon' })
-  async create(@CurrentUser('id') userId: string, @Body() dto: CreateSubmissionDto) {
-    return this.submissionsService.create(userId, dto);
+  @ApiOperation({ summary: 'Create a draft submission' })
+  async createDraft(@Body() createDto: CreateSubmissionDto, @CurrentUser('id') userId: string) {
+    return this.submissionsService.createDraft(createDto, userId);
   }
 
-  @Get('hackathon/:hackathonId')
-  @ApiOperation({ summary: 'Get all submissions for a hackathon' })
-  async findByHackathon(@Param('hackathonId') hackathonId: string) {
-    return this.submissionsService.findByHackathon(hackathonId);
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a draft submission' })
+  async updateDraft(@Param('id') id: string, @Body() updateDto: UpdateSubmissionDto, @CurrentUser('id') userId: string) {
+    return this.submissionsService.updateDraft(id, updateDto, userId);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get submission by ID' })
-  async findOne(@Param('id') id: string) {
-    return this.submissionsService.findOne(id);
+  @Post(':id/submit')
+  @ApiOperation({ summary: 'Finalize and submit' })
+  async finalizeSubmission(@Param('id') id: string, @CurrentUser('id') userId: string) {
+    return this.submissionsService.finalizeSubmission(id, userId);
+  }
+
+  @Get('team/:teamId')
+  @ApiOperation({ summary: 'Get submissions for a team' })
+  async getTeamSubmissions(@Param('teamId') teamId: string) {
+    return this.submissionsService.getTeamSubmissions(teamId);
   }
 }

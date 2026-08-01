@@ -39,12 +39,18 @@ interface OrganizerItem {
   eventsCount: number;
 }
 
+import { INITIAL_HACKATHONS, INITIAL_VERIFICATIONS } from '../../data/mockData';
+import { useHackathonStore } from '../../stores/hackathonStore';
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  hackathons,
+  hackathons: propsHackathons,
   onToggleFeatured,
-  verifications,
+  verifications: propsVerifications,
   onUpdateVerificationStatus
 }) => {
+  const storeHackathons = useHackathonStore((s) => s.hackathons);
+  const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
+  const verifications = (propsVerifications && propsVerifications.length > 0) ? propsVerifications : (INITIAL_VERIFICATIONS as any);
   const [activeAdminTab, setActiveAdminTab] = useState<'metrics' | 'judges' | 'organizers' | 'featured' | 'verification'>('metrics');
 
   // Interactive Judge List State
@@ -103,8 +109,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   });
 
   const totalHackathons = hackathons.length;
-  const totalParticipants = hackathons.reduce((acc, h) => acc + h.participantsCount, 0);
-  const totalTeams = hackathons.reduce((acc, h) => acc + h.teamsCount, 0);
+  const totalParticipants = hackathons.reduce((acc: any, h: any) => acc + (h.participantsCount || 0), 0);
+  const totalTeams = hackathons.reduce((acc: any, h: any) => acc + (h.teamsCount || 0), 0);
 
   // Handlers
   const handleAddJudge = (e: React.FormEvent) => {
@@ -216,7 +222,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Verifications ({verifications.filter(v => v.status === 'pending').length})
+            Verifications ({verifications.filter((v: any) => v.status === 'pending').length})
           </button>
         </div>
       </div>
@@ -382,7 +388,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-900">Manage Homepage Carousel Events</h3>
           <div className="space-y-3">
-            {hackathons.map((h) => (
+            {hackathons.map((h: any) => (
               <div key={h.id} className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img src={h.banner} alt={h.title} className="w-16 h-10 object-cover rounded-lg" />
@@ -425,7 +431,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {verifications.map((v) => (
+                {verifications.map((v: any) => (
                   <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-4 font-bold text-slate-900">{v.organizerName}</td>
                     <td className="p-4 text-slate-600">{v.organization}</td>
@@ -525,7 +531,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onChange={(e) => setJudgeForm({ ...judgeForm, assignedTrack: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:border-indigo-500"
                 >
-                  {hackathons.map(h => (
+                  {hackathons.map((h: any) => (
                     <option key={h.id} value={h.title}>{h.title}</option>
                   ))}
                 </select>

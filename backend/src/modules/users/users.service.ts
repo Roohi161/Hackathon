@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Role } from '@prisma/client';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -14,30 +15,74 @@ export class UsersService {
         email: true,
         name: true,
         role: true,
+        bio: true,
+        avatar: true,
+        githubUrl: true,
+        linkedinUrl: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
-    if (!user) {
-      throw new NotFoundException('User profile not found');
-    }
-
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  async getAllUsers() {
-    return this.prisma.user.findMany({
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
-      orderBy: { createdAt: 'desc' },
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: dto as any,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        avatar: true,
+        githubUrl: true,
+        linkedinUrl: true,
+      },
     });
   }
 
-  async updateRole(userId: string, role: Role) {
+  async getAllUsers(skip: number, take: number, search?: string) {
+    const where = search
+      ? {
+          OR: [
+            { email: { contains: search, mode: 'insensitive' as any } },
+            { name: { contains: search, mode: 'insensitive' as any } },
+          ],
+        }
+      : {};
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          avatar: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { users, total };
+  }
+
+  async updateRole(userId: string, role: string) {
     return this.prisma.user.update({
       where: { id: userId },
-      data: { role },
-      select: { id: true, email: true, name: true, role: true },
+      data: { role: role as UserRole },
+    });
+  }
+
+  async deactivateUser(userId: string) {
+    return this.prisma.user.delete({
+      where: { id: userId },
     });
   }
 }

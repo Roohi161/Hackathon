@@ -13,20 +13,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'super-secret-jwt-key-hackathon-central-2026',
+      secretOrKey: configService.get<string>('jwt.secret'),
     });
   }
 
-  async validate(payload: { sub: string; email: string; role: string }) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: { id: true, email: true, name: true, role: true },
-    });
-
+  async validate(payload: any) {
+    const user = await this.prisma.user.findFirst({ where: { id: payload.sub } });
     if (!user) {
-      throw new UnauthorizedException('Invalid token or user no longer exists');
+      throw new UnauthorizedException();
     }
-
-    return user;
+    return { id: user.id, email: user.email, role: user.role };
   }
 }

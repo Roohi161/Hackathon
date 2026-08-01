@@ -14,19 +14,34 @@ import {
 } from 'lucide-react';
 import type { Hackathon } from '../../types';
 
+import { useParams, useNavigate } from 'react-router-dom';
+import { useHackathonStore } from '../../stores/hackathonStore';
+import { INITIAL_HACKATHONS } from '../../data/mockData';
+
 interface HackathonDetailProps {
-  hackathon: Hackathon;
-  onBack: () => void;
-  onOpenTeamRegistration: (hackathon: Hackathon) => void;
-  onOpenSubmissionModal: (hackathon: Hackathon) => void;
+  hackathon?: Hackathon;
+  onBack?: () => void;
+  onOpenTeamRegistration?: (hackathon: Hackathon) => void;
+  onOpenSubmissionModal?: (hackathon: Hackathon) => void;
 }
 
 export const HackathonDetail: React.FC<HackathonDetailProps> = ({
-  hackathon,
+  hackathon: propsHackathon,
   onBack,
   onOpenTeamRegistration,
   onOpenSubmissionModal
 }) => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const storeHackathons = useHackathonStore((s) => s.hackathons);
+  
+  const allHackathons = (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
+  const hackathon = (propsHackathon && propsHackathon.id) ? propsHackathon : (allHackathons.find((h: any) => h.id === id) || allHackathons[0]);
+
+  const handleBackAction = () => {
+    if (onBack) onBack();
+    else navigate('/hackathons');
+  };
   const [activeTab, setActiveTab] = useState<'overview' | 'problems' | 'rubrics' | 'schedule' | 'rules'>('overview');
   
   // Real-time Countdown Timer State
@@ -39,7 +54,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const target = new Date(hackathon.endDate).getTime();
+      const target = new Date(hackathon?.endDate || Date.now()).getTime();
       const now = new Date().getTime();
       const difference = target - now;
 
@@ -58,14 +73,14 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
     calculateTimeLeft();
     const interval = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(interval);
-  }, [hackathon.endDate]);
+  }, [hackathon]);
 
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Back Button */}
       <button
-        onClick={onBack}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition-all hover:border-slate-300 active:scale-95"
+        onClick={handleBackAction}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm transition-all hover:border-slate-300 active:scale-95 cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4 text-slate-500" /> Back to Hackathons
       </button>
@@ -212,7 +227,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
                 <Trophy className="w-5 h-5 text-amber-500" /> Total Prize Pool: {hackathon.prizePool}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {hackathon.prizeBreakdown.map((prize, idx) => (
+                {(hackathon.prizeBreakdown || []).map((prize: any, idx: number) => (
                   <div key={idx} className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2 shadow-xs">
                     <span className="text-sm font-bold text-amber-900 block">{prize.title}</span>
                     <span className="text-2xl font-black text-amber-600 block">{prize.amount}</span>
@@ -229,7 +244,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
                   <Layers className="w-4 h-4 text-indigo-600" /> Tracks & Focus Areas
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {hackathon.tracks.map((t, idx) => (
+                  {(hackathon.tracks || []).map((t: any, idx: number) => (
                     <span key={idx} className="px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 shadow-2xs">
                       {t}
                     </span>
@@ -244,11 +259,11 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
               <div className="space-y-3 text-xs font-medium">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-slate-400" /> Start Date</span>
-                  <span className="text-slate-900 font-bold">{new Date(hackathon.startDate).toLocaleDateString()}</span>
+                  <span className="text-slate-900 font-bold">{new Date(hackathon.startDate || Date.now()).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-slate-400" /> End Date</span>
-                  <span className="text-slate-900 font-bold">{new Date(hackathon.endDate).toLocaleDateString()}</span>
+                  <span className="text-slate-900 font-bold">{new Date(hackathon.endDate || Date.now()).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-slate-400" /> Format</span>
@@ -256,7 +271,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-slate-400" /> Registered Hackers</span>
-                  <span className="text-slate-900 font-mono font-bold">{hackathon.participantsCount}</span>
+                  <span className="text-slate-900 font-mono font-bold">{hackathon.participantsCount || 0}</span>
                 </div>
               </div>
             </div>
@@ -265,7 +280,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
 
         {activeTab === 'problems' && (
           <div className="space-y-4">
-            {hackathon.problemStatements.map((ps) => (
+            {(hackathon.problemStatements || []).map((ps: any) => (
               <div key={ps.id} className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
@@ -282,7 +297,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
 
         {activeTab === 'rubrics' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {hackathon.rubrics.map((rub) => (
+            {(hackathon.rubrics || []).map((rub: any) => (
               <div key={rub.id} className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 text-sm">{rub.name}</span>
@@ -298,7 +313,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
 
         {activeTab === 'schedule' && (
           <div className="relative pl-6 border-l-2 border-indigo-200 space-y-6">
-            {hackathon.schedule.map((item, idx) => (
+            {(hackathon.schedule || []).map((item: any, idx: number) => (
               <div key={idx} className="relative group">
                 <div className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-indigo-600 border-4 border-white shadow-sm group-hover:scale-125 transition-transform" />
                 <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1 shadow-sm">
@@ -315,7 +330,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
           <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
             <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider pb-2 border-b border-slate-100">Official Rules & Guidelines</h4>
             <ul className="space-y-3 text-xs text-slate-600 font-medium">
-              {hackathon.rules.map((rule, idx) => (
+              {(hackathon.rules || []).map((rule: any, idx: number) => (
                 <li key={idx} className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span className="leading-relaxed">{rule}</span>

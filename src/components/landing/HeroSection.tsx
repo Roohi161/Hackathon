@@ -237,8 +237,11 @@ function HoloOrb({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
   );
 }
 
+import { useNavigate } from 'react-router-dom';
+
 /* ─── Component ──────────────────────────────────────────────────────────── */
 export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) => {
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
@@ -493,9 +496,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
               className="flex flex-col sm:flex-row gap-4 mb-14"
             >
               <motion.button
-                onClick={onExplore}
+                onClick={() => { if (onExplore) onExplore(); navigate('/hackathons'); }}
                 whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                className="flex items-center justify-center gap-2 text-white font-semibold px-8 py-4 rounded-xl text-base"
+                className="flex items-center justify-center gap-2 text-white font-semibold px-8 py-4 rounded-xl text-base cursor-pointer"
                 style={{
                   background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0ea5e9 100%)',
                   boxShadow: '0 0 28px rgba(99,102,241,0.35), 0 4px 16px rgba(99,102,241,0.25)',
@@ -505,9 +508,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onHost }) =
               </motion.button>
 
               <motion.button
-                onClick={onHost}
+                onClick={() => { if (onHost) onHost(); navigate('/organizer'); }}
                 whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
-                className="flex items-center justify-center gap-2 font-semibold px-8 py-4 rounded-xl text-base text-slate-700"
+                className="flex items-center justify-center gap-2 font-semibold px-8 py-4 rounded-xl text-base text-slate-700 cursor-pointer"
                 style={{
                   background: 'rgba(255,255,255,0.75)',
                   border: '1px solid rgba(148,163,184,0.35)',

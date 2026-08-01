@@ -8,15 +8,21 @@ interface DedicatedEvaluationPortalProps {
   onSelectSubmission: (submission: ProjectSubmission) => void;
 }
 
+import { INITIAL_SUBMISSIONS, INITIAL_HACKATHONS } from '../../data/mockData';
+import { useHackathonStore } from '../../stores/hackathonStore';
+
 export const DedicatedEvaluationPortal: React.FC<DedicatedEvaluationPortalProps> = ({
-  submissions,
-  hackathons,
+  submissions: propsSubmissions,
+  hackathons: propsHackathons,
   onSelectSubmission
 }) => {
+  const storeHackathons = useHackathonStore((s) => s.hackathons);
+  const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
+  const submissions = (propsSubmissions && propsSubmissions.length > 0) ? propsSubmissions : (INITIAL_SUBMISSIONS as any);
   const [selectedHackathonId, setSelectedHackathonId] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'evaluated'>('all');
 
-  const filteredSubmissions = submissions.filter((s) => {
+  const filteredSubmissions = submissions.filter((s: any) => {
     const matchesHackathon = selectedHackathonId === 'all' || s.hackathonId === selectedHackathonId;
     const matchesStatus =
       filterStatus === 'all' ||
@@ -48,7 +54,7 @@ export const DedicatedEvaluationPortal: React.FC<DedicatedEvaluationPortalProps>
             className="px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="all">All Hackathons</option>
-            {hackathons.map((h) => (
+            {hackathons.map((h: any) => (
               <option key={h.id} value={h.id}>
                 {h.title}
               </option>
@@ -76,7 +82,7 @@ export const DedicatedEvaluationPortal: React.FC<DedicatedEvaluationPortalProps>
             <p className="text-sm font-semibold">No assigned submissions match criteria.</p>
           </div>
         ) : (
-          filteredSubmissions.map((submission) => (
+          filteredSubmissions.map((submission: any) => (
             <div
               key={submission.id}
               className="p-5 rounded-2xl glass-panel glass-panel-hover border border-white/10 flex flex-col justify-between space-y-4"
@@ -104,7 +110,7 @@ export const DedicatedEvaluationPortal: React.FC<DedicatedEvaluationPortalProps>
 
               {/* Tech Stack */}
               <div className="flex flex-wrap gap-1">
-                {submission.techStack.slice(0, 3).map((t, idx) => (
+                {(submission.techStack || []).slice(0, 3).map((t: any, idx: number) => (
                   <span key={idx} className="px-2 py-0.5 rounded bg-gray-800 text-[10px] text-gray-300">
                     {t}
                   </span>

@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { LandingNavbar } from './landing/LandingNavbar';
 import { HeroSection } from './landing/HeroSection';
-import { WorkspaceCards } from './landing/WorkspaceCards';
 import { FeaturedHackathons } from './landing/FeaturedHackathons';
 import { HowItWorks } from './landing/HowItWorks';
 import { PlatformFeatures } from './landing/PlatformFeatures';
@@ -54,10 +53,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLog
       </div>
 
       <HowItWorks />
-
-      <div ref={workspaceRef}>
-        <WorkspaceCards onLogin={onLogin} />
-      </div>
 
       <PlatformFeatures />
       

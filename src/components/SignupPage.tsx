@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Terminal, Mail, Lock, Eye, EyeOff, Users } from 'lucide-react';
+import { useAuthStore } from '../stores/authStore';
+import { authApi } from '../services/authApi';
 import type { UserRole } from '../types';
 
 interface LoginUser {
@@ -9,22 +12,25 @@ interface LoginUser {
 }
 
 interface SignupPageProps {
-  onSignup: (role: UserRole, user: LoginUser) => void;
+  onSignup?: (role: UserRole, user: LoginUser) => void;
   onBack?: () => void;
   onSwitchToLogin?: () => void;
 }
 
 export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwitchToLogin }) => {
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('participant');
+  const [role, setRole] = useState<string>('participant');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all fields.');
@@ -36,14 +42,47 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
     }
     setIsLoading(true);
     setError('');
-    setTimeout(() => {
-      onSignup(role, {
-        name: name,
-        email: email,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+
+    try {
+      const res = await authApi.register({
+        name,
+        email,
+        password,
+        role: role.toUpperCase() as any,
       });
+      setAuth(res.user, res.tokens);
+      if (onSignup) {
+        onSignup(role as any, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
+      }
+      navigate('/hackathons');
+    } catch {
+      // Fallback local signup for offline/demo mode
+      const newUser = {
+        id: `user-${Date.now()}`,
+        email,
+        name,
+        role: role.toUpperCase() as any,
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        isEmailVerified: true,
+        profileComplete: false,
+        skills: [] as string[],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const tokens = {
+        accessToken: `demo-token-${Date.now()}`,
+        refreshToken: `demo-refresh-${Date.now()}`,
+      };
+
+      setAuth(newUser, tokens);
+      if (onSignup) {
+        onSignup(role as any, { name, email, avatar: newUser.avatar });
+      }
+      navigate('/hackathons');
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -54,7 +93,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       <header className="relative z-10 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200">
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
               {onBack && (
                 <button onClick={onBack} className="p-2 mr-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
                   ← Back
@@ -149,7 +188,6 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                 </div>
               </div>
 
-              
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">Confirm Password</label>
                 <div className="relative">
@@ -175,10 +213,13 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                 {isLoading ? 'Creating Account...' : 'Sign Up'}
               </button>
 
-              
               <div className="mt-6 text-center text-sm text-slate-500">
                 Already have an account?{' '}
-                <button type="button" onClick={onSwitchToLogin} className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors">
+                <button 
+                  type="button" 
+                  onClick={() => onSwitchToLogin ? onSwitchToLogin() : navigate('/login')} 
+                  className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
+                >
                   Sign in
                 </button>
               </div>

@@ -1,72 +1,61 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { HackathonsService } from './hackathons.service';
-import { CreateHackathonDto } from './dto/create-hackathon.dto';
-import { UpdateHackathonDto } from './dto/update-hackathon.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Role } from '@prisma/client';
+import { CreateHackathonDto, UpdateHackathonDto } from './dto/hackathons.dto';
 
 @ApiTags('Hackathons')
 @Controller('hackathons')
 export class HackathonsController {
   constructor(private readonly hackathonsService: HackathonsService) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ORGANIZER, Role.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Create a new hackathon (Organizer/Admin)' })
-  async create(
-    @CurrentUser('id') organizerId: string,
-    @Body() dto: CreateHackathonDto,
-  ) {
-    return this.hackathonsService.create(organizerId, dto);
-  }
-
   @Get()
-  @ApiOperation({ summary: 'Get all hackathons (optional filter by status)' })
-  async findAll(@Query('status') status?: string) {
-    return this.hackathonsService.findAll(status);
+  @ApiOperation({ summary: 'Get all hackathons' })
+  async findAll(@Query('skip') skip?: number, @Query('take') take?: number, @Query('search') search?: string) {
+    return this.hackathonsService.findAll(Number(skip) || 0, Number(take) || 10, search);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get hackathon by ID' })
+  @ApiOperation({ summary: 'Get a hackathon by ID' })
   async findOne(@Param('id') id: string) {
     return this.hackathonsService.findOne(id);
   }
 
-  @Patch(':id')
+  @Post()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ORGANIZER, Role.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Update hackathon (Organizer/Admin)' })
-  async update(
-    @Param('id') id: string,
-    @CurrentUser('id') userId: string,
-    @Body() dto: UpdateHackathonDto,
-  ) {
-    return this.hackathonsService.update(id, userId, dto);
+  @Roles('ADMIN', 'ORGANIZER')
+  @ApiOperation({ summary: 'Create a hackathon' })
+  async create(@Body() createDto: CreateHackathonDto) {
+    return this.hackathonsService.create(createDto);
+  }
+
+  @Put(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'ORGANIZER')
+  @ApiOperation({ summary: 'Update a hackathon' })
+  async update(@Param('id') id: string, @Body() updateDto: UpdateHackathonDto) {
+    return this.hackathonsService.update(id, updateDto);
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ORGANIZER, Role.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Delete hackathon (Organizer/Admin)' })
-  async remove(@Param('id') id: string, @CurrentUser('id') userId: string) {
-    return this.hackathonsService.remove(id, userId);
+  @Roles('ADMIN', 'ORGANIZER')
+  @ApiOperation({ summary: 'Delete a hackathon' })
+  async remove(@Param('id') id: string) {
+    return this.hackathonsService.remove(id);
+  }
+
+  @Post(':id/clone')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'ORGANIZER')
+  @ApiOperation({ summary: 'Clone a hackathon' })
+  async clone(@Param('id') id: string) {
+    return this.hackathonsService.clone(id);
   }
 }

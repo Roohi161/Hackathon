@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal, Search, Menu, X, Trophy, ArrowRight } from 'lucide-react';
 
@@ -12,6 +13,7 @@ interface LandingNavbarProps {
 }
 
 export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, onNavigateLogin, onGetStarted, onNavigateHome, onNavigateAbout, onNavigateContact }) => {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -30,8 +32,6 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
     { type: 'Hackathon', title: 'AI Innovation Challenge 2026', tags: 'Generative AI, LLMs', prize: '$50K' },
     { type: 'Hackathon', title: 'Web3 Builder Sprint', tags: 'Solidity, Rust, DeFi', prize: '$100K' },
     { type: 'Hackathon', title: 'Green Tech Hackathon', tags: 'IoT, Climate Tech', prize: '$25K' },
-    { type: 'Workspace', title: 'Participant Portal', tags: 'For Hackers & Developers', prize: 'Free' },
-    { type: 'Workspace', title: 'Admin Console', tags: 'System Directors & Management', prize: 'Admin' },
   ].filter(item =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.tags.toLowerCase().includes(searchQuery.toLowerCase())
@@ -43,25 +43,31 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
       if (onNavigateHome) onNavigateHome();
       else window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (link === 'Hackathons') {
-      if (onNavigateHome) onNavigateHome();
-      setTimeout(() => {
-        const el = document.getElementById('hackathons') || document.getElementById('hackathons-section') || document.querySelector('section');
-        el?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      navigate('/hackathons');
     } else if (link === 'Leaderboard') {
-      setActiveModal('leaderboard');
+      navigate('/leaderboard');
     } else if (link === 'About') {
       if (onNavigateAbout) onNavigateAbout();
+      else navigate('/about');
     } else if (link === 'Contact') {
       if (onNavigateContact) onNavigateContact();
+      else navigate('/contact');
     }
   };
 
   const handleAuthAction = () => {
     if (onNavigateLogin) {
       onNavigateLogin();
-    } else if (onGetStarted) {
-      onGetStarted();
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleSignupAction = () => {
+    if (onNavigateSignup) {
+      onNavigateSignup();
+    } else {
+      navigate('/signup');
     }
   };
 
@@ -92,7 +98,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
               <button
                 key={link}
                 onClick={() => handleNavClick(link)}
-                className="text-slate-600 hover:text-slate-900 text-sm font-medium relative group transition-colors"
+                className="text-slate-600 hover:text-slate-900 text-sm font-medium relative group transition-colors cursor-pointer"
               >
                 {link}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-500 transition-all duration-300 group-hover:w-full"></span>
@@ -104,22 +110,22 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSearchOpen(true)}
-              className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors"
-              title="Search Hackathons & Portals"
+              className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Search Hackathons"
             >
               <Search size={20} />
             </button>
 
             <button
               onClick={handleAuthAction}
-              className="hidden sm:block text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
+              className="hidden sm:block text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors cursor-pointer"
             >
               Sign In
             </button>
 
             <button
-              onClick={onNavigateSignup ? onNavigateSignup : handleAuthAction}
-              className="hidden sm:flex bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-500 hover:via-purple-500 hover:to-cyan-400 text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all hover:scale-105"
+              onClick={handleSignupAction}
+              className="hidden sm:flex bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 hover:from-indigo-500 hover:via-purple-500 hover:to-cyan-400 text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all hover:scale-105 cursor-pointer"
             >
               Get Started
             </button>
@@ -127,7 +133,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-md hover:bg-slate-100 transition-colors"
+              className="md:hidden text-slate-600 hover:text-slate-900 p-2 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <Menu size={24} />
             </button>
@@ -166,7 +172,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
                     <button
                       key={link}
                       onClick={() => handleNavClick(link)}
-                      className="text-slate-700 hover:text-slate-900 text-lg font-medium text-left transition-colors"
+                      className="text-slate-700 hover:text-slate-900 text-lg font-medium text-left transition-colors cursor-pointer"
                     >
                       {link}
                     </button>
@@ -179,16 +185,16 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
                       setMobileMenuOpen(false);
                       handleAuthAction();
                     }}
-                    className="text-slate-700 hover:text-slate-900 font-medium py-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors"
+                    className="text-slate-700 hover:text-slate-900 font-medium py-3 border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      if (onNavigateSignup) onNavigateSignup(); else handleAuthAction();
+                      handleSignupAction();
                     }}
-                    className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-medium py-3 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)]"
+                    className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-medium py-3 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)] cursor-pointer"
                   >
                     Get Started
                   </button>
@@ -214,7 +220,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
                 <input
                   type="text"
                   autoFocus
-                  placeholder="Search hackathons, tracks, or portals..."
+                  placeholder="Search hackathons..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none"
@@ -231,7 +237,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
                       key={i}
                       onClick={() => {
                         setSearchOpen(false);
-                        handleAuthAction();
+                        navigate('/hackathons');
                       }}
                       className="p-3 rounded-xl hover:bg-slate-50 cursor-pointer flex items-center justify-between border border-transparent hover:border-slate-200 transition-colors"
                     >
@@ -302,19 +308,17 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ onNavigateSignup, 
               <button
                 onClick={() => {
                   setActiveModal(null);
-                  handleAuthAction();
+                  navigate('/leaderboard');
                 }}
-                className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
+                className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors cursor-pointer"
               >
-                <span>Enter Workspace to View Full Rankings</span>
+                <span>View Full Leaderboards</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* Modals removed and extracted to separate pages */}
     </>
   );
 };

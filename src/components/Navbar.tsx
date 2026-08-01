@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   UserCheck,
   Bell,
@@ -21,7 +22,7 @@ interface NavbarProps {
   onOpenTeamModal: () => void;
   unreadCount: number;
   activeTab?: string;
-  setActiveTab: (tab: string) => void;
+  setActiveTab?: (tab: string) => void;
   loggedInUser?: LoggedInUser | null;
   onLogout?: () => void;
 }
@@ -35,11 +36,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   loggedInUser,
   onLogout
 }) => {
+  const navigate = useNavigate();
+
   const roleColors: Record<string, string> = {
     participant: 'bg-indigo-100 text-indigo-700',
     organizer: 'bg-purple-100 text-purple-700',
     judge: 'bg-amber-100 text-amber-700',
     admin: 'bg-emerald-100 text-emerald-700'
+  };
+
+  const handleBrandClick = () => {
+    if (setActiveTab) setActiveTab('explore');
+    navigate('/hackathons');
   };
 
   return (
@@ -48,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-16 gap-4">
           
           {/* Logo Brand */}
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('explore')}>
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={handleBrandClick}>
             <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-md group-hover:shadow-lg transition-all">
               <Terminal className="w-5 h-5" />
             </div>
@@ -78,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Dev Team Credits Button */}
             <button
               onClick={onOpenTeamModal}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-slate-200"
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-slate-200 cursor-pointer"
               title="View Platform Engineering Team (Creators)"
             >
               <Users className="w-4 h-4 text-indigo-600" />
@@ -88,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Notification Drawer Toggle */}
             <button
               onClick={onOpenNotifications}
-              className="relative p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors border border-slate-200"
+              className="relative p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors border border-slate-200 cursor-pointer"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -104,14 +112,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center gap-3 relative group cursor-pointer pl-2 border-l border-slate-200">
                 <div className="text-right hidden sm:block">
                   <span className="text-xs font-extrabold text-slate-900 block leading-tight">{loggedInUser.name}</span>
-                  <span className={`text-[9px] font-extrabold uppercase tracking-wider mt-0.5 inline-block px-1.5 py-0.2 rounded ${roleColors[currentRole]}`}>
+                  <span className={`text-[9px] font-extrabold uppercase tracking-wider mt-0.5 inline-block px-1.5 py-0.2 rounded ${roleColors[currentRole.toLowerCase()] || roleColors.participant}`}>
                     {currentRole}
                   </span>
                 </div>
                 
                 <div className="relative">
                   <img
-                    src={loggedInUser.avatar}
+                    src={loggedInUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}
                     alt={loggedInUser.name}
                     className="w-9 h-9 rounded-xl object-cover ring-2 ring-slate-100 group-hover:ring-indigo-200 transition-all shadow-2xs"
                   />
@@ -128,7 +136,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span className="text-[10px] text-slate-500 font-medium truncate block">{loggedInUser.email}</span>
                     </div>
                     <button
-                      onClick={() => setActiveTab('profile')}
+                      onClick={() => navigate('/profile')}
                       className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors flex items-center gap-2"
                     >
                       <UserCheck className="w-4 h-4" /> My Profile
@@ -152,4 +160,3 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
-

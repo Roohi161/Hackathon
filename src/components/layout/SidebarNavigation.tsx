@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Compass,
@@ -19,9 +20,9 @@ import type { UserRole } from '../../types';
 
 interface SidebarNavigationProps {
   activeTab: string;
-  setActiveTab: (tab: string) => void;
-  currentRole: UserRole;
-  setCurrentRole: (role: UserRole) => void;
+  setActiveTab?: (tab: string) => void;
+  currentRole?: UserRole;
+  setCurrentRole?: (role: UserRole) => void;
   onLogout?: () => void;
   userName?: string;
   userAvatar?: string;
@@ -33,10 +34,25 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   setActiveTab,
   currentRole,
   setCurrentRole,
-  userName = 'Roohi',
+  userName = 'User',
   userAvatar,
   unreadMessagesCount = 3
 }) => {
+  const navigate = useNavigate();
+
+  const handleItemClick = (id: string) => {
+    if (currentRole && currentRole.toLowerCase() !== 'participant' && setCurrentRole) {
+      if (['dashboard', 'explore', 'my-hackathons', 'teams', 'projects', 'learning', 'certificates', 'leaderboard', 'messages', 'calendar', 'ai-assistant', 'profile', 'settings'].includes(id)) {
+        setCurrentRole('PARTICIPANT' as any);
+      }
+    }
+    if (setActiveTab) setActiveTab(id);
+    
+    if (id === 'explore') navigate('/hackathons');
+    else if (id === 'my-hackathons') navigate('/my-hackathons');
+    else navigate(`/${id}`);
+  };
+
   const mainNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'explore', label: 'Discover Hackathons', icon: Compass },
@@ -78,13 +94,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
         return (
           <button
             key={item.id}
-            onClick={() => {
-              if (currentRole !== 'participant' && ['dashboard', 'explore', 'my-hackathons', 'teams', 'projects', 'learning', 'certificates', 'leaderboard', 'messages', 'calendar', 'ai-assistant', 'profile', 'settings'].includes(item.id)) {
-                setCurrentRole('participant');
-              }
-              setActiveTab(item.id);
-            }}
-            className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 group ${
+            onClick={() => handleItemClick(item.id)}
+            className={`w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 group cursor-pointer ${
               isActive
                 ? isAiItem
                   ? 'bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white shadow-md'
@@ -127,7 +138,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       <div className="space-y-4">
         {/* User Card */}
         <div 
-          onClick={() => setActiveTab('profile')}
+          onClick={() => navigate('/profile')}
           className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 to-indigo-50/50 border border-slate-200/80 flex items-center justify-between cursor-pointer hover:border-indigo-300 transition-all group shadow-2xs"
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -143,7 +154,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                 {userName}
               </h4>
               <span className="text-[9px] font-extrabold text-indigo-700 bg-indigo-100/90 px-2 py-0.5 rounded-md inline-block mt-0.5">
-                Level 5 Participant
+                Participant
               </span>
             </div>
           </div>

@@ -4,7 +4,7 @@ export const PROJECT_TEAM: ProjectTeamMember[] = [
   {
     name: 'Shaik Ansar Ali',
     role: 'Lead Full-Stack Architect & AI Specialist',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
     github: 'https://github.com',
     linkedin: 'https://linkedin.com'
   },

@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Terminal, Mail, Lock, Eye, EyeOff, KeyRound, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useAuthStore } from '../stores/authStore';
+import { authApi } from '../services/authApi';
 import type { UserRole } from '../types';
 
 interface LoginUser {
@@ -9,7 +12,7 @@ interface LoginUser {
 }
 
 interface LoginPageProps {
-  onLogin: (role: UserRole, user: LoginUser) => void;
+  onLogin?: (role: UserRole, user: LoginUser) => void;
   onBack?: () => void;
   onSwitchToSignup?: () => void;
 }
@@ -17,23 +20,26 @@ interface LoginPageProps {
 type AuthView = 'login' | 'forgot_email' | 'forgot_otp' | 'forgot_new' | 'success';
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchToSignup }) => {
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
   const [view, setView] = useState<AuthView>('login');
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('participant');
-  
+  const [role, setRole] = useState<string>('participant');
+
   // Forgot password specific state
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [loginFailed, setLoginFailed] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Please fill in all fields.');
@@ -41,26 +47,63 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     }
     setIsLoading(true);
     setError('');
-    setTimeout(() => {
-      // Dynamic name resolution for logged in user
-      let userName = 'Authenticated User';
-      if (role === 'participant') userName = 'Shaik Ansar Ali';
-      else if (role === 'organizer') userName = 'KVS Bhavya Sri';
-      else if (role === 'judge') userName = 'M Rohan Yaswanth';
-      else if (role === 'admin') userName = 'System Administrator';
 
-      if (email.includes('@')) {
-        const parts = email.split('@')[0];
-        userName = parts.charAt(0).toUpperCase() + parts.slice(1);
+    try {
+      // Try real API first
+      const res = await authApi.login({ email, password });
+      setAuth(res.user, res.tokens);
+      if (onLogin) {
+        onLogin(role as any, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
+      }
+      navigate('/hackathons');
+    } catch {
+      // Fallback for demo credentials
+      const validCredentials = {
+        participant: { email: 'participant@hackathon.com', password: 'password123', name: 'Participant User' },
+        organizer: { email: 'organizer@hackathon.com', password: 'password123', name: 'Organizer Admin' },
+        judge: { email: 'judge@hackathon.com', password: 'password123', name: 'Judge Reviewer' },
+        admin: { email: 'admin@hackathon.com', password: 'password123', name: 'System Admin' }
+      };
+
+      const expected = validCredentials[role as keyof typeof validCredentials] || validCredentials.participant;
+
+      if (email !== expected.email || password !== expected.password) {
+        setIsLoading(false);
+        setError(`Invalid email or password for ${role}.`);
+        setLoginFailed(true);
+        return;
       }
 
-      onLogin(role, {
-        name: userName,
-        email: email,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
-      });
+      const mockUser = {
+        id: 'user-demo-1',
+        email,
+        name: expected.name,
+        role: role.toUpperCase() as any,
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        isEmailVerified: true,
+        profileComplete: true,
+        skills: ['React', 'TypeScript'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const mockTokens = {
+        accessToken: 'demo-access-token',
+        refreshToken: 'demo-refresh-token',
+      };
+
+      setAuth(mockUser, mockTokens);
+      if (onLogin) {
+        onLogin(role as any, { name: expected.name, email, avatar: mockUser.avatar });
+      }
+
+      if (role === 'organizer') navigate('/organizer');
+      else if (role === 'judge') navigate('/judge');
+      else if (role === 'admin') navigate('/admin');
+      else navigate('/hackathons');
+    } finally {
       setIsLoading(false);
-    }, 400);
+    }
   };
 
   const handleSendOTP = (e: React.FormEvent) => {
@@ -71,7 +114,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     }
     setIsLoading(true);
     setError('');
-    // Simulate sending OTP
     setTimeout(() => {
       setIsLoading(false);
       setView('forgot_otp');
@@ -88,7 +130,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     setIsLoading(true);
     setError('');
     setSuccessMsg('');
-    // Simulate OTP verification (accepts any for demo)
     setTimeout(() => {
       setIsLoading(false);
       setView('forgot_new');
@@ -107,7 +148,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     }
     setIsLoading(true);
     setError('');
-    // Simulate password reset
     setTimeout(() => {
       setIsLoading(false);
       setView('success');
@@ -122,7 +162,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
       <header className="relative z-10 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200">
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-24">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
               {onBack && (
                 <button onClick={onBack} className="p-2 mr-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
                   ← Back
@@ -144,13 +184,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
       <main className="flex-1 relative z-10 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md mx-auto">
           <div className="p-8 rounded-3xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl space-y-6">
-            
+
             {/* View: Login */}
             {view === 'login' && (
               <>
                 <div className="text-center">
                   <h3 className="font-bold text-slate-900 text-2xl">Sign In</h3>
-                  <p className="text-sm text-slate-500 mt-2">Sign in with your role-specific demo credentials</p>
+                  <p className="text-sm text-slate-500 mt-2">Sign in with your credentials or demo accounts</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-4">
@@ -164,6 +204,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
                       <option value="participant">Participant</option>
                       <option value="organizer">Organizer</option>
                       <option value="judge">Judge</option>
+                      <option value="admin">Admin</option>
                     </select>
                   </div>
 
@@ -188,9 +229,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
                       <button 
                         type="button" 
                         onClick={() => { 
-                          setView('forgot_email'); setError(''); setSuccessMsg(''); 
+                          if (loginFailed) {
+                            setView('forgot_email'); setError(''); setSuccessMsg(''); 
+                          } else {
+                            setError('Forgot password can only be used after an invalid login attempt.');
+                          }
                         }}
-                        className="text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                        className={`text-xs font-medium transition-colors ${loginFailed ? 'text-indigo-600 hover:text-indigo-700' : 'text-slate-400 cursor-not-allowed'}`}
                       >
                         Forgot password?
                       </button>
@@ -225,10 +270,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
                     {isLoading ? 'Authenticating...' : 'Sign In'}
                   </button>
 
-
                   <div className="mt-6 text-center text-sm text-slate-500">
                     Don't have an account?{' '}
-                    <button type="button" onClick={onSwitchToSignup} className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors">
+                    <button 
+                      type="button" 
+                      onClick={() => onSwitchToSignup ? onSwitchToSignup() : navigate('/signup')} 
+                      className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
+                    >
                       Sign up
                     </button>
                   </div>

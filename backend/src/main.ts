@@ -1,61 +1,114 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  // Set global route prefix
-  app.setGlobalPrefix('api/v1');
-
-  // Enable CORS
-  app.enableCors({
-    origin: '*',
-    credentials: true,
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
-  // Enable global validation pipe
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('port', 5000);
+  const corsOrigin = configService.get<string>('cors.origin', 'http://localhost:3002');
+  const nodeEnv = configService.get<string>('nodeEnv', 'development');
+  const logger = new Logger('Bootstrap');
+
+  // Global route prefix
+  app.setGlobalPrefix('api/v1');
+
+  // Security middleware
+  app.use(helmet());
+
+  // CORS — properly configured
+  app.enableCors({
+    origin: corsOrigin.split(',').map((o: string) => o.trim()),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    maxAge: 86400,
+  });
+
+  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
-  // Swagger API Documentation Setup
-  const config = new DocumentBuilder()
-    .setTitle('Hackathon Central API')
-    .setDescription(
-      'REST API documentation for Hackathon Central — managing hackathon events, teams, submissions, judging, and announcements.',
-    )
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter your JWT token',
-        in: 'header',
+  // Global exception filter
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // Global interceptors
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new TransformInterceptor(),
+  );
+
+  // Request body size limit
+  app.use(
+    (
+      _req: Record<string, unknown>,
+      _res: Record<string, unknown>,
+      next: () => void,
+    ) => next(),
+  );
+
+  // Swagger API Documentation
+  if (nodeEnv !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Hackathon Central API')
+      .setDescription(
+        'Enterprise-grade REST API for the Hackathon Central platform — managing hackathon events, teams, submissions, judging, certificates, and communications.',
+      )
+      .setVersion('1.0.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'Authorization',
+          description: 'Enter your JWT access token',
+          in: 'header',
+        },
+        'JWT-auth',
+      )
+      .addTag('Health', 'System health and status checks')
+      .addTag('Auth', 'Authentication and authorization')
+      .addTag('Users', 'User profiles and management')
+      .addTag('Hackathons', 'Hackathon lifecycle management')
+      .addTag('Teams', 'Team creation and management')
+      .addTag('Submissions', 'Project submissions')
+      .addTag('Judging', 'Evaluation, scoring, and leaderboards')
+      .addTag('Announcements', 'Event announcements')
+      .addTag('Notifications', 'User notifications')
+      .addTag('Certificates', 'Certificate generation and verification')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+        tagsSorter: 'alpha',
+        operationsSorter: 'alpha',
       },
-      'JWT-auth',
-    )
-    .addTag('Auth', 'User registration and login')
-    .addTag('Users', 'User profile and role management')
-    .addTag('Hackathons', 'Hackathon event CRUD operations')
-    .addTag('Teams', 'Team creation, joining, and management')
-    .addTag('Submissions', 'Project submission endpoints')
-    .addTag('Judging', 'Rubrics, scoring, and leaderboards')
-    .addTag('Announcements', 'Live event announcements')
-    .build();
+    });
+    logger.log(`📄 Swagger API Docs: http://localhost:${port}/api/docs`);
+  }
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
-
-  const port = Number(process.env.PORT) || 5000;
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Hackathon Central Backend running on: http://localhost:${port}/api/v1`);
-  console.log(`📄 Swagger API Docs available at: http://localhost:${port}/api/docs`);
+  logger.log(`🚀 Hackathon Central API running on: http://localhost:${port}/api/v1`);
+  logger.log(`🌍 Environment: ${nodeEnv}`);
+  logger.log(`🔒 CORS Origin: ${corsOrigin}`);
 }
 bootstrap();
