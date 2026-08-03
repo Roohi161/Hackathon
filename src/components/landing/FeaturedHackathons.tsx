@@ -111,7 +111,11 @@ const cardVariants: Variants = {
   show: { opacity: 1, x: 0, transition: { duration: 0.5 } },
 };
 
-export const FeaturedHackathons = () => {
+interface FeaturedHackathonsProps {
+  onNavigateLogin?: (hackathonId?: string | number) => void;
+}
+
+export const FeaturedHackathons: React.FC<FeaturedHackathonsProps> = ({ onNavigateLogin }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [registeringHackathon, setRegisteringHackathon] = useState<typeof allHackathons[0] | null>(null);
   const [registrationSubmitted, setRegistrationSubmitted] = useState(false);
@@ -277,9 +281,13 @@ export const FeaturedHackathons = () => {
 
                 <button
                   onClick={() => {
-                    setRegisteringHackathon(hackathon);
-                    setRegistrationSubmitted(false);
-                    setTeamName('');
+                    if (onNavigateLogin) {
+                      onNavigateLogin(hackathon.id);
+                    } else {
+                      setRegisteringHackathon(hackathon);
+                      setRegistrationSubmitted(false);
+                      setTeamName('');
+                    }
                   }}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/25 transition-all active:scale-[0.98]"
                 >
@@ -329,6 +337,26 @@ export const FeaturedHackathons = () => {
                 </div>
               ) : (
                 <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                  {/* Already registered prompt */}
+                  <div className="p-3 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between text-xs text-indigo-900">
+                    <div>
+                      <span className="font-medium">Already registered?</span>
+                      <p className="text-[11px] text-indigo-600">Sign in to access your Participant Portal.</p>
+                    </div>
+                    {onNavigateLogin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRegisteringHackathon(null);
+                          onNavigateLogin();
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-colors shadow-sm shrink-0 ml-2"
+                      >
+                        Log In
+                      </button>
+                    )}
+                  </div>
+
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">Team Name</label>
                     <input

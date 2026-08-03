@@ -14,7 +14,7 @@ import { ContactSection } from './landing/ContactSection';
 
 interface LandingPageProps {
   onLogin: (role: 'participant' | 'organizer' | 'judge' | 'admin', user: { name: string; email: string; avatar: string }) => void;
-  onNavigateLogin?: () => void;
+  onNavigateLogin?: (targetId?: string | number) => void;
   onNavigateSignup?: () => void;
   onNavigateHome?: () => void;
   onNavigateAbout?: () => void;
@@ -49,7 +49,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateLog
       </div>
 
       <div id="hackathons" ref={hackathonsRef}>
-        <FeaturedHackathons />
+        <FeaturedHackathons onNavigateLogin={onNavigateLogin} />
       </div>
 
       <HowItWorks />
