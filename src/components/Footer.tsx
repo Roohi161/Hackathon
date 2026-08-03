@@ -5,14 +5,14 @@ import type { UserRole } from '../types';
 
 interface FooterProps {
   onOpenTeamModal?: () => void;
-  onNavigate?: (tab: string, role: any) => void;
+  onNavigate?: (tab: string, role?: string) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onOpenTeamModal, onNavigate }) => {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleProductClick = (tab: string, role: any) => {
+  const handleProductClick = (tab: string, role?: string) => {
     if (onNavigate) {
       onNavigate(tab, role);
     }

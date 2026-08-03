@@ -39,6 +39,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
   const [successMsg, setSuccessMsg] = useState('');
   const [loginFailed, setLoginFailed] = useState(false);
 
+  const navigateByRole = (userRole: UserRole) => {
+    const roleRouteMap: Record<string, string> = {
+      ORGANIZER: '/organizer',
+      JUDGE: '/judge',
+      ADMIN: '/admin',
+      SUPER_ADMIN: '/admin',
+      MENTOR: '/mentor',
+      VOLUNTEER: '/volunteer',
+      SPONSOR: '/sponsor',
+      REVIEWER: '/reviewer',
+      PARTICIPANT: '/dashboard',
+    };
+    navigate(roleRouteMap[userRole] || '/dashboard');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -51,33 +66,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     try {
       // Try real API first
       const res = await authApi.login({ email, password });
-      const userRole = (res.user.role || role).toUpperCase();
-      setAuth({ ...res.user, role: userRole as any }, res.tokens);
+      const userRole = (res.user.role || 'PARTICIPANT').toUpperCase() as UserRole;
+      setAuth({ ...res.user, role: userRole }, res.tokens);
       if (onLogin) {
-        onLogin(userRole as any, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
+        onLogin(userRole, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
       }
-
-      if (userRole === 'ORGANIZER') navigate('/organizer');
-      else if (userRole === 'JUDGE') navigate('/judge');
-      else if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') navigate('/admin');
-      else navigate('/dashboard');
+      navigateByRole(userRole);
       return;
     } catch {
-      // Fallback for demo credentials
-      const validCredentials = {
-        participant: { email: 'participant@hackathon.com', password: 'password123', name: 'Participant User' },
-        organizer: { email: 'organizer@hackathon.com', password: 'password123', name: 'Organizer Admin' },
-        judge: { email: 'judge@hackathon.com', password: 'password123', name: 'Judge Reviewer' },
-        admin: { email: 'admin@hackathon.com', password: 'password123', name: 'System Admin' }
+      // Fallback for demo mode when backend is unavailable
+      const demoRoleMap: Record<string, { name: string; role: UserRole }> = {
+        organizer: { name: 'Organizer Admin', role: 'ORGANIZER' },
+        judge: { name: 'Judge Reviewer', role: 'JUDGE' },
+        admin: { name: 'System Admin', role: 'ADMIN' },
+        mentor: { name: 'Mentor User', role: 'MENTOR' },
+        volunteer: { name: 'Volunteer User', role: 'VOLUNTEER' },
+        sponsor: { name: 'Sponsor User', role: 'SPONSOR' },
+        reviewer: { name: 'Reviewer User', role: 'REVIEWER' },
+        participant: { name: 'Participant User', role: 'PARTICIPANT' },
       };
 
-      const detectedRole = (email.includes('organizer') ? 'ORGANIZER' : (email.includes('judge') ? 'JUDGE' : (email.includes('admin') ? 'ADMIN' : role.toUpperCase()))) as UserRole;
-      const expected = validCredentials[detectedRole.toLowerCase() as keyof typeof validCredentials] || validCredentials.participant;
+      // Detect role from email address or selected role
+      const detectedKey = Object.keys(demoRoleMap).find(key => email.toLowerCase().includes(key)) || role.toLowerCase();
+      const demoEntry = demoRoleMap[detectedKey] || demoRoleMap.participant;
+      const detectedRole = demoEntry.role;
 
-      const mockUser = {
+      const mockUser: import('../types/auth').User = {
         id: `user-${detectedRole.toLowerCase()}-1`,
         email,
-        name: expected.name,
+        name: demoEntry.name,
         role: detectedRole,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
         isEmailVerified: true,
@@ -87,20 +104,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
         updatedAt: new Date().toISOString(),
       };
 
-      const mockTokens = {
+      const mockTokens: import('../types/auth').AuthTokens = {
         accessToken: 'demo-access-token',
         refreshToken: 'demo-refresh-token',
       };
 
       setAuth(mockUser, mockTokens);
       if (onLogin) {
-        onLogin(detectedRole, { name: expected.name, email, avatar: mockUser.avatar });
+        onLogin(detectedRole, { name: demoEntry.name, email, avatar: mockUser.avatar });
       }
-
-      if (detectedRole === 'ORGANIZER') navigate('/organizer');
-      else if (detectedRole === 'JUDGE') navigate('/judge');
-      else if (detectedRole === 'ADMIN' || detectedRole === 'SUPER_ADMIN') navigate('/admin');
-      else navigate('/dashboard');
+      navigateByRole(detectedRole);
     } finally {
       setIsLoading(false);
     }

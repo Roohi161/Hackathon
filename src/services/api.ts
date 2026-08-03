@@ -1,12 +1,20 @@
 import { hackathonApi } from './hackathonApi';
 import apiClient from './apiClient';
+import type { Hackathon } from '../types/hackathon';
+import type { Team } from '../types/team';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  timestamp: string;
+}
 
 export { apiClient as api };
 
 export async function getDbHealth() {
   try {
-    const res: any = await apiClient.get('/health');
-    return res.data || res;
+    const res = await apiClient.get<ApiResponse<unknown>>('/health');
+    return res.data.data;
   } catch (err) {
     console.warn('⚠️ Backend health check failed:', err);
     return null;
@@ -22,7 +30,7 @@ export async function getHackathonsFromDb() {
   }
 }
 
-export async function saveHackathonToDb(hackathonData: any) {
+export async function saveHackathonToDb(hackathonData: Partial<Hackathon>) {
   try {
     return await hackathonApi.create(hackathonData);
   } catch (err) {
@@ -31,10 +39,10 @@ export async function saveHackathonToDb(hackathonData: any) {
   }
 }
 
-export async function saveTeamToDb(teamData: any) {
+export async function saveTeamToDb(teamData: Partial<Team>) {
   try {
-    const res: any = await apiClient.post('/teams', teamData);
-    return res.data || res;
+    const res = await apiClient.post<ApiResponse<Team>>('/teams', teamData);
+    return res.data.data;
   } catch (err) {
     console.warn('⚠️ Could not save team:', err);
     return null;

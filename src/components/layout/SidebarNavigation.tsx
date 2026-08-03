@@ -14,9 +14,19 @@ import {
   Sparkles,
   User,
   Settings,
-  ChevronRight
+  ChevronRight,
+  ClipboardCheck,
+  Heart,
+  DollarSign,
+  FileSearch,
+  GraduationCap,
+  ShieldCheck,
+  Megaphone,
+  BarChart3
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { UserRole } from '../../types';
+import { useAuthStore } from '../../stores/authStore';
 
 interface SidebarNavigationProps {
   activeTab: string;
@@ -29,16 +39,35 @@ interface SidebarNavigationProps {
   unreadMessagesCount?: number;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+  isAi?: boolean;
+}
+
+const roleColors: Record<string, string> = {
+  PARTICIPANT: 'bg-indigo-100/90 text-indigo-700',
+  ORGANIZER: 'bg-purple-100/90 text-purple-700',
+  JUDGE: 'bg-amber-100/90 text-amber-700',
+  ADMIN: 'bg-emerald-100/90 text-emerald-700',
+  SUPER_ADMIN: 'bg-rose-100/90 text-rose-700',
+  MENTOR: 'bg-cyan-100/90 text-cyan-700',
+  VOLUNTEER: 'bg-teal-100/90 text-teal-700',
+  SPONSOR: 'bg-yellow-100/90 text-yellow-700',
+  REVIEWER: 'bg-blue-100/90 text-blue-700',
+};
+
 export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   activeTab,
   setActiveTab,
-  currentRole,
-  setCurrentRole,
   userName = 'User',
   userAvatar,
-  unreadMessagesCount = 3
+  unreadMessagesCount = 0
 }) => {
   const navigate = useNavigate();
+  const role = useAuthStore((state) => state.role);
 
   const handleItemClick = (id: string) => {
     if (setActiveTab) setActiveTab(id);
@@ -48,7 +77,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     else navigate(`/${id}`);
   };
 
-  const mainNavItems = [
+  // Base nav items available to all authenticated users
+  const mainNavItems: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'explore', label: 'Discover Hackathons', icon: Compass },
     { id: 'my-hackathons', label: 'My Hackathons', icon: Trophy, badge: '3' },
@@ -56,27 +86,57 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     { id: 'projects', label: 'Project Repos', icon: FolderCode }
   ];
 
-  const growthNavItems = [
+  const growthNavItems: NavItem[] = [
     { id: 'learning', label: 'Learning Center', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'leaderboard', label: 'Leaderboard', icon: Medal }
   ];
 
-  const commNavItems = [
+  const commNavItems: NavItem[] = [
     { id: 'messages', label: 'Inbox & Chat', icon: MessageSquare, badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },
     { id: 'calendar', label: 'Calendar', icon: Calendar }
   ];
 
-  const aiNavItems = [
+  const aiNavItems: NavItem[] = [
     { id: 'ai-assistant', label: 'AI Copilot Suite', icon: Sparkles, isAi: true }
   ];
 
-  const accountNavItems = [
+  const accountNavItems: NavItem[] = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
-  const renderNavGroup = (title: string, items: typeof mainNavItems) => (
+  // Role-specific nav items
+  const roleNavItems: Record<string, NavItem[]> = {
+    ORGANIZER: [
+      { id: 'organizer', label: 'Organizer Workspace', icon: Megaphone },
+    ],
+    JUDGE: [
+      { id: 'judge', label: 'Evaluation Portal', icon: ClipboardCheck },
+    ],
+    ADMIN: [
+      { id: 'admin', label: 'Admin Dashboard', icon: ShieldCheck },
+    ],
+    SUPER_ADMIN: [
+      { id: 'admin', label: 'Admin Dashboard', icon: ShieldCheck },
+    ],
+    MENTOR: [
+      { id: 'mentor', label: 'Mentor Dashboard', icon: GraduationCap },
+    ],
+    VOLUNTEER: [
+      { id: 'volunteer', label: 'Volunteer Hub', icon: Heart },
+    ],
+    SPONSOR: [
+      { id: 'sponsor', label: 'Sponsor Portal', icon: DollarSign },
+    ],
+    REVIEWER: [
+      { id: 'reviewer', label: 'Review Center', icon: FileSearch },
+    ],
+  };
+
+  const currentRoleItems = roleNavItems[role] || [];
+
+  const renderNavGroup = (title: string, items: NavItem[]) => (
     <div className="space-y-1 py-2">
       <h4 className="px-3.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
         {title}
@@ -113,7 +173,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               <span className="truncate">{item.label}</span>
             </div>
 
-            {item.badge && (
+            {'badge' in item && item.badge && (
               <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full ${
                 isActive
                   ? 'bg-indigo-600 text-white'
@@ -148,8 +208,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               <h4 className="text-xs font-black text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
                 {userName}
               </h4>
-              <span className="text-[9px] font-extrabold text-indigo-700 bg-indigo-100/90 px-2 py-0.5 rounded-md inline-block mt-0.5">
-                Participant
+              <span className={`text-[9px] font-extrabold uppercase tracking-wider mt-0.5 inline-block px-2 py-0.5 rounded-md ${roleColors[role] || roleColors.PARTICIPANT}`}>
+                {role}
               </span>
             </div>
           </div>
@@ -158,6 +218,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
         {/* Navigation Sections */}
         <div className="space-y-2 divide-y divide-slate-100">
+          {currentRoleItems.length > 0 && renderNavGroup('Workspace', currentRoleItems)}
           {renderNavGroup('Overview', mainNavItems)}
           {renderNavGroup('Growth & Recognition', growthNavItems)}
           {renderNavGroup('Collaboration', commNavItems)}

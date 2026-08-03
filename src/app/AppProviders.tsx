@@ -8,7 +8,7 @@ export interface AppProvidersProps {
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   useEffect(() => {
-    useHackathonStore.getState().fetchHackathons().catch(((): any => undefined));
+    useHackathonStore.getState().fetchHackathons().catch(() => { /* silently handle */ });
   }, []);
 
   return <BrowserRouter>{children}</BrowserRouter>;
