@@ -1,527 +1,988 @@
-import React, { useState } from 'react';
-import { PlusCircle, Trash2, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
-import type { Hackathon, ProblemStatement, RubricCriteria, PrizeItem } from '../../types';
+import React, { useState, useEffect } from 'react';
+import {
+  Sparkles, Save, Eye, CheckCircle2, ChevronRight, ChevronLeft, Calendar as CalendarIcon,
+  Globe, MapPin, Award, Users, Trophy, Building2, ShieldCheck, FileText, Plus, Trash2,
+  AlertTriangle, Upload, HelpCircle, Code2, Cpu, Zap, Lock, DollarSign, Layers, Link as LinkIcon,
+  Check, X
+} from 'lucide-react';
+import type {
+  Hackathon, HackathonTrack, ProblemStatement, RubricCriteria, PrizeItem, FAQItem,
+  HackathonSponsor, HackathonJudge, HackathonMentor, SubmissionConfig, CertificateSettings, SEOSettings
+} from '../../types/hackathon';
+import { useToastStore } from '../../stores/toastStore';
 
 interface CreateHackathonWizardProps {
-  onCreateHackathon: (hackathon: Hackathon) => void;
+  initialHackathon?: Hackathon | null;
+  onSaveDraft: (hackathonData: Partial<Hackathon>) => void;
+  onPublish: (hackathonData: Hackathon) => void;
   onCancel: () => void;
 }
 
+const DEFAULT_SUBMISSION_CONFIG: SubmissionConfig = {
+  github: 'required',
+  demoUrl: 'required',
+  videoUrl: 'optional',
+  presentation: 'optional',
+  apkUpload: 'disabled',
+  zipUpload: 'disabled',
+  documentation: 'optional',
+  techStack: 'required',
+  aiDeclaration: 'optional'
+};
+
+const DEFAULT_CERTIFICATE_SETTINGS: CertificateSettings = {
+  enabled: true,
+  templateName: 'Enterprise Modern Dark',
+  signatureTitle: 'Lead Program Chair',
+  enableQrVerification: true
+};
+
+const DEFAULT_SEO_SETTINGS: SEOSettings = {
+  metaTitle: '',
+  metaDescription: '',
+  keywords: 'hackathon, ai, web3, coding challenge, developers, build',
+  ogImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80'
+};
+
 export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
-  onCreateHackathon,
+  initialHackathon,
+  onSaveDraft,
+  onPublish,
   onCancel
 }) => {
-  const [step, setStep] = useState<number>(1);
+  const addToast = useToastStore((s) => s.addToast);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [lastAutoSaved, setLastAutoSaved] = useState<string>('Just now');
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  // Step 1 State
-  const [title, setTitle] = useState('');
-  const [tagline, setTagline] = useState('');
-  const [banner, setBanner] = useState('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80');
-  const [mode, setMode] = useState<'online' | 'hybrid' | 'in-person'>('online');
-  const [location, setLocation] = useState('Global (Virtual)');
-  const [prizePool, setPrizePool] = useState('$25,000');
-  const [startDate] = useState('2026-08-01T09:00');
-  const [endDate] = useState('2026-08-07T23:59');
+  // STEP 1 — Branding & Identity State
+  const [title, setTitle] = useState(initialHackathon?.title || '');
+  const [tagline, setTagline] = useState(initialHackathon?.tagline || '');
+  const [shortDescription, setShortDescription] = useState(initialHackathon?.shortDescription || initialHackathon?.description || '');
+  const [detailedDescription, setDetailedDescription] = useState(initialHackathon?.detailedDescription || initialHackathon?.description || '');
+  const [logo, setLogo] = useState(initialHackathon?.logo || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80');
+  const [banner, setBanner] = useState(initialHackathon?.banner || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80');
+  const [coverImage, setCoverImage] = useState(initialHackathon?.coverImage || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80');
+  const [organizerName, setOrganizerName] = useState(initialHackathon?.organizerName || 'TechCorp India Labs');
+  const [website, setWebsite] = useState(initialHackathon?.website || 'https://hackathoncentral.io');
+  const [supportEmail, setSupportEmail] = useState(initialHackathon?.supportEmail || 'support@hackathoncentral.io');
+  const [supportPhone, setSupportPhone] = useState(initialHackathon?.supportPhone || '+91 98765 43210');
+  const [slug, setSlug] = useState(initialHackathon?.slug || '');
+  const [socialLinks, setSocialLinks] = useState(initialHackathon?.socialLinks || { twitter: '', discord: '', linkedin: '', github: '' });
 
-  // Step 2 State - Problem Statements & Tracks
-  const [tracksInput, setTracksInput] = useState('AI Agents, Full Stack, Web3');
-  const [problemStatements, setProblemStatements] = useState<ProblemStatement[]>([
-    {
-      id: 'ps-new-1',
-      track: 'AI Agents',
-      title: 'Automated Code Review Agent',
-      description: 'Build an autonomous assistant that reviews PRs and highlights security vulnerabilities.',
-      difficulty: 'Intermediate'
+  // STEP 2 — Event Details & Timeline State
+  const [mode, setMode] = useState<Hackathon['mode']>(initialHackathon?.mode || 'HYBRID');
+  const [category, setCategory] = useState(initialHackathon?.category || 'AI & Machine Learning');
+  const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels'>(initialHackathon?.difficulty || 'Intermediate');
+  const [timezone, setTimezone] = useState(initialHackathon?.timezone || 'India Standard Time (IST UTC+05:30)');
+  const [country, setCountry] = useState(initialHackathon?.country || 'India');
+  const [stateName, setStateName] = useState(initialHackathon?.state || 'Tamil Nadu');
+  const [city, setCity] = useState(initialHackathon?.city || 'Chennai');
+  const [venue, setVenue] = useState(initialHackathon?.venue || 'IIT Madras Research Park Auditorium');
+  const [mapsUrl, setMapsUrl] = useState(initialHackathon?.mapsUrl || 'https://maps.google.com');
+
+  // Timeline Matrix
+  const [registrationStart, setRegistrationStart] = useState(initialHackathon?.registrationStart || '2026-08-10T09:00');
+  const [registrationEnd, setRegistrationEnd] = useState(initialHackathon?.registrationEnd || '2026-08-25T23:59');
+  const [teamFormationDeadline, setTeamFormationDeadline] = useState(initialHackathon?.teamFormationDeadline || '2026-08-26T18:00');
+  const [startDate, setStartDate] = useState(initialHackathon?.startDate || '2026-08-27T09:00');
+  const [endDate, setEndDate] = useState(initialHackathon?.endDate || '2026-08-30T18:00');
+  const [submissionDeadline, setSubmissionDeadline] = useState(initialHackathon?.submissionDeadline || '2026-08-30T17:00');
+  const [evaluationStart, setEvaluationStart] = useState(initialHackathon?.evaluationStart || '2026-08-31T09:00');
+  const [evaluationEnd, setEvaluationEnd] = useState(initialHackathon?.evaluationEnd || '2026-09-02T18:00');
+  const [winnerAnnouncementDate, setWinnerAnnouncementDate] = useState(initialHackathon?.winnerAnnouncementDate || '2026-09-03T16:00');
+  const [certDistributionDate, setCertDistributionDate] = useState(initialHackathon?.certDistributionDate || '2026-09-05T12:00');
+
+  // STEP 3 — Registration, Eligibility & Tracks State
+  const [minTeamSize, setMinTeamSize] = useState(initialHackathon?.minTeamSize || 1);
+  const [maxTeamSize, setMaxTeamSize] = useState(initialHackathon?.maxTeamSize || 4);
+  const [maxParticipants, setMaxParticipants] = useState(initialHackathon?.maxParticipants || 1500);
+  const [registrationFee, setRegistrationFee] = useState(initialHackathon?.registrationFee || 'Free');
+  const [requireApproval, setRequireApproval] = useState(initialHackathon?.requireApproval || false);
+  const [isInviteOnly, setIsInviteOnly] = useState(initialHackathon?.isInviteOnly || false);
+  const [isWaitlistEnabled, setIsWaitlistEnabled] = useState(initialHackathon?.isWaitlistEnabled || true);
+  const [audience, setAudience] = useState<'Everyone' | 'Students' | 'Professionals'>(initialHackathon?.audience || 'Everyone');
+  const [prerequisites, setPrerequisites] = useState(initialHackathon?.prerequisites || 'Basic programming knowledge in Python, JS, or Rust');
+
+  // Tracks & Problem Statements
+  const [tracks, setTracks] = useState<HackathonTrack[]>(() => {
+    if (!initialHackathon?.tracks || initialHackathon.tracks.length === 0) {
+      return [
+        { id: 'tr-1', hackathonId: 'h-1', name: 'Generative AI & Autonomous Agents', description: 'Build LLM agents, multi-agent frameworks, and multimodal tools.', color: '#9333ea' },
+        { id: 'tr-2', hackathonId: 'h-1', name: 'Web3 & Decentralized Protocols', description: 'Zero-knowledge proofs, smart contract tools, and DeFi infrastructure.', color: '#4f46e5' },
+        { id: 'tr-3', hackathonId: 'h-1', name: 'Smart Cities & GreenTech', description: 'IoT sensors, clean energy optimization, and sustainable mobility.', color: '#059669' }
+      ];
     }
+    return initialHackathon.tracks.map((t, idx) =>
+      typeof t === 'string' ? { id: `tr-${idx}`, hackathonId: 'h-1', name: t, description: 'Track details...', color: '#7c3aed' } : t
+    );
+  });
+
+  const [problemStatements, setProblemStatements] = useState<ProblemStatement[]>(initialHackathon?.problemStatements || [
+    { id: 'ps-1', title: 'Autonomous Multi-Agent Workflow Engine', description: 'Develop an agentic framework capable of self-correcting code generation.', difficulty: 'Advanced' },
+    { id: 'ps-2', title: 'Zero-Knowledge Identity Attestation', description: 'Create privacy-preserving identity verification for decentralized dApps.', difficulty: 'Intermediate' }
   ]);
 
-  // Step 3 State - Prizes Breakdown
-  const [prizes, setPrizes] = useState<PrizeItem[]>([
-    { title: '🥇 1st Place Champion', amount: '$15,000', description: 'Grand prize + Vercel credits' },
-    { title: '🥈 2nd Place Runner-Up', amount: '$10,000', description: 'Runner-up cash award' }
+  // STEP 4 — Prizes, Sponsors, Judges & Mentors State
+  const [prizePool, setPrizePool] = useState(initialHackathon?.prizePool || '₹25,00,000');
+  const [prizes, setPrizes] = useState<PrizeItem[]>(initialHackathon?.prizes || [
+    { id: 'prz-1', title: 'Grand Winner (1st Place)', amount: '₹10,00,000', description: 'Cash Prize + Incubation Grant + Trophy' },
+    { id: 'prz-2', title: 'Runner-Up (2nd Place)', amount: '₹6,00,000', description: 'Cash Prize + Fast-track Interview' },
+    { id: 'prz-3', title: 'Best AI Innovation Award', amount: '₹4,00,000', description: 'Sponsored by TechCorp AI Labs' }
   ]);
 
-  // Step 4 State - Judging Rubrics Configuration
-  const [rubrics, setRubrics] = useState<RubricCriteria[]>([
-    { id: 'rub-n-1', name: 'Innovation', description: 'Originality of concept', weight: 30 },
-    { id: 'rub-n-2', name: 'Technical Depth', description: 'Code architecture and robustness', weight: 40 },
-    { id: 'rub-n-3', name: 'UI / UX Design', description: 'User experience and polish', weight: 30 }
+  const [sponsors, setSponsors] = useState<HackathonSponsor[]>(initialHackathon?.sponsors || [
+    { id: 'sp-1', name: 'TechCorp India Labs', tier: 'Title', website: 'https://techcorp.io', logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=100&q=80' },
+    { id: 'sp-2', name: 'Vercel India Hub', tier: 'Platinum', website: 'https://vercel.com', logo: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=100&q=80' }
   ]);
 
-  // Rubric weights sum check
-  const totalWeight = rubrics.reduce((acc, curr) => acc + curr.weight, 0);
+  const [judges, setJudges] = useState<HackathonJudge[]>(initialHackathon?.judges || [
+    { id: 'jdg-1', name: 'Dr. Suresh Kumar', company: 'Google DeepMind', designation: 'Principal AI Researcher', expertise: 'Generative AI & LLMs', linkedin: 'https://linkedin.com' },
+    { id: 'jdg-2', name: 'Elena Rostova', company: 'Vercel', designation: 'Head of Developer Relations', expertise: 'Frontend Architecture & DX', linkedin: 'https://linkedin.com' }
+  ]);
 
-  const handleAddProblem = () => {
-    setProblemStatements([
-      ...problemStatements,
-      {
-        id: `ps-new-${Date.now()}`,
-        track: 'General',
-        title: 'New Challenge Title',
-        description: 'Challenge description...',
-        difficulty: 'All Levels'
-      }
-    ]);
+  const [mentors, setMentors] = useState<HackathonMentor[]>(initialHackathon?.mentors || [
+    { id: 'mnt-1', name: 'Shaik Ansar Ali', company: 'Incux AI', skills: 'Agentic Frameworks, PyTorch, React', availability: '10:00 AM - 4:00 PM IST', bio: 'Senior AI Engineer & Hackathon Mentor' }
+  ]);
+
+  // STEP 5 — Submissions, Rubrics, Resources & Launch State
+  const [submissionConfig, setSubmissionConfig] = useState<SubmissionConfig>(initialHackathon?.submissionConfig || DEFAULT_SUBMISSION_CONFIG);
+  const [rubrics, setRubrics] = useState<RubricCriteria[]>(initialHackathon?.rubrics || [
+    { id: 'rub-1', name: 'Code Quality & Technical Execution', weight: 30, description: 'Clean architecture, error handling, and test coverage.' },
+    { id: 'rub-2', name: 'Innovation & Originality', weight: 30, description: 'Uniqueness of technical solution and creative problem solving.' },
+    { id: 'rub-3', name: 'UI / UX Design & Presentation', weight: 20, description: 'User experience, visual aesthetics, and pitch clarity.' },
+    { id: 'rub-4', name: 'Real-World Business Impact', weight: 20, description: 'Market viability, scalability, and practical utility.' }
+  ]);
+
+  const [rules, setRules] = useState<string[]>(initialHackathon?.rules || [
+    'All code must be written during the hackathon period.',
+    'Plagiarism or pre-built commercial products are strictly prohibited.',
+    'Generative AI assistance is permitted but must be declared upon submission.'
+  ]);
+
+  const [faqs, setFaqs] = useState<FAQItem[]>(initialHackathon?.faqs || [
+    { id: 'faq-1', question: 'Who is eligible to participate?', answer: 'Developers, students, and working professionals worldwide are welcome.' },
+    { id: 'faq-2', question: 'What is the registration fee?', answer: 'Registration is 100% free for all participants.' }
+  ]);
+
+  const [certificateSettings, setCertificateSettings] = useState<CertificateSettings>(initialHackathon?.certificateSettings || DEFAULT_CERTIFICATE_SETTINGS);
+  const [seoSettings, setSeoSettings] = useState<SEOSettings>(initialHackathon?.seoSettings || DEFAULT_SEO_SETTINGS);
+
+  // Auto-slug generator
+  useEffect(() => {
+    if (title && !initialHackathon?.slug) {
+      setSlug(title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+    }
+  }, [title, initialHackathon]);
+
+  // Auto-Save interval simulator
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLastAutoSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Calculate 0-100 Readiness Score
+  const calculateReadinessScore = () => {
+    let score = 0;
+    if (title.trim()) score += 15;
+    if (tagline.trim() && detailedDescription.trim()) score += 15;
+    if (registrationStart && startDate && endDate) score += 20;
+    if (tracks.length > 0) score += 15;
+    if (prizes.length > 0) score += 15;
+    if (rubrics.reduce((acc, r) => acc + (r.weight || 0), 0) === 100) score += 10;
+    if (judges.length > 0) score += 10;
+    return score;
   };
 
-  const handleRemoveProblem = (id: string) => {
-    setProblemStatements(problemStatements.filter((p) => p.id !== id));
+  const readinessScore = calculateReadinessScore();
+
+  // Rubrics Weight Total Check
+  const rubricWeightTotal = rubrics.reduce((acc, r) => acc + Number(r.weight || 0), 0);
+
+  // Step Validation Checkers
+  const isStep1Valid = Boolean(title.trim() && organizerName.trim());
+  const isStep2Valid = Boolean(startDate && endDate && registrationStart && registrationEnd);
+  const isStep3Valid = tracks.length > 0;
+  const isStep4Valid = prizes.length > 0;
+  const isStep5Valid = rubricWeightTotal === 100;
+
+  // Assembly of Hackathon Object
+  const getCompiledHackathonData = (): Hackathon => ({
+    id: initialHackathon?.id || `org-h-${Date.now()}`,
+    title,
+    slug,
+    tagline,
+    description: shortDescription || tagline,
+    shortDescription,
+    detailedDescription,
+    logo,
+    banner,
+    coverImage,
+    status: (initialHackathon?.status || 'PUBLISHED') as any,
+    mode,
+    category,
+    difficulty,
+    timezone,
+    country,
+    state: stateName,
+    city,
+    venue,
+    mapsUrl,
+    registrationStart,
+    registrationEnd,
+    teamFormationDeadline,
+    startDate,
+    endDate,
+    submissionDeadline,
+    evaluationStart,
+    evaluationEnd,
+    winnerAnnouncementDate,
+    certDistributionDate,
+    minTeamSize,
+    maxTeamSize,
+    maxParticipants,
+    registrationFee,
+    requireApproval,
+    isInviteOnly,
+    isWaitlistEnabled,
+    audience,
+    prerequisites,
+    prizePool,
+    prizeBreakdown: prizes,
+    prizes,
+    organizerName,
+    website,
+    supportEmail,
+    supportPhone,
+    socialLinks,
+    tracks,
+    problemStatements,
+    sponsors,
+    judges,
+    mentors,
+    submissionConfig,
+    rubrics,
+    rules,
+    faqs,
+    certificateSettings,
+    seoSettings,
+    updatedAt: new Date().toISOString(),
+    createdAt: initialHackathon?.createdAt || new Date().toISOString()
+  });
+
+  const handleDraftSaveAction = () => {
+    const data = getCompiledHackathonData();
+    onSaveDraft(data);
+    addToast({
+      title: 'Draft Saved',
+      message: `Draft "${title || 'Untitled Event'}" saved to your workspace.`,
+      type: 'info',
+      duration: 3000
+    });
   };
 
-  const handleAddRubric = () => {
-    setRubrics([
-      ...rubrics,
-      {
-        id: `rub-new-${Date.now()}`,
-        name: 'Custom Criterion',
-        description: 'Description...',
-        weight: 10
-      }
-    ]);
-  };
-
-  const handleRemoveRubric = (id: string) => {
-    setRubrics(rubrics.filter((r) => r.id !== id));
-  };
-
-  const handleFinish = (e: React.FormEvent) => {
+  const handlePublishSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (totalWeight !== 100) {
-      alert(`Judging Rubric weights must total exactly 100%. Current total: ${totalWeight}%`);
+    if (!title.trim()) {
+      addToast({ title: 'Validation Warning', message: 'Event title is required.', type: 'warning' });
+      setCurrentStep(1);
+      return;
+    }
+    if (rubricWeightTotal !== 100) {
+      addToast({ title: 'Rubric Weight Error', message: 'Scoring rubric weights must sum to exactly 100%.', type: 'error' });
+      setCurrentStep(5);
       return;
     }
 
-    const newHackathon: Hackathon = {
-      id: `hack-${Date.now()}`,
-      title,
-      tagline,
-      banner,
-      status: 'live',
-      mode,
-      location,
-      startDate: new Date(startDate).toISOString(),
-      endDate: new Date(endDate).toISOString(),
-      prizePool,
-      prizeBreakdown: prizes,
-      tracks: tracksInput.split(',').map((t) => t.trim()),
-      problemStatements,
-      rubrics,
-      schedule: [
-        { time: 'Day 1', event: 'Hackathon Kickoff' },
-        { time: 'Day 7', event: 'Project Submissions Due & Live Judging' }
-      ],
-      rules: ['All code must be open source.', 'Teams 1-4 members.'],
-      organizerName: 'DevPulse Verified Organizer',
-      organizerVerified: true,
-      participantsCount: 0,
-      teamsCount: 0,
-      description: '',
-      tags: [],
-      eligibility: ['Student', 'Professional']
-    };
-
-    onCreateHackathon(newHackathon);
+    setIsPublishing(true);
+    setTimeout(() => {
+      const data = getCompiledHackathonData();
+      onPublish(data);
+      setIsPublishing(false);
+    }, 600);
   };
 
+  // Helper Handlers for Arrays
+  const handleAddTrack = () => {
+    const newTr: HackathonTrack = { id: `tr-${Date.now()}`, hackathonId: 'h-1', name: 'New Track Title', description: 'Track details...', color: '#7c3aed' };
+    setTracks([...tracks, newTr]);
+  };
+  const handleRemoveTrack = (id: string) => setTracks(tracks.filter(t => t.id !== id));
+
+  const handleAddProblemStatement = () => {
+    const newPs: ProblemStatement = { id: `ps-${Date.now()}`, title: 'New Problem Statement', description: 'Context...', difficulty: 'Intermediate' };
+    setProblemStatements([...problemStatements, newPs]);
+  };
+  const handleRemoveProblemStatement = (id: string) => setProblemStatements(problemStatements.filter(p => p.id !== id));
+
+  const handleAddPrize = () => {
+    const newPrz: PrizeItem = { id: `prz-${Date.now()}`, title: 'Special Recognition Award', amount: '₹1,00,00,000', description: 'Award details...' };
+    setPrizes([...prizes, newPrz]);
+  };
+  const handleRemovePrize = (id: string) => setPrizes(prizes.filter(p => p.id !== id));
+
+  const handleAddSponsor = () => {
+    const newSp: HackathonSponsor = { id: `sp-${Date.now()}`, name: 'Sponsor Name', tier: 'Gold', website: 'https://sponsor.com' };
+    setSponsors([...sponsors, newSp]);
+  };
+  const handleRemoveSponsor = (id: string) => setSponsors(sponsors.filter(s => s.id !== id));
+
+  const handleAddJudge = () => {
+    const newJdg: HackathonJudge = { id: `jdg-${Date.now()}`, name: 'New Judge Name', company: 'Tech Org', designation: 'Lead Architect', expertise: 'Artificial Intelligence' };
+    setJudges([...judges, newJdg]);
+  };
+  const handleRemoveJudge = (id: string) => setJudges(judges.filter(j => j.id !== id));
+
+  const handleAddMentor = () => {
+    const newMnt: HackathonMentor = { id: `mnt-${Date.now()}`, name: 'Mentor Name', company: 'AI Startup', skills: 'Python, React', availability: 'Flexible' };
+    setMentors([...mentors, newMnt]);
+  };
+  const handleRemoveMentor = (id: string) => setMentors(mentors.filter(m => m.id !== id));
+
+  const handleAddRubric = () => {
+    const newRub: RubricCriteria = { id: `rub-${Date.now()}`, name: 'Criteria Name', weight: 10, description: 'Evaluation criteria...' };
+    setRubrics([...rubrics, newRub]);
+  };
+  const handleRemoveRubric = (id: string) => setRubrics(rubrics.filter(r => r.id !== id));
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fadeIn">
-      {/* Wizard Header */}
-      <div className="p-6 rounded-2xl glass-panel border border-purple-500/30 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-            <PlusCircle className="w-6 h-6" />
-          </div>
+    <div className="space-y-6">
+      
+      {/* Top Action & Step Stepper Header Card */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
+        
+        {/* Header Action Row */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-2xl font-extrabold text-white">Step-by-Step Hackathon Creator Wizard</h2>
-            <p className="text-xs text-gray-400">Configure problem statements, prize pool, and judging rubrics</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-purple-600" />
+                <span>{initialHackathon ? 'Edit Hackathon Configuration' : 'Enterprise Hackathon Studio'}</span>
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                Auto-Saved ({lastAutoSaved})
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Configure 5 consolidated modules: Branding, Format & Timeline, Tracks, Prizes & Panel, and Launch Audit.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => setShowPreviewModal(true)}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Eye className="w-4 h-4 text-slate-500" />
+              <span>Live Preview</span>
+            </button>
+
+            <button
+              onClick={handleDraftSaveAction}
+              className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs rounded-2xl transition-colors flex items-center gap-1.5 cursor-pointer border border-purple-200/60"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Draft</span>
+            </button>
+
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
           </div>
         </div>
-        <button
-          onClick={onCancel}
-          className="px-3 py-1.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-xs font-semibold text-gray-300 border border-white/10"
-        >
-          Cancel
-        </button>
-      </div>
 
-      {/* Steps Indicator Bar */}
-      <div className="grid grid-cols-4 gap-2">
-        {[
-          { num: 1, label: 'Basic Info' },
-          { num: 2, label: 'Tracks & Problems' },
-          { num: 3, label: 'Prize Breakdown' },
-          { num: 4, label: 'Judging Rubrics' }
-        ].map((s) => (
-          <div
-            key={s.num}
-            onClick={() => setStep(s.num)}
-            className={`p-3 rounded-xl border text-center cursor-pointer transition-all ${
-              step === s.num
-                ? 'bg-purple-600/30 border-purple-500 text-white font-bold'
-                : step > s.num
-                ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-400'
-                : 'bg-gray-900/40 border-white/5 text-gray-500'
-            }`}
-          >
-            <span className="text-[10px] uppercase font-mono block">Step 0{s.num}</span>
-            <span className="text-xs">{s.label}</span>
-          </div>
-        ))}
-      </div>
+        {/* 5 Consolidated Stepper Pills */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+          {[
+            { step: 1, title: '1. Identity & Branding', icon: Building2, valid: isStep1Valid },
+            { step: 2, title: '2. Format & Timeline', icon: CalendarIcon, valid: isStep2Valid },
+            { step: 3, title: '3. Reg & Tracks', icon: Layers, valid: isStep3Valid },
+            { step: 4, title: '4. Prizes & Panel', icon: Trophy, valid: isStep4Valid },
+            { step: 5, title: '5. Rubrics & Launch', icon: ShieldCheck, valid: isStep5Valid },
+          ].map((s) => {
+            const Icon = s.icon;
+            const isCurrent = currentStep === s.step;
+            const isCompleted = currentStep > s.step;
 
-      {/* Wizard Step Content Form */}
-      <form onSubmit={handleFinish} className="p-8 rounded-3xl glass-panel border border-white/10 space-y-6">
-        
-        {step === 1 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Step 1: General Information</h3>
-            
-            <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1">Hackathon Title</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Autonomous AI Hackathon 2026"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2.5 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1">Tagline & Core Objective</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Build next-gen autonomous LLM agents..."
-                value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
-                className="w-full px-4 py-2.5 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">Event Format / Mode</label>
-                <select
-                  value={mode}
-                  onChange={(e) => setMode(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="online">Online / Virtual</option>
-                  <option value="hybrid">Hybrid</option>
-                  <option value="in-person">In-Person</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">Location</label>
-                <input
-                  type="text"
-                  required
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">Total Prize Pool Display</label>
-                <input
-                  type="text"
-                  required
-                  value={prizePool}
-                  onChange={(e) => setPrizePool(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold text-amber-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">Banner Image URL</label>
-                <input
-                  type="url"
-                  required
-                  value={banner}
-                  onChange={(e) => setBanner(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4">
+            return (
               <button
+                key={s.step}
                 type="button"
-                onClick={() => setStep(2)}
-                className="px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 transition-colors flex items-center gap-2"
+                onClick={() => setCurrentStep(s.step as any)}
+                className={`p-3 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                  isCurrent
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-transparent shadow-md shadow-purple-200'
+                    : isCompleted
+                    ? 'bg-purple-50/80 text-purple-800 border-purple-200/80 hover:bg-purple-100/80'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                }`}
               >
-                Next: Tracks & Problems <ArrowRight className="w-4 h-4" />
+                <div className="flex items-center justify-between">
+                  <Icon className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-purple-600'}`} />
+                  {s.valid && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                </div>
+                <span className="font-extrabold text-xs mt-2 truncate">{s.title}</span>
               </button>
-            </div>
-          </div>
-        )}
+            );
+          })}
+        </div>
 
-        {step === 2 && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Step 2: Tracks & Problem Statements</h3>
-            
-            <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1">Tech Stack Tracks (comma separated)</label>
-              <input
-                type="text"
-                value={tracksInput}
-                onChange={(e) => setTracksInput(e.target.value)}
-                className="w-full px-4 py-2.5 text-xs rounded-xl bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
+      </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-gray-300 uppercase">Problem Statements ({problemStatements.length})</h4>
-                <button
-                  type="button"
-                  onClick={handleAddProblem}
-                  className="px-3 py-1 rounded-lg bg-purple-950 text-purple-300 border border-purple-500/30 text-xs font-semibold hover:bg-purple-900"
-                >
-                  + Add Problem Statement
-                </button>
+      {/* Main Form Content Engine (Full Width Max-5XL Centered) */}
+      <main className="max-w-5xl mx-auto space-y-6">
+          
+          {/* STEP 1 — IDENTITY & BRANDING */}
+          {currentStep === 1 && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Step 1: Event Identity & Branding</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Specify basic information, logo, banner URLs, support contacts, and slug</p>
               </div>
 
-              {problemStatements.map((ps, idx) => (
-                <div key={ps.id} className="p-4 rounded-xl glass-card border border-white/10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-purple-400">Problem #{idx + 1}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveProblem(ps.id)}
-                      className="text-red-400 hover:text-red-300 p-1"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">HACKATHON NAME *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Global AI & Web3 Innovation Summit 2026"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                  />
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">TAGLINE</label>
                     <input
                       type="text"
-                      placeholder="Title"
-                      value={ps.title}
-                      onChange={(e) => {
-                        const updated = [...problemStatements];
-                        updated[idx].title = e.target.value;
-                        setProblemStatements(updated);
-                      }}
-                      className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Track"
-                      value={ps.track}
-                      onChange={(e) => {
-                        const updated = [...problemStatements];
-                        updated[idx].track = e.target.value;
-                        setProblemStatements(updated);
-                      }}
-                      className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-white"
+                      placeholder="e.g. Build state-of-the-art autonomous AI agents"
+                      value={tagline}
+                      onChange={(e) => setTagline(e.target.value)}
+                      className="w-full px-4 py-2.5 text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white outline-none"
                     />
                   </div>
 
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">CUSTOM URL SLUG</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ai-web3-innovation-2026"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      className="w-full px-4 py-2.5 text-xs font-mono font-bold rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white text-indigo-600 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">SHORT DESCRIPTION</label>
                   <textarea
                     rows={2}
-                    placeholder="Problem description & objective..."
-                    value={ps.description}
-                    onChange={(e) => {
-                      const updated = [...problemStatements];
-                      updated[idx].description = e.target.value;
-                      setProblemStatements(updated);
-                    }}
-                    className="w-full p-2 text-xs rounded-lg bg-gray-900 border border-gray-700 text-white"
+                    placeholder="Brief 1-2 sentence overview of the event..."
+                    value={shortDescription}
+                    onChange={(e) => setShortDescription(e.target.value)}
+                    className="w-full px-4 py-2.5 text-xs font-medium rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white outline-none"
                   />
                 </div>
-              ))}
-            </div>
 
-            <div className="flex items-center justify-between pt-4">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 bg-gray-900 border border-white/10 flex items-center gap-1.5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                className="px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 flex items-center gap-2"
-              >
-                Next: Prize Breakdown <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-bold text-white border-b border-gray-800 pb-2">Step 3: Prize Breakdown Configuration</h3>
-            
-            <div className="space-y-3">
-              {prizes.map((p, idx) => (
-                <div key={idx} className="p-4 rounded-xl glass-card border border-amber-500/20 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Prize Title (e.g. 1st Place)"
-                    value={p.title}
-                    onChange={(e) => {
-                      const updated = [...prizes];
-                      updated[idx].title = e.target.value;
-                      setPrizes(updated);
-                    }}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-white font-bold"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Amount (e.g. $15,000)"
-                    value={p.amount}
-                    onChange={(e) => {
-                      const updated = [...prizes];
-                      updated[idx].amount = e.target.value;
-                      setPrizes(updated);
-                    }}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-amber-300 font-mono"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Perks description..."
-                    value={p.description || ''}
-                    onChange={(e) => {
-                      const updated = [...prizes];
-                      updated[idx].description = e.target.value;
-                      setPrizes(updated);
-                    }}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-300"
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">DETAILED PROBLEM STATEMENT & RICH CONTEXT</label>
+                  <textarea
+                    rows={5}
+                    placeholder="Comprehensive description of challenge objectives, background, and expectations..."
+                    value={detailedDescription}
+                    onChange={(e) => setDetailedDescription(e.target.value)}
+                    className="w-full px-4 py-3 text-xs font-medium rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white outline-none"
                   />
                 </div>
-              ))}
-            </div>
 
-            <div className="flex items-center justify-between pt-4">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 bg-gray-900 border border-white/10 flex items-center gap-1.5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep(4)}
-                className="px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 flex items-center gap-2"
-              >
-                Next: Judging Rubrics <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
+                {/* Media Images URLs */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">LOGO IMAGE URL</label>
+                    <input
+                      type="text"
+                      value={logo}
+                      onChange={(e) => setLogo(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">BANNER IMAGE URL</label>
+                    <input
+                      type="text"
+                      value={banner}
+                      onChange={(e) => setBanner(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">COVER IMAGE URL</label>
+                    <input
+                      type="text"
+                      value={coverImage}
+                      onChange={(e) => setCoverImage(e.target.value)}
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200"
+                    />
+                  </div>
+                </div>
 
-        {step === 4 && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-              <h3 className="text-lg font-bold text-white">Step 4: Custom Judging Rubrics System</h3>
-              <div className={`text-xs font-mono font-bold px-3 py-1 rounded-full ${
-                totalWeight === 100
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
-              }`}>
-                Total Weight: {totalWeight}% / 100%
+                {/* Organizer & Support Contacts */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">ORGANIZER NAME</label>
+                    <input
+                      type="text"
+                      value={organizerName}
+                      onChange={(e) => setOrganizerName(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl bg-slate-50 border border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">SUPPORT EMAIL</label>
+                    <input
+                      type="email"
+                      value={supportEmail}
+                      onChange={(e) => setSupportEmail(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-medium rounded-xl bg-slate-50 border border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">SUPPORT PHONE</label>
+                    <input
+                      type="text"
+                      value={supportPhone}
+                      onChange={(e) => setSupportPhone(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-medium rounded-xl bg-slate-50 border border-slate-200"
+                    />
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(2)}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-2xl shadow-md flex items-center gap-2 hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
+                >
+                  <span>Next: Format & Timeline</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
+          )}
 
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleAddRubric}
-                className="px-3 py-1.5 rounded-lg bg-purple-950 text-purple-300 border border-purple-500/30 text-xs font-semibold hover:bg-purple-900"
-              >
-                + Add Custom Rubric Criterion
-              </button>
+          {/* STEP 2 — FORMAT, LOCATION & TIMELINE */}
+          {currentStep === 2 && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Step 2: Event Format, Location & Timeline Matrix</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Configure event mode, categories, location address, and 8 milestone dates</p>
+              </div>
 
-              {rubrics.map((rub, idx) => (
-                <div key={rub.id} className="p-4 rounded-xl glass-card border border-white/10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-indigo-400">Criterion #{idx + 1}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveRubric(rub.id)}
-                      className="text-red-400 hover:text-red-300 p-1"
+              <div className="space-y-5">
+                
+                {/* Event Mode Chips */}
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">EVENT MODE</label>
+                  <div className="flex items-center gap-3">
+                    {(['ONLINE', 'HYBRID', 'IN_PERSON'] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMode(m)}
+                        className={`flex-1 py-2.5 rounded-2xl text-xs font-extrabold uppercase transition-all cursor-pointer border ${
+                          mode === m
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {m.replace('_', ' ')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category & Difficulty */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">CATEGORY</label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200 outline-none"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                      <option>AI & Machine Learning</option>
+                      <option>Web3 & Blockchain</option>
+                      <option>FinTech & DeFi</option>
+                      <option>Smart Cities & GreenTech</option>
+                      <option>Healthcare & Biotech</option>
+                      <option>Open Innovation</option>
+                    </select>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">DIFFICULTY</label>
+                    <select
+                      value={difficulty}
+                      onChange={(e) => setDifficulty(e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200 outline-none"
+                    >
+                      <option>Beginner</option>
+                      <option>Intermediate</option>
+                      <option>Advanced</option>
+                      <option>All Levels</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">TIMEZONE</label>
                     <input
                       type="text"
-                      placeholder="Criterion Name"
-                      value={rub.name}
-                      onChange={(e) => {
-                        const updated = [...rubrics];
-                        updated[idx].name = e.target.value;
-                        setRubrics(updated);
-                      }}
-                      className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-white font-semibold"
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200"
                     />
-                    <input
-                      type="text"
-                      placeholder="Guideline description"
-                      value={rub.description}
-                      onChange={(e) => {
-                        const updated = [...rubrics];
-                        updated[idx].description = e.target.value;
-                        setRubrics(updated);
-                      }}
-                      className="px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-300"
-                    />
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={rub.weight}
-                        onChange={(e) => {
-                          const updated = [...rubrics];
-                          updated[idx].weight = Number(e.target.value);
-                          setRubrics(updated);
-                        }}
-                        className="w-20 px-3 py-1.5 text-xs rounded-lg bg-gray-900 border border-gray-700 text-indigo-300 font-mono font-bold text-center"
-                      />
-                      <span className="text-xs text-gray-400">% Weight</span>
+                  </div>
+                </div>
+
+                {/* Physical Location Details (if Offline or Hybrid) */}
+                {mode !== 'ONLINE' && (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">OFFLINE VENUE LOCATION</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <input type="text" placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} className="px-3 py-2 text-xs rounded-xl bg-white border border-slate-200" />
+                      <input type="text" placeholder="State" value={stateName} onChange={(e) => setStateName(e.target.value)} className="px-3 py-2 text-xs rounded-xl bg-white border border-slate-200" />
+                      <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="px-3 py-2 text-xs rounded-xl bg-white border border-slate-200" />
+                    </div>
+                    <input type="text" placeholder="Full Venue Address" value={venue} onChange={(e) => setVenue(e.target.value)} className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-200" />
+                  </div>
+                )}
+
+                {/* Milestone Dates Grid */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">MILESTONE TIMELINE DATES</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold">
+                    <div>
+                      <label className="text-[10px] uppercase text-slate-500 block mb-1">REGISTRATION OPENS</label>
+                      <input type="datetime-local" value={registrationStart} onChange={(e) => setRegistrationStart(e.target.value)} className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase text-slate-500 block mb-1">REGISTRATION CLOSES</label>
+                      <input type="datetime-local" value={registrationEnd} onChange={(e) => setRegistrationEnd(e.target.value)} className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase text-slate-500 block mb-1">HACKING STARTS</label>
+                      <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase text-slate-500 block mb-1">SUBMISSION DEADLINE</label>
+                      <input type="datetime-local" value={submissionDeadline} onChange={(e) => setSubmissionDeadline(e.target.value)} className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200" />
                     </div>
                   </div>
                 </div>
-              ))}
+
+              </div>
+
+              <div className="flex justify-between pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(3)}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-2xl shadow-md flex items-center gap-2 hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
+                >
+                  <span>Next: Reg & Tracks</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3 — REGISTRATION RULES, ELIGIBILITY & TRACKS */}
+          {currentStep === 3 && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Step 3: Registration Rules, Eligibility & Tracks</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Define team limits, registration fees, target audience, tracks, and problem statements</p>
+              </div>
+
+              <div className="space-y-5">
+                
+                {/* Team Sizes & Fee */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">MIN TEAM SIZE</label>
+                    <input type="number" min={1} max={10} value={minTeamSize} onChange={(e) => setMinTeamSize(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">MAX TEAM SIZE</label>
+                    <input type="number" min={1} max={10} value={maxTeamSize} onChange={(e) => setMaxTeamSize(Number(e.target.value))} className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">REGISTRATION FEE</label>
+                    <input type="text" value={registrationFee} onChange={(e) => setRegistrationFee(e.target.value)} className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200 text-emerald-600" />
+                  </div>
+                </div>
+
+                {/* Dynamic Tracks Section */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">CHALLENGE TRACKS ({tracks.length})</h4>
+                    <button type="button" onClick={handleAddTrack} className="px-3 py-1.5 bg-purple-50 text-purple-700 font-bold text-xs rounded-xl hover:bg-purple-100 transition-colors flex items-center gap-1 cursor-pointer">
+                      <Plus className="w-3.5 h-3.5" /> Add Track
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {tracks.map((tr) => (
+                      <div key={tr.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 relative">
+                        <div className="flex justify-between items-center gap-2">
+                          <input type="text" value={tr.name} onChange={(e) => setTracks(tracks.map(t => t.id === tr.id ? { ...t, name: e.target.value } : t))} className="font-bold text-xs text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex-1 outline-none" />
+                          <button type="button" onClick={() => handleRemoveTrack(tr.id)} className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <input type="text" value={tr.description || ''} onChange={(e) => setTracks(tracks.map(t => t.id === tr.id ? { ...t, description: e.target.value } : t))} placeholder="Track description..." className="w-full text-xs text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 outline-none" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="flex justify-between pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setCurrentStep(2)} className="px-5 py-3 bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl flex items-center gap-1.5 cursor-pointer">
+                  <ChevronLeft className="w-4 h-4" /> Back
+                </button>
+                <button type="button" onClick={() => setCurrentStep(4)} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-2xl shadow-md flex items-center gap-2 hover:from-purple-700 hover:to-indigo-700 cursor-pointer">
+                  <span>Next: Prizes & Panel</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4 — PRIZES, SPONSORS, JUDGES & MENTORS */}
+          {currentStep === 4 && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Step 4: Prizes, Sponsors, Judges & Mentors</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Configure award breakdowns, corporate sponsors, judges, and mentors</p>
+              </div>
+
+              <div className="space-y-6">
+                
+                {/* Prizes Builder */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">PRIZE BREAKDOWN ({prizes.length})</h4>
+                    <button type="button" onClick={handleAddPrize} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 font-bold text-xs rounded-xl hover:bg-emerald-100 flex items-center gap-1 cursor-pointer">
+                      <Plus className="w-3.5 h-3.5" /> Add Prize
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {prizes.map((p) => (
+                      <div key={p.id} className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                        <div className="flex justify-between items-center gap-2">
+                          <input type="text" value={p.title} onChange={(e) => setPrizes(prizes.map(item => item.id === p.id ? { ...item, title: e.target.value } : item))} className="font-bold text-xs text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex-1" />
+                          <input type="text" value={p.amount} onChange={(e) => setPrizes(prizes.map(item => item.id === p.id ? { ...item, amount: e.target.value } : item))} className="font-bold text-xs text-emerald-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 w-32" />
+                          <button type="button" onClick={() => handleRemovePrize(p.id!)} className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Judges Builder */}
+                <div className="space-y-3 pt-3 border-t border-slate-100">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">JUDGES PANEL ({judges.length})</h4>
+                    <button type="button" onClick={handleAddJudge} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-xl hover:bg-indigo-100 flex items-center gap-1 cursor-pointer">
+                      <Plus className="w-3.5 h-3.5" /> Add Judge
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {judges.map((j) => (
+                      <div key={j.id} className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-2">
+                        <div className="flex justify-between items-center gap-2">
+                          <input type="text" value={j.name} onChange={(e) => setJudges(judges.map(item => item.id === j.id ? { ...item, name: e.target.value } : item))} className="font-bold text-xs text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex-1" />
+                          <input type="text" value={j.company} onChange={(e) => setJudges(judges.map(item => item.id === j.id ? { ...item, company: e.target.value } : item))} placeholder="Company" className="text-xs text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 w-36" />
+                          <button type="button" onClick={() => handleRemoveJudge(j.id)} className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="flex justify-between pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setCurrentStep(3)} className="px-5 py-3 bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl flex items-center gap-1.5 cursor-pointer">
+                  <ChevronLeft className="w-4 h-4" /> Back
+                </button>
+                <button type="button" onClick={() => setCurrentStep(5)} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-2xl shadow-md flex items-center gap-2 hover:from-purple-700 hover:to-indigo-700 cursor-pointer">
+                  <span>Next: Rubrics & Launch Audit</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5 — SUBMISSIONS, RUBRICS & LAUNCH AUDIT */}
+          {currentStep === 5 && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Step 5: Rubrics & Launch Audit</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Define weighted evaluation rubrics (must equal 100%) and launch event</p>
+              </div>
+
+              <div className="space-y-6">
+                
+                {/* Rubrics Builder */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">EVALUATION RUBRICS</h4>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${rubricWeightTotal === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                        Total Weight: {rubricWeightTotal}%
+                      </span>
+                    </div>
+
+                    <button type="button" onClick={handleAddRubric} className="px-3 py-1.5 bg-purple-50 text-purple-700 font-bold text-xs rounded-xl hover:bg-purple-100 flex items-center gap-1 cursor-pointer">
+                      <Plus className="w-3.5 h-3.5" /> Add Rubric
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {rubrics.map((r) => (
+                      <div key={r.id} className="p-4 rounded-2xl bg-purple-50/40 border border-purple-100 space-y-2">
+                        <div className="flex justify-between items-center gap-2">
+                          <input type="text" value={r.name} onChange={(e) => setRubrics(rubrics.map(item => item.id === r.id ? { ...item, name: e.target.value } : item))} className="font-bold text-xs text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex-1" />
+                          <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-xl border border-slate-200">
+                            <span className="text-[10px] font-black uppercase text-slate-400">Weight:</span>
+                            <input type="number" min={0} max={100} value={r.weight} onChange={(e) => setRubrics(rubrics.map(item => item.id === r.id ? { ...item, weight: Number(e.target.value) } : item))} className="w-12 text-xs font-black text-purple-700 outline-none text-right" />
+                            <span className="text-xs font-black">%</span>
+                          </div>
+                          <button type="button" onClick={() => handleRemoveRubric(r.id)} className="p-1.5 text-slate-400 hover:text-rose-600 cursor-pointer">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Launch Action */}
+                <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 text-white space-y-4 shadow-xl">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-black text-base">Ready to Launch Event</h4>
+                      <p className="text-xs text-slate-300">Publish your hackathon to live workspace and platform portal</p>
+                    </div>
+                    <span className="text-xs font-black bg-emerald-500 text-white px-3 py-1 rounded-full uppercase">
+                      {readinessScore}% Score
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={handlePublishSubmit}
+                    disabled={isPublishing || rubricWeightTotal !== 100}
+                    className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-sm rounded-2xl shadow-lg transition-all cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2"
+                  >
+                    <span>🚀</span>
+                    <span>{isPublishing ? 'Publishing Event...' : 'Publish Hackathon to Live Platform'}</span>
+                  </button>
+                </div>
+
+              </div>
+
+              <div className="flex justify-between pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setCurrentStep(4)} className="px-5 py-3 bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl flex items-center gap-1.5 cursor-pointer">
+                  <ChevronLeft className="w-4 h-4" /> Back
+                </button>
+              </div>
+            </div>
+          )}
+        </main>
+
+      {/* Live Preview Modal */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-4 border border-slate-200 max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
+                <Eye className="w-5 h-5 text-purple-600" /> Live Hackathon Portal Preview
+              </h3>
+              <button onClick={() => setShowPreviewModal(false)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="flex items-center justify-between pt-6 border-t border-gray-800">
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 bg-gray-900 border border-white/10 flex items-center gap-1.5"
-              >
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
+            <div className="space-y-4 text-xs">
+              <div className="relative h-48 rounded-2xl overflow-hidden bg-slate-900">
+                <img src={banner} alt="Banner" className="w-full h-full object-cover opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent p-5 flex flex-col justify-between">
+                  <span className="self-start px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500 text-white">
+                    {mode}
+                  </span>
+                  <div>
+                    <h2 className="text-white font-black text-xl leading-snug">{title || 'Untitled Event'}</h2>
+                    <p className="text-slate-300 text-xs mt-1">{tagline}</p>
+                  </div>
+                </div>
+              </div>
 
-              <button
-                type="submit"
-                className="px-8 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 shadow-xl shadow-purple-500/20 flex items-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" /> Publish Hackathon Competition
-              </button>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-800 font-bold">
+                  <p className="text-[9px] uppercase text-slate-400">Prize Pool</p>
+                  <p className="text-sm font-black">{prizePool}</p>
+                </div>
+                <div className="p-3 bg-slate-100 rounded-2xl text-slate-800 font-bold">
+                  <p className="text-[9px] uppercase text-slate-400">Team Size</p>
+                  <p className="text-sm font-black">{minTeamSize} — {maxTeamSize} Ppl</p>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-2xl text-purple-800 font-bold">
+                  <p className="text-[9px] uppercase text-slate-400">Fee</p>
+                  <p className="text-sm font-black">{registrationFee}</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 space-y-2">
+                <h4 className="font-bold text-slate-900">Detailed Description</h4>
+                <p className="text-slate-600 leading-relaxed">{detailedDescription || shortDescription || 'No description provided.'}</p>
+              </div>
             </div>
+
+            <button onClick={() => setShowPreviewModal(false)} className="w-full py-3 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800">
+              Close Live Preview
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-      </form>
     </div>
   );
 };

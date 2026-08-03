@@ -21,8 +21,22 @@ export const AppLayout: React.FC = () => {
   const currentTab = location.pathname.split('/')[1] || 'explore';
 
   const handleNavigateTab = (tab: string) => {
-    if (tab === 'explore' || tab === 'dashboard') navigate('/hackathons');
-    else if (tab === 'detail') navigate('/hackathons');
+    if (tab === 'dashboard') {
+      const roleRouteMap: Record<string, string> = {
+        ORGANIZER: '/organizer',
+        JUDGE: '/judge',
+        ADMIN: '/admin',
+        SUPER_ADMIN: '/admin',
+        MENTOR: '/mentor',
+        VOLUNTEER: '/volunteer',
+        SPONSOR: '/sponsor',
+        REVIEWER: '/reviewer',
+        PARTICIPANT: '/dashboard',
+      };
+      navigate(roleRouteMap[role] || '/dashboard');
+      return;
+    }
+    if (tab === 'explore' || tab === 'detail') navigate('/hackathons');
     else if (tab === 'admin-dashboard') navigate('/admin');
     else if (tab === 'organizer-workspace') navigate('/organizer');
     else if (tab === 'judge-portal') navigate('/judge');

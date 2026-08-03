@@ -72,6 +72,19 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   const handleItemClick = (id: string) => {
     if (setActiveTab) setActiveTab(id);
     
+    if (role === 'ORGANIZER') {
+      navigate('/organizer');
+      return;
+    }
+    if (role === 'JUDGE') {
+      navigate('/judge');
+      return;
+    }
+    if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+      navigate('/admin');
+      return;
+    }
+
     if (id === 'explore') navigate('/hackathons');
     else if (id === 'my-hackathons') navigate('/my-hackathons');
     else navigate(`/${id}`);

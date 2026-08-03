@@ -45,6 +45,37 @@ const LoadingFallback = () => (
   </div>
 );
 
+import { Navigate } from 'react-router-dom';
+import { useAuthStore } from '../stores/authStore';
+
+const RoleDashboardRedirect: React.FC = () => {
+  const role = useAuthStore((s) => s.role);
+  if (role === 'ORGANIZER') return <Navigate to="/organizer" replace />;
+  if (role === 'JUDGE') return <Navigate to="/judge" replace />;
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return <Navigate to="/admin" replace />;
+  if (role === 'MENTOR') return <Navigate to="/mentor" replace />;
+  if (role === 'VOLUNTEER') return <Navigate to="/volunteer" replace />;
+  if (role === 'SPONSOR') return <Navigate to="/sponsor" replace />;
+  if (role === 'REVIEWER') return <Navigate to="/reviewer" replace />;
+  return <ParticipantMainDashboard />;
+};
+
+const RoleMyHackathonsRedirect: React.FC = () => {
+  const role = useAuthStore((s) => s.role);
+  if (role === 'ORGANIZER') return <Navigate to="/organizer" replace />;
+  if (role === 'JUDGE') return <Navigate to="/judge" replace />;
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return <Navigate to="/admin" replace />;
+  return <HackathonList onlyMyHackathons={true} />;
+};
+
+const RoleProfileRedirect: React.FC = () => {
+  const role = useAuthStore((s) => s.role);
+  if (role === 'ORGANIZER') return <Navigate to="/organizer" replace />;
+  if (role === 'JUDGE') return <Navigate to="/judge" replace />;
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return <Navigate to="/admin" replace />;
+  return <UserProfilePage />;
+};
+
 export const AppRouter: React.FC = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
@@ -61,9 +92,9 @@ export const AppRouter: React.FC = () => {
         {/* Authenticated Standard Routes (with AppLayout Top Navbar & Left Sidebar) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<ParticipantMainDashboard />} />
+            <Route path="/dashboard" element={<RoleDashboardRedirect />} />
             <Route path="/hackathons" element={<HackathonList />} />
-            <Route path="/my-hackathons" element={<HackathonList onlyMyHackathons={true} />} />
+            <Route path="/my-hackathons" element={<RoleMyHackathonsRedirect />} />
             <Route path="/hackathons/:id" element={<HackathonDetail />} />
             <Route path="/teams" element={<TeamsWorkspaceView />} />
             <Route path="/projects" element={<ProjectWorkspaceView />} />
@@ -72,14 +103,14 @@ export const AppRouter: React.FC = () => {
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/messages" element={<MessagesView />} />
             <Route path="/settings" element={<SettingsView />} />
-            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="/profile" element={<RoleProfileRedirect />} />
             <Route path="/ai-assistant" element={<AiAssistantHub />} />
             <Route path="/leaderboard" element={<LeaderboardView submissions={[]} hackathons={[]} />} />
           </Route>
 
           {/* Full-Page Workspaces (Self-Contained Layouts without duplicate AppLayout sidebar) */}
           <Route element={<RoleRoute allowedRoles={['ORGANIZER', 'ADMIN', 'SUPER_ADMIN']} />}>
-            <Route path="/organizer/*" element={<OrganizerWorkspace hackathons={[]} teams={[]} announcements={[]} onCreateHackathon={() => {}} onDeleteHackathon={() => {}} onUpdateTeamStatus={() => {}} onBroadcastAnnouncement={() => {}} />} />
+            <Route path="/organizer/*" element={<OrganizerWorkspace />} />
           </Route>
 
           <Route element={<RoleRoute allowedRoles={['JUDGE', 'ADMIN', 'SUPER_ADMIN']} />}>

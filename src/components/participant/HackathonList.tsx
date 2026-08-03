@@ -246,14 +246,17 @@ export const HackathonList: React.FC<HackathonListProps> = ({
 
                 {/* Tracks Badges */}
                 <div className="flex flex-wrap gap-1.5">
-                  {(hackathon.tracks || []).slice(0, 3).map((track: string, i: number) => (
-                    <span
-                      key={i}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-600 border border-slate-200/80"
-                    >
-                      {track}
-                    </span>
-                  ))}
+                  {(hackathon.tracks || []).slice(0, 3).map((track: any, i: number) => {
+                    const trackName = typeof track === 'string' ? track : track?.name || 'Track';
+                    return (
+                      <span
+                        key={i}
+                        className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-600 border border-slate-200/80"
+                      >
+                        {trackName}
+                      </span>
+                    );
+                  })}
                   {(hackathon.tracks || []).length > 3 && (
                     <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-[11px] font-bold text-slate-400">
                       +{(hackathon.tracks || []).length - 3} more

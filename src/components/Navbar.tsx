@@ -26,6 +26,8 @@ interface NavbarProps {
   onLogout?: () => void;
 }
 
+import { useAuthStore } from '../stores/authStore';
+
 export const Navbar: React.FC<NavbarProps> = ({
   currentRole = 'PARTICIPANT',
   onOpenNotifications,
@@ -36,8 +38,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout
 }) => {
   const navigate = useNavigate();
+  const userRole = useAuthStore((state) => state.role);
 
-  const normalizedRole = (currentRole || 'PARTICIPANT').toLowerCase();
+  const normalizedRole = (currentRole || userRole || 'PARTICIPANT').toLowerCase();
 
   const roleColors: Record<string, string> = {
     participant: 'bg-indigo-100 text-indigo-700 border-indigo-300',
@@ -52,8 +55,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleBrandClick = () => {
-    if (setActiveTab) setActiveTab('explore');
-    navigate('/hackathons');
+    const roleRouteMap: Record<string, string> = {
+      ORGANIZER: '/organizer',
+      JUDGE: '/judge',
+      ADMIN: '/admin',
+      SUPER_ADMIN: '/admin',
+      MENTOR: '/mentor',
+      VOLUNTEER: '/volunteer',
+      SPONSOR: '/sponsor',
+      REVIEWER: '/reviewer',
+      PARTICIPANT: '/dashboard',
+    };
+    navigate(roleRouteMap[userRole] || '/dashboard');
   };
 
   return (
