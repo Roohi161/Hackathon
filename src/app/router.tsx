@@ -28,7 +28,7 @@ const LeaderboardView = lazy(() => import('../components/participant/Leaderboard
 const UserProfilePage = lazy(() => import('../components/profile/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const AiAssistantHub = lazy(() => import('../components/ai/AiAssistantHub').then(m => ({ default: m.AiAssistantHub })));
 
-// Role-Specific Workspace Views
+// Specialized Full-Page Workspace Views (Self-contained Layouts)
 const OrganizerWorkspace = lazy(() => import('../components/organizer/OrganizerWorkspace').then(m => ({ default: m.OrganizerWorkspace })));
 const DedicatedEvaluationPortal = lazy(() => import('../components/judge/DedicatedEvaluationPortal').then(m => ({ default: m.DedicatedEvaluationPortal })));
 const AdminDashboard = lazy(() => import('../components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -58,7 +58,7 @@ export const AppRouter: React.FC = () => {
           <Route path="/contact" element={<ContactPage />} />
         </Route>
 
-        {/* Authenticated Routes */}
+        {/* Authenticated Standard Routes (with AppLayout Top Navbar & Left Sidebar) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<ParticipantMainDashboard />} />
@@ -75,41 +75,35 @@ export const AppRouter: React.FC = () => {
             <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/ai-assistant" element={<AiAssistantHub />} />
             <Route path="/leaderboard" element={<LeaderboardView submissions={[]} hackathons={[]} />} />
+          </Route>
 
-            {/* Organizer Workspace */}
-            <Route element={<RoleRoute allowedRoles={['ORGANIZER', 'ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/organizer/*" element={<OrganizerWorkspace hackathons={[]} teams={[]} announcements={[]} onCreateHackathon={() => {}} onDeleteHackathon={() => {}} onUpdateTeamStatus={() => {}} onBroadcastAnnouncement={() => {}} />} />
-            </Route>
+          {/* Full-Page Workspaces (Self-Contained Layouts without duplicate AppLayout sidebar) */}
+          <Route element={<RoleRoute allowedRoles={['ORGANIZER', 'ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/organizer/*" element={<OrganizerWorkspace hackathons={[]} teams={[]} announcements={[]} onCreateHackathon={() => {}} onDeleteHackathon={() => {}} onUpdateTeamStatus={() => {}} onBroadcastAnnouncement={() => {}} />} />
+          </Route>
 
-            {/* Judge Portal */}
-            <Route element={<RoleRoute allowedRoles={['JUDGE', 'ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/judge/*" element={<DedicatedEvaluationPortal submissions={[]} hackathons={[]} onSelectSubmission={() => {}} />} />
-            </Route>
+          <Route element={<RoleRoute allowedRoles={['JUDGE', 'ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/judge/*" element={<DedicatedEvaluationPortal submissions={[]} hackathons={[]} onSelectSubmission={() => {}} />} />
+          </Route>
 
-            {/* Admin Dashboard */}
-            <Route element={<RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/admin/*" element={<AdminDashboard hackathons={[]} onToggleFeatured={() => {}} verifications={[]} onUpdateVerificationStatus={() => {}} />} />
-            </Route>
+          <Route element={<RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/admin/*" element={<AdminDashboard hackathons={[]} onToggleFeatured={() => {}} verifications={[]} onUpdateVerificationStatus={() => {}} />} />
+          </Route>
 
-            {/* Mentor Dashboard */}
-            <Route element={<RoleRoute allowedRoles={['MENTOR', 'ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/mentor/*" element={<MentorDashboard />} />
-            </Route>
+          <Route element={<RoleRoute allowedRoles={['MENTOR', 'ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/mentor/*" element={<MentorDashboard />} />
+          </Route>
 
-            {/* Volunteer Hub */}
-            <Route element={<RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/volunteer/*" element={<VolunteerDashboard />} />
-            </Route>
+          <Route element={<RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/volunteer/*" element={<VolunteerDashboard />} />
+          </Route>
 
-            {/* Sponsor Portal */}
-            <Route element={<RoleRoute allowedRoles={['SPONSOR', 'ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/sponsor/*" element={<SponsorDashboard />} />
-            </Route>
+          <Route element={<RoleRoute allowedRoles={['SPONSOR', 'ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/sponsor/*" element={<SponsorDashboard />} />
+          </Route>
 
-            {/* Reviewer Center */}
-            <Route element={<RoleRoute allowedRoles={['REVIEWER', 'ADMIN', 'SUPER_ADMIN']} />}>
-              <Route path="/reviewer/*" element={<ReviewerDashboard />} />
-            </Route>
+          <Route element={<RoleRoute allowedRoles={['REVIEWER', 'ADMIN', 'SUPER_ADMIN']} />}>
+            <Route path="/reviewer/*" element={<ReviewerDashboard />} />
           </Route>
         </Route>
 

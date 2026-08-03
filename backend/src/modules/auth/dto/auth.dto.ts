@@ -20,6 +20,11 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty()
   lastName!: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  role?: string;
 }
 
 export class LoginDto {

@@ -22,7 +22,6 @@ import {
   GraduationCap,
   ShieldCheck,
   Megaphone,
-  BarChart3
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { UserRole } from '../../types';
@@ -68,6 +67,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 }) => {
   const navigate = useNavigate();
   const role = useAuthStore((state) => state.role);
+  const isParticipant = role === 'PARTICIPANT';
 
   const handleItemClick = (id: string) => {
     if (setActiveTab) setActiveTab(id);
@@ -77,18 +77,23 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     else navigate(`/${id}`);
   };
 
-  // Base nav items available to all authenticated users
-  const mainNavItems: NavItem[] = [
+  // Base nav items filtered by role
+  const mainNavItems: NavItem[] = isParticipant ? [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'explore', label: 'Discover Hackathons', icon: Compass },
     { id: 'my-hackathons', label: 'My Hackathons', icon: Trophy, badge: '3' },
     { id: 'teams', label: 'Teams Workspace', icon: Users },
     { id: 'projects', label: 'Project Repos', icon: FolderCode }
+  ] : [
+    { id: 'explore', label: 'Discover Hackathons', icon: Compass },
+    { id: 'my-hackathons', label: 'Hosted Hackathons', icon: Trophy },
   ];
 
-  const growthNavItems: NavItem[] = [
+  const growthNavItems: NavItem[] = isParticipant ? [
     { id: 'learning', label: 'Learning Center', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
+    { id: 'leaderboard', label: 'Leaderboard', icon: Medal }
+  ] : [
     { id: 'leaderboard', label: 'Leaderboard', icon: Medal }
   ];
 
@@ -106,7 +111,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
-  // Role-specific nav items
+  // Role-specific workspace nav items
   const roleNavItems: Record<string, NavItem[]> = {
     ORGANIZER: [
       { id: 'organizer', label: 'Organizer Workspace', icon: Megaphone },
