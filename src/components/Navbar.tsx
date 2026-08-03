@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  UserCheck,
   Bell,
   Users,
   Terminal,
@@ -28,7 +27,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  currentRole,
+  currentRole = 'PARTICIPANT',
   onOpenNotifications,
   onOpenTeamModal,
   unreadCount,
@@ -38,11 +37,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  const normalizedRole = (currentRole || 'PARTICIPANT').toLowerCase();
+
   const roleColors: Record<string, string> = {
-    participant: 'bg-indigo-100 text-indigo-700',
-    organizer: 'bg-purple-100 text-purple-700',
-    judge: 'bg-amber-100 text-amber-700',
-    admin: 'bg-emerald-100 text-emerald-700'
+    participant: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+    organizer: 'bg-purple-100 text-purple-700 border-purple-300',
+    judge: 'bg-amber-100 text-amber-700 border-amber-300',
+    admin: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    super_admin: 'bg-rose-100 text-rose-700 border-rose-300',
+    mentor: 'bg-cyan-100 text-cyan-700 border-cyan-300',
+    sponsor: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+    volunteer: 'bg-teal-100 text-teal-700 border-teal-300',
+    reviewer: 'bg-blue-100 text-blue-700 border-blue-300'
   };
 
   const handleBrandClick = () => {
@@ -112,47 +118,51 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center gap-3 relative group cursor-pointer pl-2 border-l border-slate-200">
                 <div className="text-right hidden sm:block">
                   <span className="text-xs font-extrabold text-slate-900 block leading-tight">{loggedInUser.name}</span>
-                  <span className={`text-[9px] font-extrabold uppercase tracking-wider mt-0.5 inline-block px-1.5 py-0.2 rounded ${roleColors[currentRole.toLowerCase()] || roleColors.participant}`}>
+                  <span className={`text-[9px] font-extrabold uppercase tracking-wider mt-0.5 inline-block px-2 py-0.5 rounded border ${roleColors[normalizedRole] || roleColors.participant}`}>
                     {currentRole}
                   </span>
                 </div>
                 
                 <div className="relative">
                   <img
-                    src={loggedInUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}
+                    src={loggedInUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
                     alt={loggedInUser.name}
-                    className="w-9 h-9 rounded-xl object-cover ring-2 ring-slate-100 group-hover:ring-indigo-200 transition-all shadow-2xs"
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all"
                   />
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-2xs border border-slate-100">
-                    <ChevronDown className="w-2.5 h-2.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
-                  </div>
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                 </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
 
                 {/* Dropdown Menu */}
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50">
-                  <div className="p-2 space-y-1">
-                    <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                      <span className="text-xs font-extrabold text-slate-900 block">{loggedInUser.name}</span>
-                      <span className="text-[10px] text-slate-500 font-medium truncate block">{loggedInUser.email}</span>
-                    </div>
-                    <button
-                      onClick={() => navigate('/profile')}
-                      className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors flex items-center gap-2"
-                    >
-                      <UserCheck className="w-4 h-4" /> My Profile
-                    </button>
-                    {onLogout && (
-                      <button
-                        onClick={onLogout}
-                        className="w-full text-left px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors flex items-center gap-2"
-                      >
-                        <LogOut className="w-4 h-4" /> Sign Out
-                      </button>
-                    )}
+                <div className="absolute right-0 top-full mt-2 w-48 py-2 bg-white rounded-2xl shadow-xl border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="text-xs font-extrabold text-slate-900 truncate">{loggedInUser.name}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{loggedInUser.email}</p>
                   </div>
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
+                  >
+                    👤 View Profile
+                  </button>
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
+                  >
+                    ⚙️ Settings
+                  </button>
+                  {onLogout && (
+                    <button
+                      onClick={onLogout}
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Log Out
+                    </button>
+                  )}
                 </div>
               </div>
             )}
+
           </div>
 
         </div>

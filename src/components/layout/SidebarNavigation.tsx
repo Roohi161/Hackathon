@@ -41,11 +41,6 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   const navigate = useNavigate();
 
   const handleItemClick = (id: string) => {
-    if (currentRole && currentRole.toLowerCase() !== 'participant' && setCurrentRole) {
-      if (['dashboard', 'explore', 'my-hackathons', 'teams', 'projects', 'learning', 'certificates', 'leaderboard', 'messages', 'calendar', 'ai-assistant', 'profile', 'settings'].includes(id)) {
-        setCurrentRole('PARTICIPANT' as any);
-      }
-    }
     if (setActiveTab) setActiveTab(id);
     
     if (id === 'explore') navigate('/hackathons');

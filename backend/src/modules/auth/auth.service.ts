@@ -25,10 +25,22 @@ export class AuthService {
         email: dto.email,
         passwordHash: hashedPassword,
         name: (dto as any).name || (dto as any).firstName || dto.email.split('@')[0],
+        role: (dto.role as any) || 'PARTICIPANT',
       } as any,
     });
 
-    return this.generateTokens(user.id, user.role);
+    const tokens = await this.generateTokens(user.id, user.role);
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+        bio: user.bio,
+      },
+      tokens,
+    };
   }
 
   async login(dto: LoginDto) {
@@ -38,14 +50,12 @@ export class AuthService {
     }
 
     // Account lockout check
-    // Assuming `failedLoginAttempts` and `lockoutUntil` exist on User model
     if ((user as any).lockoutUntil && (user as any).lockoutUntil > new Date()) {
       throw new ForbiddenException('Account is locked due to multiple failed login attempts');
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash || (user as any).password || '');
     if (!isPasswordValid) {
-      // Increment failed attempts (pseudo implementation depending on actual schema)
       const attempts = ((user as any).failedLoginAttempts || 0) + 1;
       const lockout = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
       await this.prisma.user.update({
@@ -61,7 +71,18 @@ export class AuthService {
       data: { failedLoginAttempts: 0, lockoutUntil: null } as any,
     });
 
-    return this.generateTokens(user.id, user.role);
+    const tokens = await this.generateTokens(user.id, user.role);
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+        bio: user.bio,
+      },
+      tokens,
+    };
   }
 
   async refreshToken(token: string) {

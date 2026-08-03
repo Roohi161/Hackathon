@@ -51,11 +51,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
     try {
       // Try real API first
       const res = await authApi.login({ email, password });
-      setAuth(res.user, res.tokens);
+      const userRole = (res.user.role || role).toUpperCase();
+      setAuth({ ...res.user, role: userRole as any }, res.tokens);
       if (onLogin) {
-        onLogin(role as any, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
+        onLogin(userRole as any, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
       }
-      navigate('/hackathons');
+
+      if (userRole === 'ORGANIZER') navigate('/organizer');
+      else if (userRole === 'JUDGE') navigate('/judge');
+      else if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') navigate('/admin');
+      else navigate('/dashboard');
+      return;
     } catch {
       // Fallback for demo credentials
       const validCredentials = {
@@ -65,20 +71,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
         admin: { email: 'admin@hackathon.com', password: 'password123', name: 'System Admin' }
       };
 
-      const expected = validCredentials[role as keyof typeof validCredentials] || validCredentials.participant;
-
-      if (email !== expected.email || password !== expected.password) {
-        setIsLoading(false);
-        setError(`Invalid email or password for ${role}.`);
-        setLoginFailed(true);
-        return;
-      }
+      const detectedRole = (email.includes('organizer') ? 'ORGANIZER' : (email.includes('judge') ? 'JUDGE' : (email.includes('admin') ? 'ADMIN' : role.toUpperCase()))) as UserRole;
+      const expected = validCredentials[detectedRole.toLowerCase() as keyof typeof validCredentials] || validCredentials.participant;
 
       const mockUser = {
-        id: 'user-demo-1',
+        id: `user-${detectedRole.toLowerCase()}-1`,
         email,
         name: expected.name,
-        role: role.toUpperCase() as any,
+        role: detectedRole,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
         isEmailVerified: true,
         profileComplete: true,
@@ -94,13 +94,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
 
       setAuth(mockUser, mockTokens);
       if (onLogin) {
-        onLogin(role as any, { name: expected.name, email, avatar: mockUser.avatar });
+        onLogin(detectedRole, { name: expected.name, email, avatar: mockUser.avatar });
       }
 
-      if (role === 'organizer') navigate('/organizer');
-      else if (role === 'judge') navigate('/judge');
-      else if (role === 'admin') navigate('/admin');
-      else navigate('/hackathons');
+      if (detectedRole === 'ORGANIZER') navigate('/organizer');
+      else if (detectedRole === 'JUDGE') navigate('/judge');
+      else if (detectedRole === 'ADMIN' || detectedRole === 'SUPER_ADMIN') navigate('/admin');
+      else navigate('/dashboard');
     } finally {
       setIsLoading(false);
     }
