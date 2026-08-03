@@ -39,41 +39,41 @@ export const MessagesView: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[500px]">
-        <div className="p-4 border-b border-slate-100 bg-slate-50 flex gap-2">
+        <div className="p-4 border-b border-slate-100 bg-slate-50 flex gap-2 flex-wrap">
           <button
             onClick={() => setActiveChannel('mentors')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeChannel === 'mentors' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200'
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              activeChannel === 'mentors' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200'
             }`}
           >
             Mentors Channel
           </button>
           <button
             onClick={() => setActiveChannel('organizers')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeChannel === 'organizers' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200'
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              activeChannel === 'organizers' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200'
             }`}
           >
             Organizers Channel
           </button>
           <button
             onClick={() => setActiveChannel('team')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeChannel === 'team' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200'
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+              activeChannel === 'team' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200'
             }`}
           >
-            Team Direct
+            Private 1-on-1 DM 🔒
           </button>
         </div>
 
         <div className="flex-1 p-4 overflow-y-auto space-y-3">
           {messages.map((m) => (
-            <div key={m.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+            <div key={m.id} className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-extrabold text-slate-900">{m.sender}</span>
-                <span className="text-[10px] font-medium text-slate-400 font-mono">{m.time}</span>
+                <span className="font-semibold text-slate-800">{m.sender}</span>
+                <span className="text-[10px] font-normal text-slate-400 font-mono">{m.time}</span>
               </div>
-              <p className="text-xs text-slate-700 font-medium">{m.text}</p>
+              <p className="text-xs text-slate-600 font-normal leading-relaxed">{m.text}</p>
             </div>
           ))}
         </div>

@@ -18,16 +18,15 @@ export const CertificatesView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <div className="flex items-center justify-between p-6 rounded-3xl bg-white border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-violet-50 text-violet-600 border border-violet-100 shadow-2xs">
-            <Award className="w-6 h-6" />
+      {/* Header Banner - Compact Centered */}
+      <div className="flex flex-col items-center justify-center text-center p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 shadow-2xs">
+            <Award className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Verified Certificates & Achievements</h2>
-            <p className="text-xs font-semibold text-slate-500">Official cryptographic digital certificates with QR verification</p>
-          </div>
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight font-heading">Verified Certificates & Achievements</h2>
         </div>
+        <p className="text-xs font-normal text-slate-500">Official cryptographic digital certificates with QR verification</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

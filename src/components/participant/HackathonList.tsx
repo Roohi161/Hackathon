@@ -37,7 +37,9 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   const allTracks = Array.from(new Set(hackathons.flatMap((h: Hackathon) => h.tracks || [])));
 
   // Filter logic
-  const filteredHackathons = hackathons.filter((item: Hackathon) => {
+  const sourceHackathons = isMyHackathons ? hackathons.slice(0, 5) : hackathons;
+
+  const filteredHackathons = sourceHackathons.filter((item: Hackathon) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.tagline || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,29 +79,29 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-8 sm:p-10 border border-indigo-700/50 shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Header - Light Futuristic Tech Layout */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-indigo-50/70 to-purple-50/50 p-5 sm:p-6 border border-indigo-200/80 shadow-sm backdrop-blur-xl text-center">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 space-y-4 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/20 text-indigo-200 text-xs font-extrabold border border-indigo-400/30">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+        <div className="relative z-10 space-y-2 max-w-xl mx-auto flex flex-col items-center">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-700 text-xs font-bold border border-indigo-200/80 backdrop-blur-md shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600 animate-pulse" />
             {isMyHackathons ? 'Participant Workspace' : 'Global Discovery Portal'}
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 font-heading">
             {isMyHackathons ? (
-              <>My Enrolled <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">Hackathons</span></>
+              <>My Enrolled <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600">Hackathons</span></>
             ) : (
-              <>Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">Hackathons</span></>
+              <>Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600">Hackathons</span></>
             )}
           </h1>
 
-          <p className="text-slate-300 text-sm font-medium leading-relaxed">
-            {isMyHackathons 
-              ? 'View all hackathons you have joined, manage team submissions, track project deadlines, and view scores.'
-              : 'Browse active competitions, filter by focus track, join high-performing teams, and win prize pools.'}
+          <p className="text-xs text-slate-600 max-w-md font-medium leading-relaxed">
+            {isMyHackathons
+              ? 'Track your registered challenges, submission milestones, and live standings.'
+              : 'Compete in top global AI, Web3, and Agentic Coding hackathons.'}
           </p>
         </div>
       </div>
@@ -213,9 +215,15 @@ export const HackathonList: React.FC<HackathonListProps> = ({
                 {/* Status & Mode Overlay */}
                 <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
                   {getStatusBadge(hackathon.status)}
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900/80 text-white backdrop-blur-md border border-slate-700/80 capitalize">
-                    {hackathon.mode}
-                  </span>
+                  {isMyHackathons ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow-sm border border-indigo-400">
+                      ENROLLED • Alpha Coders
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900/80 text-white backdrop-blur-md border border-slate-700/80 capitalize">
+                      {hackathon.mode}
+                    </span>
+                  )}
                 </div>
 
                 {/* Prize Pool Overlay */}

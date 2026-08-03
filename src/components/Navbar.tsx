@@ -130,18 +130,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             {loggedInUser && (
               <div className="flex items-center gap-3 relative group cursor-pointer pl-2 border-l border-slate-200">
                 <div className="text-right hidden sm:block">
-                  <span className="text-xs font-extrabold text-slate-900 block leading-tight">{loggedInUser.name}</span>
-                  <span className={`text-[9px] font-extrabold uppercase tracking-wider mt-0.5 inline-block px-2 py-0.5 rounded border ${roleColors[normalizedRole] || roleColors.participant}`}>
-                    {currentRole}
-                  </span>
+                  <span className="text-xs font-bold text-slate-900 block leading-tight">{loggedInUser.name}</span>
                 </div>
                 
                 <div className="relative">
-                  <img
-                    src={loggedInUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
-                    alt={loggedInUser.name}
-                    className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all"
-                  />
+                  {loggedInUser.avatar ? (
+                    <img
+                      src={loggedInUser.avatar}
+                      alt={loggedInUser.name}
+                      className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-black text-sm flex items-center justify-center font-mono uppercase ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all">
+                      {(loggedInUser.email || loggedInUser.name || 'P').charAt(0)}
+                    </div>
+                  )}
                   <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />

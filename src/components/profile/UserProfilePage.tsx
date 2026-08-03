@@ -100,27 +100,45 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ user: propsUse
           {/* Avatar Section */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative group">
-              <img
-                src={formData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150'}
-                alt="Profile Avatar"
-                className="w-32 h-32 rounded-full object-cover border-4 border-indigo-50 shadow-md"
-              />
-              <button 
-                disabled={!isEditing}
-                onClick={() => isEditing && fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 p-2.5 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed cursor-pointer"
-              >
-                <Camera className="w-5 h-5" />
-              </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handlePhotoChange} 
-                accept="image/*" 
-                className="hidden" 
-              />
+              {formData.avatar ? (
+                <img
+                  src={formData.avatar}
+                  alt="Profile Avatar"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-indigo-100 shadow-md"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 flex items-center justify-center text-white text-5xl font-black border-4 border-indigo-100 shadow-md font-mono uppercase">
+                  {(formData.email || 'P').charAt(0)}
+                </div>
+              )}
             </div>
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Profile Photo</span>
+
+            {/* Hackathon Preset Avatars Selector (Preset Only) */}
+            {isEditing && (
+              <div className="space-y-2 text-center pt-2">
+                <span className="text-xs font-semibold text-indigo-600 block">Select Hackathon Avatar:</span>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {[
+                    { label: 'Cyber Coder', url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150' },
+                    { label: 'AI Hacker', url: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=150&h=150' },
+                    { label: 'Tech Ninja', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=150&h=150' },
+                    { label: 'Dev Lead', url: 'https://images.unsplash.com/photo-1628157582853-a796fa650a6a?auto=format&fit=crop&q=80&w=150&h=150' }
+                  ].map((preset, idx) => (
+                    <img
+                      key={idx}
+                      src={preset.url}
+                      alt={preset.label}
+                      title={preset.label}
+                      onClick={() => setFormData({ ...formData, avatar: preset.url })}
+                      className={`w-10 h-10 rounded-full object-cover cursor-pointer border-2 hover:scale-110 transition-all ${
+                        formData.avatar === preset.url ? 'border-indigo-600 ring-4 ring-indigo-200' : 'border-slate-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Form Section */}

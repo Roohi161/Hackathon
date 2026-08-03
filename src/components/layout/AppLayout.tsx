@@ -10,6 +10,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { useNotificationStore } from '../../stores/notificationStore';
 import { useUIStore } from '../../stores/uiStore';
 
+import { ParticipantBackground } from '../participant/ParticipantBackground';
+
 export const AppLayout: React.FC = () => {
   const { user, role, logout } = useAuthStore();
   const { isDrawerOpen, setDrawerOpen, announcements } = useNotificationStore();
@@ -43,8 +45,17 @@ export const AppLayout: React.FC = () => {
     else navigate(`/${tab}`);
   };
 
+  const isParticipant = String(role).toUpperCase() === 'PARTICIPANT';
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
+    <div className={`min-h-screen flex flex-col text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-500 ${
+      isParticipant
+        ? 'bg-gradient-to-br from-indigo-50/80 via-slate-50 to-purple-50/60 relative overflow-x-hidden'
+        : 'bg-slate-50 dark:bg-slate-950'
+    }`}>
+      {/* Background Ambient Mesh Orbs & Tech Overlay for Participant Portal */}
+      {isParticipant && <ParticipantBackground />}
+
       {/* Persistent Top Navbar */}
       <Navbar
         currentRole={role}
@@ -58,7 +69,7 @@ export const AppLayout: React.FC = () => {
       />
 
       {/* Main Content & Sidebar Wrapper */}
-      <div className="flex-1 max-w-7xl w-full mx-auto flex items-start">
+      <div className="flex-1 w-full mx-auto flex items-start px-1 sm:px-2 md:px-3 relative z-10">
         {/* Sidebar Navigation */}
         <SidebarNavigation
           activeTab={currentTab}
@@ -71,7 +82,7 @@ export const AppLayout: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 min-w-0 p-2 sm:p-4 lg:p-5">
           <Outlet />
         </main>
       </div>
