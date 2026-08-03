@@ -13,7 +13,10 @@ import {
   Sparkles,
   User,
   Settings,
-  ChevronRight
+  ChevronRight,
+  Terminal,
+  Cpu,
+  Code
 } from 'lucide-react';
 import type { UserRole } from '../../types';
 
@@ -123,15 +126,32 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   );
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-slate-200/90 min-h-screen flex flex-col justify-between p-4 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto hidden lg:flex shadow-2xs">
-      <div className="space-y-4">
+    <aside className={`w-64 shrink-0 min-h-screen flex flex-col justify-between p-4 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto hidden lg:flex relative overflow-hidden transition-all duration-300 ${
+      currentRole === 'participant'
+        ? 'bg-gradient-to-b from-white/95 via-indigo-50/50 to-purple-50/40 backdrop-blur-2xl border-r-2 border-indigo-100/90 shadow-lg shadow-indigo-100/30'
+        : 'bg-white border-r border-slate-200/90 shadow-2xs'
+    }`}>
+      {/* Background Decorative Tech Elements for Participant Sidebar */}
+      {currentRole === 'participant' && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none opacity-[0.06] -z-10">
+          <Terminal className="absolute -top-10 -right-10 w-48 h-48 text-indigo-800" />
+          <Cpu className="absolute top-1/2 -left-12 w-44 h-44 text-purple-800 animate-spin-slow" />
+          <Code className="absolute bottom-10 -right-8 w-40 h-40 text-violet-800" />
+        </div>
+      )}
+
+      <div className="space-y-4 relative z-10">
         {/* User Card */}
         <div 
           onClick={() => setActiveTab('profile')}
-          className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 to-indigo-50/50 border border-slate-200/80 flex items-center justify-between cursor-pointer hover:border-indigo-300 transition-all group shadow-2xs"
+          className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all group shadow-2xs ${
+            currentRole === 'participant'
+              ? 'bg-white/90 border-indigo-200/90 hover:border-indigo-400 hover:shadow-md'
+              : 'bg-gradient-to-r from-slate-50 to-indigo-50/50 border-slate-200/80 hover:border-indigo-300'
+          }`}
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white font-black flex items-center justify-center text-sm shadow-sm overflow-hidden shrink-0 border border-indigo-200">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-black flex items-center justify-center text-sm shadow-sm overflow-hidden shrink-0 border border-indigo-200">
               {userAvatar ? (
                 <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
               ) : (
@@ -151,7 +171,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
         </div>
 
         {/* Navigation Sections */}
-        <div className="space-y-2 divide-y divide-slate-100">
+        <div className="space-y-2 divide-y divide-indigo-100/60">
           {renderNavGroup('Overview', mainNavItems)}
           {renderNavGroup('Growth & Recognition', growthNavItems)}
           {renderNavGroup('Collaboration', commNavItems)}

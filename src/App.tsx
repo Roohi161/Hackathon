@@ -73,8 +73,12 @@ export function App() {
     return localStorage.getItem('hc_auth') === 'true';
   });
   const [loggedInUser, setLoggedInUser] = useState<AuthenticatedUser | null>(() => {
-    const raw = localStorage.getItem('hc_user');
-    return raw ? JSON.parse(raw) : null;
+    try {
+      const raw = localStorage.getItem('hc_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
   });
 
   // Global State
@@ -94,11 +98,16 @@ export function App() {
   const [showSignup, setShowSignup] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [targetHackathonId, setTargetHackathonId] = useState<string | number | null>(null);
 
   // Entities State
   const [hackathons, setHackathons] = useState<Hackathon[]>(() => {
-    const raw = localStorage.getItem('hc_hackathons');
-    return raw ? JSON.parse(raw) : INITIAL_HACKATHONS;
+    try {
+      const raw = localStorage.getItem('hc_hackathons');
+      return raw ? JSON.parse(raw) : INITIAL_HACKATHONS;
+    } catch {
+      return INITIAL_HACKATHONS;
+    }
   });
   const [selectedHackathon, setSelectedHackathon] = useState<Hackathon | null>(() => {
     return hackathons[0] || null;
@@ -314,7 +323,18 @@ export function App() {
     if (showContact) {
       return <ContactPage onNavigateHome={() => setShowContact(false)} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateAbout={() => { setShowContact(false); setShowAbout(true); }} />;
     }
-    return <LandingPage onLogin={handleLogin} onNavigateLogin={() => setShowLogin(true)} onNavigateSignup={() => setShowSignup(true)} onNavigateAbout={() => setShowAbout(true)} onNavigateContact={() => setShowContact(true)} />;
+    return (
+      <LandingPage
+        onLogin={handleLogin}
+        onNavigateLogin={(targetId) => {
+          if (targetId) setTargetHackathonId(targetId);
+          setShowLogin(true);
+        }}
+        onNavigateSignup={() => setShowSignup(true)}
+        onNavigateAbout={() => setShowAbout(true)}
+        onNavigateContact={() => setShowContact(true)}
+      />
+    );
   }
 
   // --- ORGANIZER ROLE FULL SCREEN VIEW BYPASS ---
@@ -337,7 +357,20 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
+    <div className={`min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-500 ${
+      currentRole === 'participant' 
+        ? 'bg-gradient-to-br from-indigo-50/80 via-slate-50 to-purple-50/60 relative overflow-x-hidden' 
+        : 'bg-slate-50 text-slate-900'
+    }`}>
+      {/* Background Ambient Mesh Orbs for Participant Portal */}
+      {currentRole === 'participant' && (
+        <>
+          <div className="fixed top-[-100px] left-[-100px] w-[550px] h-[550px] bg-indigo-200/35 rounded-full blur-[140px] pointer-events-none z-0" />
+          <div className="fixed bottom-[-100px] right-[-100px] w-[550px] h-[550px] bg-purple-200/35 rounded-full blur-[140px] pointer-events-none z-0" />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-blue-100/25 rounded-full blur-[160px] pointer-events-none z-0" />
+        </>
+      )}
+
       {/* Persistent Navigation */}
       <Navbar
         currentRole={currentRole}
@@ -390,11 +423,17 @@ export function App() {
 
           {/* PARTICIPANT VIEWS */}
           {currentRole === 'participant' && (
-            <>
+            <div className="relative rounded-3xl bg-gradient-to-br from-slate-50 via-indigo-50/40 to-purple-50/30 p-4 sm:p-6 sm:m-2 border border-indigo-100/80 shadow-xs overflow-hidden">
+              {/* Background Light Ambient Orbs & Watermarks for Participant Portal */}
+              <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-200/20 rounded-full blur-[140px] pointer-events-none -z-10" />
+              <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-200/20 rounded-full blur-[140px] pointer-events-none -z-10" />
+              
               {(activeTab === 'explore' || !['dashboard', 'my-hackathons', 'teams', 'projects', 'learning', 'certificates', 'calendar', 'messages', 'detail', 'leaderboard', 'profile', 'settings', 'ai-assistant'].includes(activeTab)) && (
                 <HackathonList
                   hackathons={hackathons}
                   onSelectHackathon={handleSelectHackathon}
+                  targetHackathonId={targetHackathonId}
+                  onClearTargetHackathon={() => setTargetHackathonId(null)}
                 />
               )}
               {activeTab === 'dashboard' && (
@@ -444,7 +483,7 @@ export function App() {
                   hackathons={hackathons}
                 />
               )}
-            </>
+            </div>
           )}
 
         {/* JUDGE VIEW */}

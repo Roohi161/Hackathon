@@ -5,13 +5,54 @@ import type { Hackathon, HackathonStatus } from '../../types';
 interface HackathonListProps {
   hackathons: Hackathon[];
   onSelectHackathon: (hackathon: Hackathon) => void;
+  targetHackathonId?: string | number | null;
+  onClearTargetHackathon?: () => void;
 }
 
-export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSelectHackathon }) => {
+export const HackathonList: React.FC<HackathonListProps> = ({
+  hackathons,
+  onSelectHackathon,
+  targetHackathonId,
+  onClearTargetHackathon,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedMode, setSelectedMode] = useState<string>('all');
   const [selectedTrack, setSelectedTrack] = useState<string>('all');
+  const [highlightedId, setHighlightedId] = useState<string | number | null>(null);
+
+  // Auto scroll to target hackathon card if passed after login
+  React.useEffect(() => {
+    if (targetHackathonId) {
+      setHighlightedId(targetHackathonId);
+      
+      // Auto select matching hackathon so detail page or highlight is updated
+      const matchedHackathon = hackathons.find(
+        (h) => String(h.id) === String(targetHackathonId) || (h.title && h.title.toLowerCase().includes(String(targetHackathonId).toLowerCase()))
+      );
+
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`hackathon-card-${targetHackathonId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+
+      // Auto view the event details if user clicked register for a specific hackathon
+      const openTimer = setTimeout(() => {
+        if (matchedHackathon) {
+          onSelectHackathon(matchedHackathon);
+        }
+        setHighlightedId(null);
+        if (onClearTargetHackathon) onClearTargetHackathon();
+      }, 2500);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(openTimer);
+      };
+    }
+  }, [targetHackathonId, hackathons]);
 
   // Extract all tracks safely
   const allTracks = Array.from(new Set(hackathons.flatMap((h) => h.tracks || [])));
@@ -172,8 +213,13 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
           filteredHackathons.map((hackathon) => (
             <div
               key={hackathon.id}
+              id={`hackathon-card-${hackathon.id}`}
               onClick={() => onSelectHackathon(hackathon)}
-              className="group relative flex flex-col overflow-hidden rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:shadow-indigo-100/60 hover:border-indigo-300 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              className={`group relative flex flex-col overflow-hidden rounded-2xl bg-white border transition-all duration-500 cursor-pointer ${
+                String(highlightedId) === String(hackathon.id)
+                  ? 'border-indigo-500 ring-4 ring-indigo-500/30 shadow-2xl shadow-indigo-500/40 -translate-y-2 scale-[1.02] z-20'
+                  : 'border-slate-200/90 shadow-sm hover:shadow-xl hover:shadow-indigo-100/60 hover:border-indigo-300 hover:-translate-y-1'
+              }`}
             >
               {/* Banner Image */}
               <div className="relative h-44 w-full overflow-hidden bg-slate-900">
@@ -236,7 +282,16 @@ export const HackathonList: React.FC<HackathonListProps> = ({ hackathons, onSele
                     <MapPin className="w-3.5 h-3.5 text-slate-400" />
                     <span className="truncate max-w-[120px]">{hackathon.location}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-indigo-600 font-bold group-hover:translate-x-1 transition-transform">
+                  <div className={`relative flex items-center gap-1 font-bold transition-all ${
+                    String(highlightedId) === String(hackathon.id)
+                      ? 'text-indigo-600 scale-110'
+                      : 'text-indigo-600 group-hover:translate-x-1'
+                  }`}>
+                    {String(highlightedId) === String(hackathon.id) && (
+                      <span className="absolute -left-6 top-0 text-indigo-600 animate-bounce flex items-center gap-1 font-extrabold text-xs">
+                        👉
+                      </span>
+                    )}
                     <span>View Event</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
