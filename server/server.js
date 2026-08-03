@@ -200,25 +200,8 @@ app.post('/api/teams', async (req, res) => {
   }
 });
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Serve built frontend static assets
-const distPath = path.join(__dirname, '../dist');
-app.use(express.static(distPath));
-
-app.get('{*path}', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next();
-  }
-  res.sendFile(path.join(distPath, 'index.html'));
-});
-
 // Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 Hackathon Central Unified Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Hackathon Central Express Server running on http://localhost:${PORT}`);
   console.log(`🐘 Connected to PostgreSQL: central_hackathon`);
 });
