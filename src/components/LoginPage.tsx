@@ -74,7 +74,40 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
       navigateByRole(userRole);
       return;
     } catch {
-      // Fallback for demo mode when backend is unavailable
+      // Check registered users from local storage first
+      try {
+        const storedUsersStr = localStorage.getItem('hc_registered_users');
+        const storedUsers = storedUsersStr ? JSON.parse(storedUsersStr) : [];
+        const foundRegisteredUser = storedUsers.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+
+        if (foundRegisteredUser) {
+          if (foundRegisteredUser.password !== password) {
+            setError('Invalid password. Please check your credentials.');
+            setLoginFailed(true);
+            return;
+          }
+          const userRole = (foundRegisteredUser.role || 'PARTICIPANT') as UserRole;
+          const mockTokens: import('../types/auth').AuthTokens = {
+            accessToken: 'demo-access-token',
+            refreshToken: 'demo-refresh-token',
+          };
+          setAuth(foundRegisteredUser.userObj, mockTokens);
+          if (onLogin) {
+            onLogin(userRole, { name: foundRegisteredUser.name, email: foundRegisteredUser.email, avatar: foundRegisteredUser.userObj.avatar });
+          }
+          navigateByRole(userRole);
+          return;
+        }
+      } catch {}
+
+      // Demo accounts strict password validation requirement: password must be "password123"
+      if (password !== 'password123') {
+        setError('Invalid password. Please check your password and try again.');
+        setLoginFailed(true);
+        return;
+      }
+
+      // Standard Demo mode fallback when using valid demo password "password123"
       const demoRoleMap: Record<string, { name: string; role: UserRole }> = {
         organizer: { name: 'Organizer Admin', role: 'ORGANIZER' },
         judge: { name: 'Judge Reviewer', role: 'JUDGE' },

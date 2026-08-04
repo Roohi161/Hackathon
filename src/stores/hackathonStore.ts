@@ -23,9 +23,24 @@ interface HackathonState {
   setLoading: (loading: boolean) => void;
 }
 
+const getInitialHackathons = (): Hackathon[] => {
+  try {
+    const saved = localStorage.getItem('hc_created_hackathons');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return INITIAL_HACKATHONS as unknown as Hackathon[];
+};
+
 export const useHackathonStore = create<HackathonState>((set) => ({
-  hackathons: INITIAL_HACKATHONS as unknown as Hackathon[],
-  selectedHackathon: (INITIAL_HACKATHONS[0] as unknown as Hackathon) || null,
+  hackathons: getInitialHackathons(),
+  selectedHackathon: (getInitialHackathons()[0] as unknown as Hackathon) || null,
   isLoading: false,
   searchQuery: '',
   selectedCategory: 'all',
@@ -49,7 +64,15 @@ export const useHackathonStore = create<HackathonState>((set) => ({
   setHackathons: (hackathons: Hackathon[]) => set({ hackathons }),
   selectHackathon: (selectedHackathon: Hackathon | null) => set({ selectedHackathon }),
   addHackathon: (hackathon: Hackathon) =>
-    set((state: HackathonState) => ({ hackathons: [hackathon, ...state.hackathons] })),
+    set((state: HackathonState) => {
+      const updated = [hackathon, ...state.hackathons];
+      try {
+        localStorage.setItem('hc_created_hackathons', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return { hackathons: updated };
+    }),
   updateHackathon: (id: string, partial: Partial<Hackathon>) =>
     set((state: HackathonState) => ({
       hackathons: state.hackathons.map((h: Hackathon) =>

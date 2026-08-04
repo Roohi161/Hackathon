@@ -85,12 +85,23 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [prizePool, setPrizePool] = useState('₹25,00,000');
   const [bannerUrl, setBannerUrl] = useState('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80');
 
-  // State for Registrations Management
-  const [registrationList, setRegistrationList] = useState([
-    { id: '1', groupName: 'CyberPioneers', code: 'CYBER-2026', leaderEmail: 'ansar@hackathoncentral.io', groupSize: '4 Members', status: 'APPROVED' },
-    { id: '2', groupName: 'Visionary Crew', code: 'VISION-99', leaderEmail: 'alex@visionary.io', groupSize: '2 Members', status: 'APPROVED' },
-    { id: '3', groupName: 'Quantum Hackers', code: 'QNTM-404', leaderEmail: 'carlos@quantum.org', groupSize: '1 Members', status: 'PENDING' },
-  ]);
+  // State for Registrations Management with localStorage sync
+  const [registrationList, setRegistrationList] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('hc_global_registrations');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return [
+      { id: '1', groupName: 'CyberPioneers', code: 'CYBER-2026', leaderEmail: 'ansar@hackathoncentral.io', groupSize: '4 Members', status: 'APPROVED', hackathonId: 'h-1', hackathonTitle: 'AI Hackathon 2026' },
+      { id: '2', groupName: 'Visionary Crew', code: 'VISION-99', leaderEmail: 'alex@visionary.io', groupSize: '2 Members', status: 'APPROVED', hackathonId: 'h-2', hackathonTitle: 'Quantum FinTech Challenge' },
+      { id: '3', groupName: 'Quantum Hackers', code: 'QNTM-404', leaderEmail: 'carlos@quantum.org', groupSize: '1 Members', status: 'UNDER_REVIEW', hackathonId: 'h-3', hackathonTitle: 'HealthTech AI Summit' },
+    ];
+  });
 
   // State for Judges
   const [judgeName, setJudgeName] = useState('');
@@ -119,9 +130,31 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [newMessage, setNewMessage] = useState('');
 
   // Handle Registration Status Change
-  const handleRegistrationAction = (id: string, newStatus: 'APPROVED' | 'REJECTED') => {
-    setRegistrationList(prev => prev.map(item => item.id === id ? { ...item, status: newStatus } : item));
-    notify(`Team status updated to ${newStatus}`, 'success');
+  const handleRegistrationAction = (id: string, newStatus: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW') => {
+    setRegistrationList(prev => {
+      const updated = prev.map(item => item.id === id ? { ...item, status: newStatus } : item);
+      try {
+        localStorage.setItem('hc_global_registrations', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      const targetItem = prev.find(item => item.id === id);
+      if (targetItem) {
+        // Dispatch live notification to store
+        useNotificationStore.getState().addAnnouncement({
+          id: `ann-${Date.now()}`,
+          hackathonId: targetItem.hackathonId || 'h-1',
+          hackathonTitle: targetItem.hackathonTitle || 'Hackathon',
+          title: `Registration Status Update: ${newStatus}`,
+          content: `Your registration for "${targetItem.hackathonTitle || 'Hackathon'}" (${targetItem.groupName}) has been marked as ${newStatus}.`,
+          priority: newStatus === 'APPROVED' ? 'HIGH' : 'MEDIUM',
+          createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          type: newStatus === 'APPROVED' ? 'update' : 'critical'
+        });
+      }
+      return updated;
+    });
+    notify(`Team registration status updated to ${newStatus}`, 'success');
   };
 
   // Handle Appoint Judge
@@ -614,21 +647,31 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           <td className="px-6 py-4">{row.groupSize}</td>
                           <td className="px-6 py-4">
                             <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                              row.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                              row.status === 'APPROVED'
+                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                : row.status === 'REJECTED'
+                                ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                : 'bg-amber-100 text-amber-700 border border-amber-300'
                             }`}>
-                              {row.status}
+                              {row.status || 'UNDER_REVIEW'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right space-x-2">
+                          <td className="px-6 py-4 text-right space-x-1.5">
                             <button
                               onClick={() => handleRegistrationAction(row.id, 'APPROVED')}
-                              className="px-3 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 cursor-pointer"
+                              className="px-2.5 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 cursor-pointer shadow-2xs"
                             >
                               Approve
                             </button>
                             <button
+                              onClick={() => handleRegistrationAction(row.id, 'UNDER_REVIEW')}
+                              className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 font-bold text-[11px] rounded-lg cursor-pointer"
+                            >
+                              Review
+                            </button>
+                            <button
                               onClick={() => handleRegistrationAction(row.id, 'REJECTED')}
-                              className="px-3 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-[11px] rounded-lg cursor-pointer"
+                              className="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 font-bold text-[11px] rounded-lg cursor-pointer"
                             >
                               Reject
                             </button>

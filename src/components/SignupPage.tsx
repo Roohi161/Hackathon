@@ -36,6 +36,18 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       setError('Please fill in all fields.');
       return;
     }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setError('Password must contain at least one number (0-9).');
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setError('Password must contain at least one SPECIAL character (e.g. !@#$%^&*).');
+      return;
+    }
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -69,6 +81,19 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      // Store credentials locally for login validation
+      try {
+        const storedUsersStr = localStorage.getItem('hc_registered_users');
+        const storedUsers = storedUsersStr ? JSON.parse(storedUsersStr) : [];
+        const existingIdx = storedUsers.findIndex((u: any) => u.email.toLowerCase() === email.toLowerCase());
+        if (existingIdx >= 0) {
+          storedUsers[existingIdx] = { email: email.toLowerCase(), password, name, role: role.toUpperCase(), userObj: newUser };
+        } else {
+          storedUsers.push({ email: email.toLowerCase(), password, name, role: role.toUpperCase(), userObj: newUser });
+        }
+        localStorage.setItem('hc_registered_users', JSON.stringify(storedUsers));
+      } catch {}
 
       const tokens = {
         accessToken: `demo-token-${Date.now()}`,
@@ -186,6 +211,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <p className="text-[10px] text-slate-400 mt-1">Must be at least 8 characters with 1 number & 1 special character</p>
               </div>
 
               <div>

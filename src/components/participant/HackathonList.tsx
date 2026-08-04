@@ -5,6 +5,8 @@ import type { Hackathon, HackathonStatus } from '../../types';
 import { INITIAL_HACKATHONS } from '../../data/mockData';
 import { useHackathonStore } from '../../stores/hackathonStore';
 
+import { RegistrationModal } from './RegistrationModal';
+
 interface HackathonListProps {
   hackathons?: Hackathon[];
   onSelectHackathon?: (hackathon: Hackathon) => void;
@@ -23,6 +25,8 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   const storeHackathons = useHackathonStore((s) => s.hackathons);
   const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
 
+  const [registerModalHackathon, setRegisterModalHackathon] = useState<Hackathon | null>(null);
+
   const handleCardClick = (hackathon: Hackathon) => {
     if (onSelectHackathon) onSelectHackathon(hackathon);
     navigate(`/hackathons/${hackathon.id}`);
@@ -36,8 +40,27 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   // Extract all tracks
   const allTracks = Array.from(new Set(hackathons.flatMap((h: Hackathon) => h.tracks || [])));
 
+  // Global registration status lookup from localStorage
+  const getRegistrationRecord = (hackathonId: string) => {
+    try {
+      const saved = localStorage.getItem('hc_global_registrations');
+      if (saved) {
+        const list = JSON.parse(saved);
+        return list.find((item: any) => item.hackathonId === hackathonId);
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  };
+
   // Filter logic
-  const sourceHackathons = isMyHackathons ? hackathons.slice(0, 5) : hackathons;
+  const registeredHackathonsList = hackathons.filter((h: Hackathon) => {
+    const reg = getRegistrationRecord(h.id);
+    return reg || h.id === 'h-1' || h.id === 'h-2'; // Default sample registrations
+  });
+
+  const sourceHackathons = isMyHackathons ? registeredHackathonsList : hackathons;
 
   const filteredHackathons = sourceHackathons.filter((item: Hackathon) => {
     const matchesSearch =
@@ -45,8 +68,19 @@ export const HackathonList: React.FC<HackathonListProps> = ({
       (item.tagline || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.organizerName || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
-    const matchesMode = selectedMode === 'all' || item.mode === selectedMode;
+    const itemStatusLower = (item.status || '').toLowerCase();
+    const itemModeLower = (item.mode || '').toLowerCase();
+
+    const matchesStatus =
+      selectedStatus === 'all' ||
+      itemStatusLower === selectedStatus.toLowerCase() ||
+      (selectedStatus === 'live' && (itemStatusLower === 'published' || itemStatusLower === 'in_progress' || itemStatusLower === 'registration_open'));
+
+    const matchesMode =
+      selectedMode === 'all' ||
+      itemModeLower === selectedMode.toLowerCase() ||
+      itemModeLower === selectedMode.replace('-', '_').toLowerCase();
+
     const matchesTrack = selectedTrack === 'all' || (item.tracks && item.tracks.includes(selectedTrack));
 
     return matchesSearch && matchesStatus && matchesMode && matchesTrack;
@@ -215,11 +249,29 @@ export const HackathonList: React.FC<HackathonListProps> = ({
                 {/* Status & Mode Overlay */}
                 <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
                   {getStatusBadge(hackathon.status)}
-                  {isMyHackathons ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow-sm border border-indigo-400">
-                      ENROLLED • Alpha Coders
-                    </span>
-                  ) : (
+                  {isMyHackathons ? (() => {
+                    const reg = getRegistrationRecord(hackathon.id);
+                    const status = reg?.status || 'APPROVED';
+                    if (status === 'APPROVED') {
+                      return (
+                        <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-sm border border-emerald-400">
+                          ✓ APPROVED
+                        </span>
+                      );
+                    }
+                    if (status === 'REJECTED') {
+                      return (
+                        <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-600 text-white shadow-sm border border-rose-400">
+                          ✕ REJECTED
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-sm border border-amber-300 animate-pulse">
+                        ⏳ UNDER REVIEW
+                      </span>
+                    );
+                  })() : (
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900/80 text-white backdrop-blur-md border border-slate-700/80 capitalize">
                       {hackathon.mode}
                     </span>
@@ -273,14 +325,28 @@ export const HackathonList: React.FC<HackathonListProps> = ({
                 </div>
 
                 {/* Footer Info */}
-                <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-500">
+                <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs font-medium text-slate-500">
                   <div className="flex items-center gap-1 text-slate-500 font-medium">
                     <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="truncate max-w-[120px]">{hackathon.location}</span>
+                    <span className="truncate max-w-[100px]">{hackathon.location}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-indigo-600 font-bold group-hover:translate-x-1 transition-transform">
-                    <span>View Event</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                  
+                  <div className="flex items-center gap-2">
+                    {!isMyHackathons && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRegisterModalHackathon(hackathon);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-[11px] shadow-2xs transition-all cursor-pointer"
+                      >
+                        Register
+                      </button>
+                    )}
+                    <div className="flex items-center gap-1 text-indigo-600 font-bold group-hover:translate-x-0.5 transition-transform">
+                      <span>View</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
                   </div>
                 </div>
 
@@ -289,6 +355,13 @@ export const HackathonList: React.FC<HackathonListProps> = ({
           ))
         )}
       </div>
+
+      {/* Registration Modal Step-by-Step Flow */}
+      <RegistrationModal
+        isOpen={!!registerModalHackathon}
+        onClose={() => setRegisterModalHackathon(null)}
+        hackathon={registerModalHackathon}
+      />
     </div>
   );
 };

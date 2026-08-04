@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   MessageSquare,
@@ -104,10 +104,23 @@ export const TeamsWorkspaceView: React.FC = () => {
     { name: 'Participant User', email: 'participant@hackathon.com', role: 'Full Stack Hacker' }
   ];
 
-  // Teams State initialized dynamically to ensure user-scoped data for newly signed-in participants
+  // Teams State initialized dynamically & persisted to localStorage
   const [teams, setTeams] = useState<TeamItem[]>(() => {
     const userEmail = (currentUser?.email || 'participant@hackathon.com').toLowerCase();
     const userName = currentUser?.name || 'Participant User';
+    const storageKey = `hc_teams_store_${userEmail}`;
+
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Ignore localStorage parse errors
+    }
 
     // Default seed teams
     const seedTeams: TeamItem[] = [
@@ -171,6 +184,17 @@ export const TeamsWorkspaceView: React.FC = () => {
 
     return seedTeams;
   });
+
+  // Save teams to localStorage whenever user modifies them
+  useEffect(() => {
+    const userEmail = (currentUser?.email || 'participant@hackathon.com').toLowerCase();
+    const storageKey = `hc_teams_store_${userEmail}`;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(teams));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [teams, currentUser]);
 
   // Filter teams based on top hackathon selection
   const availableTeams = selectedHackathonFilter === 'All Hackathons'
@@ -519,7 +543,7 @@ export const TeamsWorkspaceView: React.FC = () => {
       email: inviteMemberEmail.trim().toLowerCase(),
       role: newMemberRole.trim() || 'Core Developer',
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      status: 'Pending', // Pending until accepted
+      status: 'Active',
       isLeader: false
     };
 
@@ -534,21 +558,7 @@ export const TeamsWorkspaceView: React.FC = () => {
       return t;
     }));
 
-    // Trigger Notification Announcement for the Invited User to Accept Invitation
-    addAnnouncement({
-      id: `ann-inv-${Date.now()}`,
-      hackathonId: currentTeam.hackathonName,
-      hackathonTitle: currentTeam.hackathonName,
-      title: `📬 Team Invitation Received: Join ${currentTeam.name}`,
-      content: `${currentUser?.name || 'Team Leader'} has invited ${inviteMemberName} (${inviteMemberEmail}) to join team "${currentTeam.name}" for ${currentTeam.hackathonName} as ${newMember.role}. Click Notification drawer to accept!`,
-      priority: 'HIGH',
-      isPinned: true,
-      createdAt: 'Just now',
-      timestamp: 'Just now',
-      type: 'info'
-    });
-
-    alert(`Invitation sent to ${inviteMemberName} (${inviteMemberEmail})! An invitation alert has been pushed to their Notifications badge to accept.`);
+    alert(`${inviteMemberName} (${inviteMemberEmail}) has been added to team ${currentTeam.name}!`);
 
     setInviteMemberName('');
     setInviteMemberEmail('');
@@ -691,6 +701,45 @@ export const TeamsWorkspaceView: React.FC = () => {
   return (
     <div className="space-y-6 animate-fadeIn relative z-10 pb-24">
       
+      {/* TOP LIVE HACKATHONS & ACTIVE TEAMS BANNER */}
+      <div className="p-4 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 text-white shadow-lg space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-indigo-200">
+              🔴 Live & Active Hackathons
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-slate-300 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+            {teams.length} Enrolled Hackathon Team(s)
+          </span>
+        </div>
+
+        {/* Live Hackathons Pill Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {teams.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setSelectedHackathonFilter(t.hackathonName);
+                setSelectedTeamId(t.id);
+              }}
+              className={`px-3.5 py-2 rounded-2xl text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                selectedTeamId === t.id
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30 ring-2 ring-indigo-400'
+                  : 'bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{t.hackathonName}</span>
+              <span className="text-[10px] bg-slate-800/80 px-2 py-0.5 rounded-full text-indigo-300 border border-slate-700 font-mono">
+                {t.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* TOP DUAL HACKATHON & TEAM SELECTOR BAR */}
       <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -705,16 +754,9 @@ export const TeamsWorkspaceView: React.FC = () => {
                   {availableTeams.length} Enrolled Teams
                 </span>
               </div>
-              <p className="text-xs font-normal text-slate-500">Invitations trigger real-time notification alerts. Clean past historical data sheet preserves clean text.</p>
+              <p className="text-xs font-normal text-slate-500">Teams & live workspace chat are automatically provisioned when registration is APPROVED by event organizers.</p>
             </div>
           </div>
-
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer self-start md:self-auto"
-          >
-            <Plus className="w-4 h-4" /> Create Team
-          </button>
         </div>
 
         {/* Dual Selectors: 1) Select Hackathon  2) Select Team */}
@@ -758,37 +800,7 @@ export const TeamsWorkspaceView: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Team Summary Banner */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-500/30 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {currentTeam.status}
-            </span>
-            <span className="text-xs text-indigo-300 font-medium">{currentTeam.hackathonName}</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-heading">{currentTeam.name}</h1>
-          <p className="text-xs text-slate-300 font-normal flex items-center gap-1.5 flex-wrap">
-            Team Leader: <span className="inline-flex items-center gap-1 text-white font-semibold"><Crown className="w-3.5 h-3.5 text-amber-400" /> {currentTeam.leaderName} ({currentTeam.leaderEmail})</span> • {currentTeam.memberCount} of {currentTeam.maxMembers} Members
-          </p>
-        </div>
 
-        {/* Quick Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => setIsAddMemberModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" /> Add / Invite Member
-          </button>
-          <button
-            onClick={handleLeaveTeam}
-            className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" /> Leave Team
-          </button>
-        </div>
-      </div>
 
       {/* Workspace Sub-Tab Navigation (PLACING MEMBER ROSTER FIRST) */}
       <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs w-fit">
@@ -911,14 +923,6 @@ export const TeamsWorkspaceView: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {m.status === 'Pending' && (
-                          <button
-                            onClick={() => handleAcceptMemberInvitation(m.id)}
-                            className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg cursor-pointer flex items-center gap-1 shadow-2xs"
-                          >
-                            <Check className="w-3 h-3" /> Accept Invitation
-                          </button>
-                        )}
                         {!m.isLeader && (
                           <button
                             onClick={() => handleMakeLead(m.id, m.name)}
@@ -1379,19 +1383,25 @@ export const TeamsWorkspaceView: React.FC = () => {
               )}
             </div>
 
-            {/* Chat Input Form */}
-            <form onSubmit={handleSendMessage} className="p-2.5 border-t border-slate-200 bg-white flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Type message (shows live typing & blue ticks)..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-indigo-500"
-              />
-              <button type="submit" className="p-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 cursor-pointer shadow-2xs">
-                <Send className="w-3.5 h-3.5" />
-              </button>
-            </form>
+            {/* Chat Input Form or Disabled Banner if Hackathon Ended */}
+            {selectedHackathonFilter.toLowerCase().includes('ended') || (currentTeam.status as string) === 'Completed' ? (
+              <div className="p-3 bg-slate-100 border-t border-slate-200 text-center text-xs font-bold text-slate-500 flex items-center justify-center gap-1.5">
+                <span>🔒 Hackathon Completed — Live Team Chat is now read-only</span>
+              </div>
+            ) : (
+              <form onSubmit={handleSendMessage} className="p-2.5 border-t border-slate-200 bg-white flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Type message (shows live typing & blue ticks)..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-indigo-500"
+                />
+                <button type="submit" className="p-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 cursor-pointer shadow-2xs">
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            )}
           </div>
         )}
       </div>
