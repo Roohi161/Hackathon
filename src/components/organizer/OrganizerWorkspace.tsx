@@ -1349,6 +1349,9 @@ export const OrganizerWorkspace: React.FC = () => {
                   return updated;
                 });
 
+                // Sync to global store so Participants and Admin see published hackathons immediately
+                useHackathonStore.getState().addHackathon(draftData as Hackathon);
+
                 // Sync to backend DB asynchronously
                 if (editingHackathonId) {
                   hackathonApi.update(editingHackathonId, draftData).catch(() => {});
@@ -1367,6 +1370,9 @@ export const OrganizerWorkspace: React.FC = () => {
                   } catch {}
                   return updated;
                 });
+
+                // Sync to global store so Participants and Admin see published hackathons immediately
+                useHackathonStore.getState().addHackathon(newHackathon);
 
                 // Sync to backend DB asynchronously
                 if (editingHackathonId) {
