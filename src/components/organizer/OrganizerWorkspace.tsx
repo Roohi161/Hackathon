@@ -94,6 +94,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   // State for Registrations Management with localStorage sync
   const [selectedHackathonForReg, setSelectedHackathonForReg] = useState<string | null>(null);
   const [selectedMemberDetails, setSelectedMemberDetails] = useState<any | null>(null);
+  const [expandedMemberIdx, setExpandedMemberIdx] = useState<number | null>(null);
 
   const [registrationList, setRegistrationList] = useState<any[]>(() => {
     try {
@@ -150,6 +151,34 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             github: 'https://github.com/bhavya-code',
             linkedin: 'https://linkedin.com/in/bhavya-sri',
             resumeFileName: 'Bhavya_Sri_Resume.pdf'
+          },
+          {
+            name: 'Rahul Sharma',
+            email: 'rahul@hackathon.com',
+            phone: '+91 9765432109',
+            organization: 'IIT Delhi',
+            department: 'Electrical Engineering',
+            yearSemester: '4th Year / 7th Sem',
+            role: 'Backend Architect',
+            skills: 'Node.js, PostgreSQL, Docker, Redis, Kubernetes',
+            experienceLevel: 'Advanced',
+            github: 'https://github.com/rahul-dev',
+            linkedin: 'https://linkedin.com/in/rahul-sharma',
+            resumeFileName: 'Rahul_Sharma_Resume.pdf'
+          },
+          {
+            name: 'Sneha Patel',
+            email: 'sneha@hackathon.com',
+            phone: '+91 9654321098',
+            organization: 'NIT Trichy',
+            department: 'Data Science & AI',
+            yearSemester: '3rd Year / 5th Sem',
+            role: 'ML Engineer',
+            skills: 'Python, Scikit-learn, OpenCV, HuggingFace',
+            experienceLevel: 'Intermediate',
+            github: 'https://github.com/sneha-ml',
+            linkedin: 'https://linkedin.com/in/sneha-patel',
+            resumeFileName: 'Sneha_Patel_Resume.pdf'
           }
         ]
       },
@@ -1450,80 +1479,140 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     );
                   })()}
 
-                  {/* SECTION 3: TEAM MEMBERS */}
+                  {/* SECTION 3: ALL TEAM MEMBERS (CLICK TO VIEW FULL DETAILS) */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 pb-1 border-b border-slate-100 flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-600" /> 3. Registered Team Members Breakdown
-                      </span>
-                      <span className="text-indigo-600 font-extrabold">{Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1} Member(s)</span>
-                    </h4>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-600" /> 3. All Team Members Roster ({Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1})
+                      </h4>
+                      <span className="text-[10px] text-slate-400 font-semibold">Click any member to inspect full profile</span>
+                    </div>
 
-                    <div className="grid grid-cols-1 gap-3">
+                    {/* Member Quick-Selector Buttons */}
+                    {Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0 && (
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {selectedMemberDetails.members.map((m: any, idx: number) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setExpandedMemberIdx(expandedMemberIdx === idx ? null : idx)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 border ${
+                              expandedMemberIdx === idx
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                : 'bg-slate-50 text-slate-700 hover:bg-indigo-50 border-slate-200'
+                            }`}
+                          >
+                            <span>{idx === 0 ? '👑' : '👤'} {m.name || `Member #${idx + 1}`}</span>
+                            <span className="text-[9px] opacity-80 bg-white/20 px-1.5 py-0.2 rounded">({m.role || 'Member'})</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Expanded Member Detailed Profiles Grid */}
+                    <div className="grid grid-cols-1 gap-3 pt-1">
                       {Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0 ? (
-                        selectedMemberDetails.members.map((m: any, idx: number) => (
-                          <div key={idx} className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{idx + 1}. {m.name || `Member #${idx + 1}`}</span>
-                                <span className="text-[11px] text-slate-500 block font-medium">{m.email} {m.phone && `• ${m.phone}`}</span>
+                        selectedMemberDetails.members.map((m: any, idx: number) => {
+                          const isExpanded = expandedMemberIdx === null || expandedMemberIdx === idx;
+
+                          return (
+                            <div
+                              key={idx}
+                              className={`rounded-2xl border transition-all ${
+                                isExpanded
+                                  ? 'bg-white border-indigo-200 shadow-sm p-4 space-y-3 ring-1 ring-indigo-500/10'
+                                  : 'bg-slate-50/60 border-slate-200 p-3 hover:bg-slate-100/80 cursor-pointer'
+                              }`}
+                              onClick={() => {
+                                if (!isExpanded) setExpandedMemberIdx(idx);
+                              }}
+                            >
+                              <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-black text-xs flex items-center justify-center">
+                                    {idx + 1}
+                                  </span>
+                                  <div>
+                                    <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{m.name || `Member #${idx + 1}`}</span>
+                                    <span className="text-[11px] text-slate-500 block font-medium">{m.email} {m.phone && `• ${m.phone}`}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
+                                    {m.role || (idx === 0 ? 'Team Lead' : 'Hacker')}
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedMemberIdx(expandedMemberIdx === idx ? null : idx);
+                                    }}
+                                    className="text-[10px] text-indigo-600 font-bold hover:underline px-2 py-1 rounded bg-indigo-50"
+                                  >
+                                    {expandedMemberIdx === idx ? 'Collapse ▲' : 'View All Details ▼'}
+                                  </button>
+                                </div>
                               </div>
-                              <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
-                                {m.role || (idx === 0 ? 'Team Lead' : 'Hacker')}
-                              </span>
+
+                              {isExpanded && (
+                                <div className="space-y-3 pt-2 border-t border-slate-100">
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px] bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                                    <div>
+                                      <span className="text-slate-400 block font-bold">College / Org:</span>
+                                      <span className="font-extrabold text-slate-900">{m.organization || 'IIT Madras'}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-slate-400 block font-bold">Branch / Department:</span>
+                                      <span className="font-extrabold text-slate-900">{m.department || 'Computer Science & Eng'}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-slate-400 block font-bold">Year / Semester:</span>
+                                      <span className="font-extrabold text-slate-900">{m.yearSemester || '3rd Year / 6th Sem'}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-slate-400 block font-bold">Experience Level:</span>
+                                      <span className="font-extrabold text-slate-900">{m.experienceLevel || 'Intermediate'}</span>
+                                    </div>
+                                  </div>
+
+                                  {m.skills && (
+                                    <div className="p-2.5 rounded-xl bg-indigo-50/40 border border-indigo-100 text-[11px]">
+                                      <span className="text-slate-500 font-bold block mb-0.5">Skills & Tech Stack:</span>
+                                      <span className="text-indigo-800 font-extrabold">{m.skills}</span>
+                                    </div>
+                                  )}
+
+                                  <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
+                                    <div className="flex items-center gap-3">
+                                      {m.github && (
+                                        <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 font-bold underline hover:text-indigo-800">
+                                          GitHub Profile ↗
+                                        </a>
+                                      )}
+                                      {m.linkedin && (
+                                        <a href={m.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline hover:text-blue-800">
+                                          LinkedIn Profile ↗
+                                        </a>
+                                      )}
+                                    </div>
+
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const name = m.resumeFileName || `${m.name || 'Member'}_Resume.pdf`;
+                                        alert(`Viewing/Downloading resume for ${m.name}: ${name}`);
+                                      }}
+                                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded-xl shadow-xs cursor-pointer flex items-center gap-1"
+                                    >
+                                      <span>📄 View / Download Resume</span>
+                                      {m.resumeFileName && <span className="text-[9px] bg-white/20 px-1 rounded">({m.resumeFileName})</span>}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pt-1">
-                              <div>
-                                <span className="text-slate-400 block font-medium">College / Org:</span>
-                                <span className="font-bold text-slate-900">{m.organization || 'IIT Madras'}</span>
-                              </div>
-                              <div>
-                                <span className="text-slate-400 block font-medium">Branch / Dept:</span>
-                                <span className="font-bold text-slate-900">{m.department || 'CSE / IT'}</span>
-                              </div>
-                              <div>
-                                <span className="text-slate-400 block font-medium">Year / Sem:</span>
-                                <span className="font-bold text-slate-900">{m.yearSemester || '3rd Year'}</span>
-                              </div>
-                              <div>
-                                <span className="text-slate-400 block font-medium">Experience Level:</span>
-                                <span className="font-bold text-slate-900">{m.experienceLevel || 'Intermediate'}</span>
-                              </div>
-                            </div>
-
-                            {m.skills && (
-                              <p className="text-[11px] text-slate-600 font-medium pt-1">
-                                Skills / Proficiency: <strong className="text-indigo-700">{m.skills}</strong>
-                              </p>
-                            )}
-
-                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px]">
-                              <div className="flex items-center gap-3">
-                                {m.github && (
-                                  <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 font-bold underline">
-                                    GitHub ↗
-                                  </a>
-                                )}
-                                {m.linkedin && (
-                                  <a href={m.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline">
-                                    LinkedIn ↗
-                                  </a>
-                                )}
-                              </div>
-
-                              <button
-                                onClick={() => {
-                                  const name = m.resumeFileName || `${m.name || 'Member'}_Resume.pdf`;
-                                  alert(`Viewing/Downloading resume for ${m.name}: ${name}`);
-                                }}
-                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-lg border border-slate-200 cursor-pointer flex items-center gap-1"
-                              >
-                                <span>📄 View Resume</span>
-                              </button>
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-500 font-medium">
                           No additional team member records found.
