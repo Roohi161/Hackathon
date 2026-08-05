@@ -59,8 +59,13 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
   const registrationStatus = regRecord?.status || 'APPROVED';
 
   const handleBackAction = () => {
-    if (onBack) onBack();
-    else navigate('/hackathons');
+    if (onBack) {
+      onBack();
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/hackathons');
+    }
   };
   const [activeTab, setActiveTab] = useState<'overview' | 'problems' | 'rubrics' | 'schedule' | 'rules'>('overview');
   
