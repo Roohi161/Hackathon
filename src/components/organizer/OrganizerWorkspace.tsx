@@ -62,20 +62,15 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
   const storeHackathons = useHackathonStore((s) => s.hackathons);
   const addHackathon = useHackathonStore((s) => s.addHackathon);
+  const updateHackathonStore = useHackathonStore((s) => s.updateHackathon);
+  const deleteHackathonStore = useHackathonStore((s) => s.deleteHackathon);
   const storeTeams = useTeamStore((s) => s.teams);
   const storeAnnouncements = useNotificationStore((s) => s.announcements);
 
   const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : storeHackathons;
   const teams = (propsTeams && propsTeams.length > 0) ? propsTeams : storeTeams;
 
-  const [organizerHackathons, setOrganizerHackathons] = useState<Hackathon[]>(hackathons);
   const [editingHackathonId, setEditingHackathonId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (hackathons && hackathons.length > 0) {
-      setOrganizerHackathons(hackathons);
-    }
-  }, [hackathons]);
 
   // Active Tab Navigation
   const [activeTab, setActiveTab] = useState<
@@ -461,14 +456,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         <button
                           onClick={() => {
                             if (window.confirm(`Are you sure you want to delete "${h.title}"?`)) {
-                              setOrganizerHackathons(prev => {
-                                const updated = prev.filter(item => item.id !== h.id);
-                                try {
-                                  localStorage.setItem('hc_organizer_hackathons', JSON.stringify(updated));
-                                } catch {}
-                                return updated;
-                              });
-                              useHackathonStore.getState().deleteHackathon(h.id);
+                              deleteHackathonStore(h.id);
                               hackathonApi.delete(h.id).catch(() => {});
                               addToast({
                                 title: 'Hackathon Deleted',
@@ -492,48 +480,27 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           {/* TAB 3: CREATE HACKATHON (Enterprise 5-Step Wizard Studio) */}
           {activeTab === 'create' && (
             <CreateHackathonWizard
-              initialHackathon={editingHackathonId ? organizerHackathons.find(h => h.id === editingHackathonId) : null}
+              initialHackathon={editingHackathonId ? storeHackathons.find(h => h.id === editingHackathonId) : null}
               onSaveDraft={(draftData) => {
-                setOrganizerHackathons(prev => {
-                  const exists = prev.some(h => h.id === draftData.id);
-                  const updated = exists
-                    ? prev.map(h => h.id === draftData.id ? { ...h, ...draftData } as Hackathon : h)
-                    : [{ status: 'DRAFT', ...draftData } as Hackathon, ...prev];
-                  try {
-                    localStorage.setItem('hc_organizer_hackathons', JSON.stringify(updated));
-                  } catch {}
-                  return updated;
-                });
-
-                // Sync to global store so Participants and Admin see published hackathons immediately
-                useHackathonStore.getState().addHackathon(draftData as Hackathon);
+                if (editingHackathonId && draftData.id) {
+                  updateHackathonStore(editingHackathonId, draftData);
+                } else {
+                  addHackathon({ status: 'DRAFT', ...draftData } as Hackathon);
+                }
 
                 // Sync to backend DB asynchronously
-                if (editingHackathonId) {
+                if (editingHackathonId && draftData.id) {
                   hackathonApi.update(editingHackathonId, draftData).catch(() => {});
                 } else {
                   hackathonApi.create(draftData).catch(() => {});
                 }
               }}
               onPublish={(newHackathon) => {
-                setOrganizerHackathons(prev => {
-                  const exists = prev.some(h => h.id === newHackathon.id);
-                  const updated = exists
-                    ? prev.map(h => h.id === newHackathon.id ? newHackathon : h)
-                    : [newHackathon, ...prev];
-                  try {
-                    localStorage.setItem('hc_organizer_hackathons', JSON.stringify(updated));
-                  } catch {}
-                  return updated;
-                });
-
-                // Sync to global store so Participants and Admin see published hackathons immediately
-                useHackathonStore.getState().addHackathon(newHackathon);
-
-                // Sync to backend DB asynchronously
                 if (editingHackathonId) {
+                  updateHackathonStore(editingHackathonId, newHackathon);
                   hackathonApi.update(editingHackathonId, newHackathon).catch(() => {});
                 } else {
+                  addHackathon(newHackathon);
                   hackathonApi.create(newHackathon).catch(() => {});
                 }
 
