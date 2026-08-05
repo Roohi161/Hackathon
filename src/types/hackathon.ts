@@ -131,6 +131,7 @@ export interface Hackathon {
   visibility?: HackathonVisibility;
   difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
   category?: string;
+  subcategory?: string;
   timezone?: string;
   language?: string;
   country?: string;

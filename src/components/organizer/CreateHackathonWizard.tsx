@@ -74,6 +74,7 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
   // STEP 2 — Event Details & Timeline State
   const [mode, setMode] = useState<Hackathon['mode']>(initialHackathon?.mode || 'HYBRID');
   const [category, setCategory] = useState(initialHackathon?.category || 'AI & Machine Learning');
+  const [subcategory, setSubcategory] = useState(initialHackathon?.subcategory || '');
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels'>(initialHackathon?.difficulty || 'Intermediate');
   const [timezone, setTimezone] = useState(initialHackathon?.timezone || 'India Standard Time (IST UTC+05:30)');
   const [country, setCountry] = useState(initialHackathon?.country || 'India');
@@ -223,7 +224,8 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
     coverImage,
     status: (initialHackathon?.status || 'PUBLISHED') as any,
     mode,
-    category,
+    category: subcategory.trim() ? `${category} - ${subcategory.trim()}` : category,
+    subcategory,
     difficulty,
     timezone,
     country,
@@ -613,10 +615,10 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                   </div>
                 </div>
 
-                {/* Category & Difficulty */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Category, Subcategory & Difficulty */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">CATEGORY</label>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">MAIN CATEGORY</label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
@@ -629,6 +631,17 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                       <option>Healthcare & Biotech</option>
                       <option>Open Innovation</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">SUBCATEGORY (CUSTOM TEXT)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. LLM Agents / Autonomous Systems"
+                      value={subcategory}
+                      onChange={(e) => setSubcategory(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-500 outline-none"
+                    />
                   </div>
 
                   <div>
