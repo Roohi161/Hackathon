@@ -249,8 +249,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
                     >
                       <option value="participant">Participant</option>
                       <option value="organizer">Organizer</option>
-                      <option value="judge">Judge</option>
-                      <option value="admin">Admin</option>
                     </select>
                   </div>
 

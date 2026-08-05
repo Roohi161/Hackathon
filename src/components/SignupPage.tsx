@@ -155,7 +155,6 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                 >
                   <option value="participant">Participant</option>
                   <option value="organizer">Organizer</option>
-                  <option value="judge">Judge</option>
                 </select>
               </div>
 
