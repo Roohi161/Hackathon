@@ -1395,109 +1395,13 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     </div>
                   </div>
 
-                  {/* SECTION 2: TEAM LEADER DETAILS */}
-                  {(() => {
-                    const lead = Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0
-                      ? selectedMemberDetails.members[0]
-                      : {
-                          name: selectedMemberDetails.groupName?.replace("'s Entry", ''),
-                          email: selectedMemberDetails.leaderEmail,
-                          phone: '+91 9876543210',
-                          organization: 'IIT Madras',
-                          department: 'Computer Science & Engineering',
-                          yearSemester: '4th Year / 8th Sem',
-                          skills: 'React, Node.js, Python, TypeScript',
-                          github: 'https://github.com/lead-dev',
-                          linkedin: 'https://linkedin.com/in/lead-dev',
-                          resumeFileName: 'Team_Lead_Resume.pdf'
-                        };
-
-                    return (
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 pb-1 border-b border-slate-100 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-purple-600" /> 2. Team Leader / Primary Applicant Details
-                        </h4>
-                        <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/90 space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <span className="font-extrabold text-slate-900 text-sm">{lead.name || 'Team Leader'}</span>
-                              <span className="text-xs text-slate-500 block font-medium">Primary Contact Lead</span>
-                            </div>
-                            <span className="px-2.5 py-1 rounded-xl bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100 shadow-2xs">
-                              👑 Team Lead
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
-                            <div>
-                              <span className="text-slate-400 font-bold block">Email:</span>
-                              <span className="text-slate-900 font-semibold">{lead.email || selectedMemberDetails.leaderEmail}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 font-bold block">Phone Number:</span>
-                              <span className="text-slate-900 font-semibold">{lead.phone || '+91 9876543210'}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 font-bold block">College / Organization:</span>
-                              <span className="text-slate-900 font-semibold">{lead.organization || 'IIT Madras'}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 font-bold block">Department / Branch:</span>
-                              <span className="text-slate-900 font-semibold">{lead.department || 'Computer Science & Engineering'}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 font-bold block">Year / Semester:</span>
-                              <span className="text-slate-900 font-semibold">{lead.yearSemester || '4th Year / 8th Sem'}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 font-bold block">Skills / Tech Stack:</span>
-                              <span className="text-indigo-700 font-bold">{lead.skills || 'Full Stack & AI'}</span>
-                            </div>
-                          </div>
-
-                          {/* Links & Resume Action */}
-                          <div className="pt-2 border-t border-indigo-100/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                            <div className="flex flex-wrap items-center gap-3">
-                              {lead.github && (
-                                <a href={lead.github} target="_blank" rel="noreferrer" className="text-indigo-600 font-bold underline hover:text-indigo-800">
-                                  GitHub Profile ↗
-                                </a>
-                              )}
-                              {lead.linkedin && (
-                                <a href={lead.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline hover:text-blue-800">
-                                  LinkedIn Profile ↗
-                                </a>
-                              )}
-                              {lead.portfolio && (
-                                <a href={lead.portfolio} target="_blank" rel="noreferrer" className="text-purple-600 font-bold underline hover:text-purple-800">
-                                  Portfolio Website ↗
-                                </a>
-                              )}
-                            </div>
-
-                            <button
-                              onClick={() => {
-                                const filename = lead.resumeFileName || `${lead.name || 'Leader'}_Resume.pdf`;
-                                alert(`Viewing/Downloading uploaded resume: ${filename}`);
-                              }}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
-                            >
-                              <span>📄 View / Download Resume</span>
-                              {lead.resumeFileName && <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">({lead.resumeFileName})</span>}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* SECTION 3: ALL TEAM MEMBERS (CLICK TO VIEW FULL DETAILS) */}
+                  {/* SECTION 2: ALL REGISTERED TEAM MEMBERS (CLICK ANY MEMBER TO SEE THEIR COMPLETE DETAILS) */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between pb-1 border-b border-slate-100">
                       <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-600" /> 3. All Team Members Roster ({Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1})
+                        <span className="w-2 h-2 rounded-full bg-emerald-600" /> 2. Registered Team Members ({Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1})
                       </h4>
-                      <span className="text-[10px] text-slate-400 font-semibold">Click any member to inspect full profile</span>
+                      <span className="text-[10px] text-indigo-600 font-bold">Click any member to inspect full details</span>
                     </div>
 
                     {/* Member Quick-Selector Buttons */}
