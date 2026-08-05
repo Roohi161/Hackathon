@@ -670,21 +670,22 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                     return (
                       <div className="space-y-4">
-                        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div>
-                            <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">SELECTED EVENT</span>
+                            <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">SELECTED EVENT REGISTRATIONS</span>
                             <h3 className="text-xl font-black text-slate-900">{targetHack?.title || 'Hackathon Registrations'}</h3>
-                            <p className="text-xs font-medium text-slate-500">{filteredRegs.length} Total Teams / Participants Registered</p>
+                            <p className="text-xs font-medium text-slate-500">{filteredRegs.length} Total Registered Applications • {pendingCount} Pending Approval</p>
                           </div>
 
-                          {pendingCount > 0 && (
+                          <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleApproveAllForHackathon(selectedHackathonForReg, targetHack?.title || 'Hackathon')}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors cursor-pointer"
+                              className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-2xl shadow-md shadow-emerald-200 transition-all active:scale-95 cursor-pointer flex items-center gap-2"
                             >
-                              Approve All Pending ({pendingCount})
+                              <span>Accept All / Approve All Registrations</span>
+                              <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px]">{pendingCount > 0 ? pendingCount : 'All'}</span>
                             </button>
-                          )}
+                          </div>
                         </div>
 
                         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -1198,48 +1199,99 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 </div>
 
                 <div className="space-y-4 text-xs">
-                  <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  {/* Summary Attributes */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Team Lead / Participant Email</span>
-                      <span className="font-bold text-slate-900">{selectedMemberDetails.leaderEmail}</span>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">Target Event</span>
+                      <span className="font-bold text-slate-900">{selectedMemberDetails.hackathonTitle || 'Hackathon Event'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Registration Status</span>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">Team Leader Email</span>
+                      <span className="font-bold text-slate-900">{selectedMemberDetails.leaderEmail || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">Registration Code</span>
+                      <span className="font-mono font-bold text-indigo-600">{selectedMemberDetails.code || 'REG-XXXX'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">Submission Date</span>
+                      <span className="font-bold text-slate-900">{selectedMemberDetails.registeredAt || 'Today'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">Group Size</span>
+                      <span className="font-bold text-slate-900">{selectedMemberDetails.groupSize || '1 Member'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">Approval Status</span>
                       <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase inline-block mt-0.5 ${
                         selectedMemberDetails.status === 'APPROVED'
-                          ? 'bg-emerald-100 text-emerald-700'
+                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
                           : selectedMemberDetails.status === 'REJECTED'
-                          ? 'bg-rose-100 text-rose-700'
-                          : 'bg-amber-100 text-amber-700'
+                          ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                          : 'bg-amber-100 text-amber-700 border border-amber-300'
                       }`}>
                         {selectedMemberDetails.status || 'UNDER_REVIEW'}
                       </span>
                     </div>
                   </div>
 
-                  {/* Registered Members Roster */}
+                  {/* Complete Member Profiles Breakdown */}
                   <div className="space-y-3">
-                    <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Registered Team Members & Skills</h4>
+                    <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px] flex items-center justify-between">
+                      <span>Complete Team Roster & Added Registration Profiles</span>
+                      <span className="text-indigo-600">{Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1} Member(s)</span>
+                    </h4>
+
                     {Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0 ? (
                       selectedMemberDetails.members.map((m: any, idx: number) => (
-                        <div key={idx} className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-2">
+                        <div key={idx} className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100/80 space-y-2.5 shadow-2xs">
                           <div className="flex justify-between items-start">
                             <div>
-                              <span className="font-bold text-slate-900 text-sm">{m.name || `Member #${idx + 1}`}</span>
-                              <span className="text-xs text-slate-500 block">{m.email} {m.phone && `• ${m.phone}`}</span>
+                              <span className="font-extrabold text-slate-900 text-sm">{m.name || `Member #${idx + 1}`}</span>
+                              <span className="text-xs text-slate-500 block font-medium">{m.email} {m.phone && `• ${m.phone}`}</span>
                             </div>
-                            <span className="px-2.5 py-1 rounded-lg bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
-                              {m.role || 'Hacker'}
+                            <span className="px-2.5 py-1 rounded-xl bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100 shadow-2xs">
+                              {m.role || (idx === 0 ? 'Team Lead' : 'Hacker')}
                             </span>
                           </div>
-                          {m.organization && <p className="text-slate-600 font-medium">Org/Institution: <strong>{m.organization}</strong></p>}
-                          {m.skills && <p className="text-slate-600 font-medium">Skills: <strong className="text-indigo-600">{m.skills}</strong></p>}
-                          {m.github && <p className="text-slate-500 font-mono text-[11px]">GitHub: <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 underline">{m.github}</a></p>}
-                          {m.resumeFileName && <p className="text-emerald-700 font-bold">📄 Resume Attached: {m.resumeFileName}</p>}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
+                            {m.organization && (
+                              <p className="text-slate-600 font-medium">Institution / Org: <strong className="text-slate-900">{m.organization}</strong></p>
+                            )}
+                            {m.experienceLevel && (
+                              <p className="text-slate-600 font-medium">Experience Level: <strong className="text-slate-900">{m.experienceLevel}</strong></p>
+                            )}
+                            {m.skills && (
+                              <p className="text-slate-600 font-medium sm:col-span-2">Skills & Tech Stack: <strong className="text-indigo-700">{m.skills}</strong></p>
+                            )}
+                            {m.github && (
+                              <p className="text-slate-500 font-mono text-[11px] sm:col-span-2">
+                                GitHub / Portfolio: <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 underline font-bold">{m.github}</a>
+                              </p>
+                            )}
+                            {m.resumeFileName && (
+                              <p className="text-emerald-700 font-bold sm:col-span-2 flex items-center gap-1.5 bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                                <span>📄 Attached Resume / CV:</span>
+                                <span className="underline">{m.resumeFileName}</span>
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-slate-500 italic p-3 bg-slate-50 rounded-xl">No detailed member profile breakdown available.</p>
+                      /* Fallback for single participant entry */
+                      <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100/80 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-extrabold text-slate-900 text-sm">{selectedMemberDetails.groupName}</span>
+                            <span className="text-xs text-slate-500 block font-medium">{selectedMemberDetails.leaderEmail}</span>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-xl bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
+                            Registered Participant
+                          </span>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
