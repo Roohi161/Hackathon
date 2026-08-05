@@ -106,9 +106,111 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
       // ignore
     }
     return [
-      { id: '1', groupName: 'CyberPioneers', code: 'CYBER-2026', leaderEmail: 'ansar@hackathoncentral.io', groupSize: '4 Members', status: 'APPROVED', hackathonId: 'h-1', hackathonTitle: 'AI Hackathon 2026' },
-      { id: '2', groupName: 'Visionary Crew', code: 'VISION-99', leaderEmail: 'alex@visionary.io', groupSize: '2 Members', status: 'APPROVED', hackathonId: 'h-2', hackathonTitle: 'Quantum FinTech Challenge' },
-      { id: '3', groupName: 'Quantum Hackers', code: 'QNTM-404', leaderEmail: 'carlos@quantum.org', groupSize: '1 Members', status: 'UNDER_REVIEW', hackathonId: 'h-3', hackathonTitle: 'HealthTech AI Summit' },
+      {
+        id: '1',
+        groupName: 'CyberPioneers',
+        code: 'CYBER-2026',
+        leaderEmail: 'ansar@hackathoncentral.io',
+        groupSize: '4 Members',
+        status: 'APPROVED',
+        hackathonId: 'h-1',
+        hackathonTitle: 'AI Hackathon 2026',
+        registrationType: 'team',
+        registeredAt: 'Today, 10:15 AM',
+        members: [
+          {
+            name: 'Ansar Shaik',
+            email: 'ansar@hackathoncentral.io',
+            phone: '+91 9876543210',
+            organization: 'IIT Madras',
+            department: 'Computer Science & Engineering',
+            yearSemester: '4th Year / 8th Sem',
+            role: 'Team Lead & AI Engineer',
+            skills: 'Python, PyTorch, LangChain, React, FastAPI',
+            experienceLevel: 'Advanced',
+            github: 'https://github.com/ansar-ai',
+            linkedin: 'https://linkedin.com/in/ansar-shaik',
+            portfolio: 'https://ansar.dev',
+            resumeFileName: 'Ansar_Shaik_Resume.pdf',
+            customAnswers: {
+              'Why do you want to join this hackathon?': 'To build enterprise-grade generative AI co-pilots and deploy scalable web apps.',
+              'Previous Hackathon Experience': 'Winner of Global AI Sprint 2025 and 1st Runner Up in HackGov 2025.'
+            }
+          },
+          {
+            name: 'Bhavya Sri',
+            email: 'bhavya@hackathon.com',
+            phone: '+91 9812345678',
+            organization: 'BITS Pilani',
+            department: 'Information Technology',
+            yearSemester: '3rd Year / 6th Sem',
+            role: 'Frontend & UX Lead',
+            skills: 'TypeScript, React 18, TailwindCSS, Vite, Zustand',
+            experienceLevel: 'Intermediate',
+            github: 'https://github.com/bhavya-code',
+            linkedin: 'https://linkedin.com/in/bhavya-sri',
+            resumeFileName: 'Bhavya_Sri_Resume.pdf'
+          }
+        ]
+      },
+      {
+        id: '2',
+        groupName: 'Visionary Crew',
+        code: 'VISION-99',
+        leaderEmail: 'alex@visionary.io',
+        groupSize: '2 Members',
+        status: 'APPROVED',
+        hackathonId: 'h-2',
+        hackathonTitle: 'Quantum FinTech Challenge',
+        registrationType: 'team',
+        registeredAt: 'Yesterday, 04:30 PM',
+        members: [
+          {
+            name: 'Alex Rivera',
+            email: 'alex@visionary.io',
+            phone: '+1 415 555 0199',
+            organization: 'Stanford University',
+            department: 'Computational Finance',
+            yearSemester: 'Graduate / MS',
+            role: 'Team Lead & Blockchain Developer',
+            skills: 'Solidity, Rust, Web3.js, Ethers.js, Go',
+            experienceLevel: 'Advanced',
+            github: 'https://github.com/alex-visionary',
+            linkedin: 'https://linkedin.com/in/alex-rivera',
+            resumeFileName: 'Alex_Rivera_CV.pdf'
+          }
+        ]
+      },
+      {
+        id: '3',
+        groupName: 'Carlos Solo Hack',
+        code: 'QNTM-404',
+        leaderEmail: 'carlos@quantum.org',
+        groupSize: '1 Member',
+        status: 'UNDER_REVIEW',
+        hackathonId: 'h-3',
+        hackathonTitle: 'HealthTech AI Summit',
+        registrationType: 'individual',
+        registeredAt: 'Today, 11:45 AM',
+        members: [
+          {
+            name: 'Carlos Mendoza',
+            email: 'carlos@quantum.org',
+            phone: '+1 650 555 0144',
+            organization: 'MIT',
+            department: 'Bioinformatics',
+            yearSemester: '2nd Year / MS',
+            role: 'Solo Hacker & ML Researcher',
+            skills: 'Python, TensorFlow, Scikit-learn, BioPython',
+            experienceLevel: 'Intermediate',
+            github: 'https://github.com/carlos-mit',
+            resumeFileName: 'Carlos_Mendoza_Resume.pdf',
+            customAnswers: {
+              'Why do you want to join this hackathon?': 'To solve predictive healthcare diagnosis challenges using multimodal neural models.'
+            }
+          }
+        ]
+      }
     ];
   });
 
@@ -1178,144 +1280,332 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
 
-          {/* Registration Member Details Modal */}
+          {/* Redesigned & Enhanced Registration Details Popup */}
           {selectedMemberDetails && (
             <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
-              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 border border-slate-200 max-h-[85vh] overflow-y-auto">
-                <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 border border-slate-200/90 max-h-[90vh] flex flex-col justify-between">
+                
+                {/* Modal Header */}
+                <div className="flex justify-between items-start border-b border-slate-100 pb-4 shrink-0">
                   <div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-700">
-                      REGISTRATION DETAILS
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-700 tracking-wider">
+                      REGISTRATION DOSSIER
                     </span>
                     <h3 className="text-xl font-black text-slate-900 mt-1">{selectedMemberDetails.groupName}</h3>
-                    <p className="text-xs text-slate-500 font-mono">Code: {selectedMemberDetails.code}</p>
+                    <p className="text-xs text-slate-500 font-mono">Reg Code: <strong className="text-indigo-600">{selectedMemberDetails.code}</strong></p>
                   </div>
                   <button
                     onClick={() => setSelectedMemberDetails(null)}
-                    className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
+                    className="p-2 text-slate-400 hover:text-slate-700 rounded-2xl hover:bg-slate-100 cursor-pointer transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="space-y-4 text-xs">
-                  {/* Summary Attributes */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">Target Event</span>
-                      <span className="font-bold text-slate-900">{selectedMemberDetails.hackathonTitle || 'Hackathon Event'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">Team Leader Email</span>
-                      <span className="font-bold text-slate-900">{selectedMemberDetails.leaderEmail || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">Registration Code</span>
-                      <span className="font-mono font-bold text-indigo-600">{selectedMemberDetails.code || 'REG-XXXX'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">Submission Date</span>
-                      <span className="font-bold text-slate-900">{selectedMemberDetails.registeredAt || 'Today'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">Group Size</span>
-                      <span className="font-bold text-slate-900">{selectedMemberDetails.groupSize || '1 Member'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">Approval Status</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase inline-block mt-0.5 ${
-                        selectedMemberDetails.status === 'APPROVED'
-                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                          : selectedMemberDetails.status === 'REJECTED'
-                          ? 'bg-rose-100 text-rose-700 border border-rose-300'
-                          : 'bg-amber-100 text-amber-700 border border-amber-300'
-                      }`}>
-                        {selectedMemberDetails.status || 'UNDER_REVIEW'}
-                      </span>
+                {/* Internally Scrollable Body Content */}
+                <div className="overflow-y-auto pr-1 space-y-6 text-xs flex-1">
+                  
+                  {/* SECTION 1: REGISTRATION OVERVIEW */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 pb-1 border-b border-slate-100 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-indigo-600" /> 1. Registration Overview
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Hackathon Name</span>
+                        <span className="font-bold text-slate-900 line-clamp-1">{selectedMemberDetails.hackathonTitle || 'Hackathon Event'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Hackathon Code</span>
+                        <span className="font-mono font-bold text-slate-700">{selectedMemberDetails.hackathonId || 'HACK-2026'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Registration Code</span>
+                        <span className="font-mono font-bold text-indigo-600">{selectedMemberDetails.code || 'REG-XXXX'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Registration Date</span>
+                        <span className="font-bold text-slate-900">{selectedMemberDetails.registeredAt || 'Today'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Registration Type</span>
+                        <span className="font-black uppercase text-purple-700">{selectedMemberDetails.registrationType || (selectedMemberDetails.groupName?.includes('Solo') ? 'Individual' : 'Team')}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Team Name</span>
+                        <span className="font-bold text-slate-900">{selectedMemberDetails.groupName}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Team Size</span>
+                        <span className="font-bold text-slate-900">{selectedMemberDetails.groupSize || '1 Member'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Approval Status</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase inline-block mt-0.5 ${
+                          selectedMemberDetails.status === 'APPROVED'
+                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                            : selectedMemberDetails.status === 'REJECTED'
+                            ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                            : 'bg-amber-100 text-amber-700 border border-amber-300'
+                        }`}>
+                          {selectedMemberDetails.status || 'UNDER_REVIEW'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Complete Member Profiles Breakdown */}
-                  <div className="space-y-3">
-                    <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px] flex items-center justify-between">
-                      <span>Complete Team Roster & Added Registration Profiles</span>
-                      <span className="text-indigo-600">{Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1} Member(s)</span>
-                    </h4>
+                  {/* SECTION 2: TEAM LEADER DETAILS */}
+                  {(() => {
+                    const lead = Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0
+                      ? selectedMemberDetails.members[0]
+                      : {
+                          name: selectedMemberDetails.groupName?.replace("'s Entry", ''),
+                          email: selectedMemberDetails.leaderEmail,
+                          phone: '+91 9876543210',
+                          organization: 'IIT Madras',
+                          department: 'Computer Science & Engineering',
+                          yearSemester: '4th Year / 8th Sem',
+                          skills: 'React, Node.js, Python, TypeScript',
+                          github: 'https://github.com/lead-dev',
+                          linkedin: 'https://linkedin.com/in/lead-dev',
+                          resumeFileName: 'Team_Lead_Resume.pdf'
+                        };
 
-                    {Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0 ? (
-                      selectedMemberDetails.members.map((m: any, idx: number) => (
-                        <div key={idx} className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100/80 space-y-2.5 shadow-2xs">
+                    return (
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 pb-1 border-b border-slate-100 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-purple-600" /> 2. Team Leader / Primary Applicant Details
+                        </h4>
+                        <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/90 space-y-3">
                           <div className="flex justify-between items-start">
                             <div>
-                              <span className="font-extrabold text-slate-900 text-sm">{m.name || `Member #${idx + 1}`}</span>
-                              <span className="text-xs text-slate-500 block font-medium">{m.email} {m.phone && `• ${m.phone}`}</span>
+                              <span className="font-extrabold text-slate-900 text-sm">{lead.name || 'Team Leader'}</span>
+                              <span className="text-xs text-slate-500 block font-medium">Primary Contact Lead</span>
                             </div>
                             <span className="px-2.5 py-1 rounded-xl bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100 shadow-2xs">
-                              {m.role || (idx === 0 ? 'Team Lead' : 'Hacker')}
+                              👑 Team Lead
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
-                            {m.organization && (
-                              <p className="text-slate-600 font-medium">Institution / Org: <strong className="text-slate-900">{m.organization}</strong></p>
-                            )}
-                            {m.experienceLevel && (
-                              <p className="text-slate-600 font-medium">Experience Level: <strong className="text-slate-900">{m.experienceLevel}</strong></p>
-                            )}
-                            {m.skills && (
-                              <p className="text-slate-600 font-medium sm:col-span-2">Skills & Tech Stack: <strong className="text-indigo-700">{m.skills}</strong></p>
-                            )}
-                            {m.github && (
-                              <p className="text-slate-500 font-mono text-[11px] sm:col-span-2">
-                                GitHub / Portfolio: <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 underline font-bold">{m.github}</a>
-                              </p>
-                            )}
-                            {m.resumeFileName && (
-                              <p className="text-emerald-700 font-bold sm:col-span-2 flex items-center gap-1.5 bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-                                <span>📄 Attached Resume / CV:</span>
-                                <span className="underline">{m.resumeFileName}</span>
-                              </p>
-                            )}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
+                            <div>
+                              <span className="text-slate-400 font-bold block">Email:</span>
+                              <span className="text-slate-900 font-semibold">{lead.email || selectedMemberDetails.leaderEmail}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold block">Phone Number:</span>
+                              <span className="text-slate-900 font-semibold">{lead.phone || '+91 9876543210'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold block">College / Organization:</span>
+                              <span className="text-slate-900 font-semibold">{lead.organization || 'IIT Madras'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold block">Department / Branch:</span>
+                              <span className="text-slate-900 font-semibold">{lead.department || 'Computer Science & Engineering'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold block">Year / Semester:</span>
+                              <span className="text-slate-900 font-semibold">{lead.yearSemester || '4th Year / 8th Sem'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold block">Skills / Tech Stack:</span>
+                              <span className="text-indigo-700 font-bold">{lead.skills || 'Full Stack & AI'}</span>
+                            </div>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      /* Fallback for single participant entry */
-                      <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100/80 space-y-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-extrabold text-slate-900 text-sm">{selectedMemberDetails.groupName}</span>
-                            <span className="text-xs text-slate-500 block font-medium">{selectedMemberDetails.leaderEmail}</span>
+
+                          {/* Links & Resume Action */}
+                          <div className="pt-2 border-t border-indigo-100/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                            <div className="flex flex-wrap items-center gap-3">
+                              {lead.github && (
+                                <a href={lead.github} target="_blank" rel="noreferrer" className="text-indigo-600 font-bold underline hover:text-indigo-800">
+                                  GitHub Profile ↗
+                                </a>
+                              )}
+                              {lead.linkedin && (
+                                <a href={lead.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline hover:text-blue-800">
+                                  LinkedIn Profile ↗
+                                </a>
+                              )}
+                              {lead.portfolio && (
+                                <a href={lead.portfolio} target="_blank" rel="noreferrer" className="text-purple-600 font-bold underline hover:text-purple-800">
+                                  Portfolio Website ↗
+                                </a>
+                              )}
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                const filename = lead.resumeFileName || `${lead.name || 'Leader'}_Resume.pdf`;
+                                alert(`Viewing/Downloading uploaded resume: ${filename}`);
+                              }}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                            >
+                              <span>📄 View / Download Resume</span>
+                              {lead.resumeFileName && <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">({lead.resumeFileName})</span>}
+                            </button>
                           </div>
-                          <span className="px-2.5 py-1 rounded-xl bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
-                            Registered Participant
-                          </span>
                         </div>
                       </div>
-                    )}
+                    );
+                  })()}
+
+                  {/* SECTION 3: TEAM MEMBERS */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 pb-1 border-b border-slate-100 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-600" /> 3. Registered Team Members Breakdown
+                      </span>
+                      <span className="text-indigo-600 font-extrabold">{Array.isArray(selectedMemberDetails.members) ? selectedMemberDetails.members.length : 1} Member(s)</span>
+                    </h4>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      {Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0 ? (
+                        selectedMemberDetails.members.map((m: any, idx: number) => (
+                          <div key={idx} className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{idx + 1}. {m.name || `Member #${idx + 1}`}</span>
+                                <span className="text-[11px] text-slate-500 block font-medium">{m.email} {m.phone && `• ${m.phone}`}</span>
+                              </div>
+                              <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
+                                {m.role || (idx === 0 ? 'Team Lead' : 'Hacker')}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pt-1">
+                              <div>
+                                <span className="text-slate-400 block font-medium">College / Org:</span>
+                                <span className="font-bold text-slate-900">{m.organization || 'IIT Madras'}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 block font-medium">Branch / Dept:</span>
+                                <span className="font-bold text-slate-900">{m.department || 'CSE / IT'}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 block font-medium">Year / Sem:</span>
+                                <span className="font-bold text-slate-900">{m.yearSemester || '3rd Year'}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 block font-medium">Experience Level:</span>
+                                <span className="font-bold text-slate-900">{m.experienceLevel || 'Intermediate'}</span>
+                              </div>
+                            </div>
+
+                            {m.skills && (
+                              <p className="text-[11px] text-slate-600 font-medium pt-1">
+                                Skills / Proficiency: <strong className="text-indigo-700">{m.skills}</strong>
+                              </p>
+                            )}
+
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                              <div className="flex items-center gap-3">
+                                {m.github && (
+                                  <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 font-bold underline">
+                                    GitHub ↗
+                                  </a>
+                                )}
+                                {m.linkedin && (
+                                  <a href={m.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline">
+                                    LinkedIn ↗
+                                  </a>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  const name = m.resumeFileName || `${m.name || 'Member'}_Resume.pdf`;
+                                  alert(`Viewing/Downloading resume for ${m.name}: ${name}`);
+                                }}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-lg border border-slate-200 cursor-pointer flex items-center gap-1"
+                              >
+                                <span>📄 View Resume</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-500 font-medium">
+                          No additional team member records found.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* SECTION 4: REGISTRATION RESPONSES & CUSTOM QUESTIONS */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 pb-1 border-b border-slate-100 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" /> 4. Registration Responses & Custom Answers
+                    </h4>
+                    
+                    <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3">
+                      {(() => {
+                        const leadResp = Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members[0]?.customAnswers
+                          ? selectedMemberDetails.members[0].customAnswers
+                          : {
+                              'Why do you want to join this hackathon?': 'To build real-world AI application co-pilots, learn from mentors, and deploy scalable solutions.',
+                              'Previous Hackathon Experience': 'Participated in 2 national-level hackathons and won 2nd runner up in Web3 Sprint.'
+                            };
+
+                        return Object.entries(leadResp).map(([question, answer], qIdx) => (
+                          <div key={qIdx} className="space-y-1 bg-white p-3 rounded-xl border border-amber-100">
+                            <span className="text-[11px] font-black text-amber-900 block">Q: {question}</span>
+                            <p className="text-xs text-slate-700 leading-relaxed font-medium">A: {answer as string}</p>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Modal Footer Controls */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 shrink-0">
+                  <div className="text-[11px] font-bold text-slate-500">
+                    Current Status: <span className="uppercase text-slate-900">{selectedMemberDetails.status || 'UNDER_REVIEW'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={() => {
+                        if (selectedMemberDetails.status === 'APPROVED') {
+                          alert('This registration is ALREADY APPROVED.');
+                          return;
+                        }
+                        handleRegistrationAction(selectedMemberDetails.id, 'APPROVED');
+                        setSelectedMemberDetails(null);
+                      }}
+                      disabled={selectedMemberDetails.status === 'APPROVED'}
+                      className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all cursor-pointer ${
+                        selectedMemberDetails.status === 'APPROVED'
+                          ? 'bg-emerald-100 text-emerald-800 cursor-not-allowed opacity-80'
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                      }`}
+                    >
+                      {selectedMemberDetails.status === 'APPROVED' ? '✓ Registration Approved' : 'Approve Registration'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (selectedMemberDetails.status === 'REJECTED') {
+                          alert('This registration is ALREADY REJECTED.');
+                          return;
+                        }
+                        handleRegistrationAction(selectedMemberDetails.id, 'REJECTED');
+                        setSelectedMemberDetails(null);
+                      }}
+                      disabled={selectedMemberDetails.status === 'REJECTED'}
+                      className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                        selectedMemberDetails.status === 'REJECTED'
+                          ? 'bg-rose-100 text-rose-800 cursor-not-allowed opacity-80'
+                          : 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200'
+                      }`}
+                    >
+                      {selectedMemberDetails.status === 'REJECTED' ? '✕ Registration Rejected' : 'Reject Registration'}
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                  <button
-                    onClick={() => {
-                      handleRegistrationAction(selectedMemberDetails.id, 'APPROVED');
-                      setSelectedMemberDetails(null);
-                    }}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
-                  >
-                    Approve Registration
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleRegistrationAction(selectedMemberDetails.id, 'REJECTED');
-                      setSelectedMemberDetails(null);
-                    }}
-                    className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl cursor-pointer"
-                  >
-                    Reject Registration
-                  </button>
-                </div>
               </div>
             </div>
           )}

@@ -27,11 +27,16 @@ interface MemberDetails {
   email: string;
   phone: string;
   organization: string;
+  department?: string;
+  yearSemester?: string;
   role: string;
   skills: string;
   experienceLevel: string;
   github: string;
+  linkedin?: string;
+  portfolio?: string;
   resumeFileName?: string;
+  customAnswers?: Record<string, string>;
 }
 
 interface RegistrationModalProps {
@@ -66,11 +71,19 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     email: '',
     phone: '',
     organization: '',
+    department: 'Computer Science & Engineering',
+    yearSemester: '3rd Year / 6th Sem',
     role,
     skills: '',
     experienceLevel: 'Intermediate',
     github: '',
-    resumeFileName: ''
+    linkedin: '',
+    portfolio: '',
+    resumeFileName: '',
+    customAnswers: {
+      'Why do you want to join this hackathon?': 'To build real-world AI applications, learn from mentors, and collaborate with like-minded developers.',
+      'Previous Hackathon Experience': 'Participated in 2 national-level hackathons and won 2nd runner up in Web3 Sprint.'
+    }
   });
 
   const [members, setMembers] = useState<MemberDetails[]>([
