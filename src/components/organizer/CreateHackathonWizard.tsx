@@ -618,18 +618,19 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                 {/* Category, Subcategory & Difficulty */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className={`text-[10px] font-black uppercase block mb-1.5 ${subcategory.trim() ? 'text-slate-400 opacity-60' : 'text-slate-600'}`}>
-                      MAIN CATEGORY {subcategory.trim() && '(DISABLED - SUBCATEGORY ACTIVE)'}
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">
+                      MAIN CATEGORY
                     </label>
                     <select
                       value={category}
-                      disabled={Boolean(subcategory.trim())}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className={`w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl border outline-none transition-all ${
-                        subcategory.trim()
-                          ? 'bg-slate-100/70 border-slate-200 text-slate-400 cursor-not-allowed opacity-60 select-none'
-                          : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-purple-500'
-                      }`}
+                      onChange={(e) => {
+                        const selectedVal = e.target.value;
+                        setCategory(selectedVal);
+                        if (selectedVal !== 'Custom / Other Subcategory') {
+                          setSubcategory('');
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-purple-500 outline-none"
                     >
                       <option>AI & Machine Learning</option>
                       <option>Web3 & Blockchain</option>
@@ -637,17 +638,25 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                       <option>Smart Cities & GreenTech</option>
                       <option>Healthcare & Biotech</option>
                       <option>Open Innovation</option>
+                      <option value="Custom / Other Subcategory">➕ Custom / Other Subcategory</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">SUBCATEGORY (CUSTOM TEXT)</label>
+                    <label className={`text-[10px] font-black uppercase block mb-1.5 ${category === 'Custom / Other Subcategory' ? 'text-purple-700' : 'text-slate-400 opacity-60'}`}>
+                      SUBCATEGORY (CUSTOM TEXT) {category !== 'Custom / Other Subcategory' && '(DISABLED)'}
+                    </label>
                     <input
                       type="text"
-                      placeholder="e.g. LLM Agents / Autonomous Systems"
+                      placeholder={category === 'Custom / Other Subcategory' ? "Type custom subcategory..." : "Select 'Custom / Other Subcategory' above"}
                       value={subcategory}
+                      disabled={category !== 'Custom / Other Subcategory'}
                       onChange={(e) => setSubcategory(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-500 outline-none"
+                      className={`w-full px-3.5 py-2.5 text-xs font-semibold rounded-2xl border outline-none transition-all ${
+                        category === 'Custom / Other Subcategory'
+                          ? 'bg-purple-50/50 border-purple-300 text-slate-900 focus:bg-white focus:border-purple-600 shadow-2xs'
+                          : 'bg-slate-100/70 border-slate-200 text-slate-400 cursor-not-allowed opacity-60 select-none'
+                      }`}
                     />
                   </div>
 
