@@ -11,6 +11,7 @@ import { useNotificationStore } from '../../stores/notificationStore';
 import { useUIStore } from '../../stores/uiStore';
 
 import { ParticipantBackground } from '../participant/ParticipantBackground';
+import { ErrorBoundary } from '../ui/ErrorBoundary';
 
 export const AppLayout: React.FC = () => {
   const { user, role, logout } = useAuthStore();
@@ -80,10 +81,11 @@ export const AppLayout: React.FC = () => {
           userAvatar={user?.avatar}
           unreadMessagesCount={announcements.length}
         />
-
         {/* Main Content Area */}
         <main className="flex-1 min-w-0 p-2 sm:p-4 lg:p-5">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
 

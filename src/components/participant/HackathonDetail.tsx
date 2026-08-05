@@ -18,6 +18,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useHackathonStore } from '../../stores/hackathonStore';
 import { INITIAL_HACKATHONS } from '../../data/mockData';
 
+import { RegistrationModal } from './RegistrationModal';
+
 interface HackathonDetailProps {
   hackathon?: Hackathon;
   onBack?: () => void;
@@ -36,7 +38,24 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
   const storeHackathons = useHackathonStore((s) => s.hackathons);
   
   const allHackathons = (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
-  const hackathon = (propsHackathon && propsHackathon.id) ? propsHackathon : (allHackathons.find((h: any) => h.id === id) || allHackathons[0]);
+  const hackathon = (propsHackathon && propsHackathon.id) ? propsHackathon : (allHackathons.find((h: any) => h.id === id) || allHackathons[0] || (INITIAL_HACKATHONS[0] as any));
+
+  // Lookup registration status from localStorage
+  const getRegistrationRecord = () => {
+    try {
+      const saved = localStorage.getItem('hc_global_registrations');
+      if (saved) {
+        const list = JSON.parse(saved);
+        return list.find((item: any) => item.hackathonId === hackathon?.id);
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  };
+
+  const regRecord = getRegistrationRecord();
+  const registrationStatus = regRecord?.status || 'APPROVED';
 
   const handleBackAction = () => {
     if (onBack) onBack();
@@ -44,6 +63,9 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
   };
   const [activeTab, setActiveTab] = useState<'overview' | 'problems' | 'rubrics' | 'schedule' | 'rules'>('overview');
   
+  // Registration Modal State
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+
   // Real-time Countdown Timer State
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({
     days: 0,
@@ -51,6 +73,50 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
     minutes: 0,
     seconds: 0
   });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const target = new Date(hackathon?.endDate || Date.now()).getTime();
+      const now = new Date().getTime();
+      const difference = target - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60)
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [hackathon]);
+
+  if (!hackathon) {
+    return (
+      <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <h2 className="text-xl font-bold text-slate-900">Hackathon Not Found</h2>
+        <button
+          onClick={handleBackAction}
+          className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm hover:bg-indigo-700"
+        >
+          Back to Hackathons List
+        </button>
+      </div>
+    );
+  }
+
+  const problemStatementsList = hackathon.problemStatements || [];
+  const prizeBreakdownList = hackathon.prizeBreakdown || hackathon.prizes || [];
+  const tracksList = hackathon.tracks || [];
+  const rubricsList = hackathon.rubrics || [];
+  const scheduleList = hackathon.schedule || [];
+  const rulesList = hackathon.rules || [];
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -144,20 +210,49 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
             </div>
           </div>
 
+          {/* Registration Status Banner if Under Review or Rejected */}
+          {regRecord && (
+            <div className="pt-4 border-t border-slate-100">
+              {registrationStatus === 'APPROVED' && (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span><strong>Registration Approved!</strong> You have full access to problem statements, rubrics, and submission workspace.</span>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-600 text-white">APPROVED</span>
+                </div>
+              )}
+              {registrationStatus === 'UNDER_REVIEW' && (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-amber-600 shrink-0 animate-spin" />
+                    <span><strong>Registration Under Review:</strong> The organizer is reviewing your application. Full problem statements and rubrics will unlock upon approval.</span>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500 text-white">UNDER REVIEW</span>
+                </div>
+              )}
+              {registrationStatus === 'REJECTED' && (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-rose-600 shrink-0" />
+                    <span><strong>Registration Declined:</strong> Your application for this hackathon was not accepted by the organizer.</span>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-rose-600 text-white">REJECTED</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Action CTAs */}
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
             <button
-              onClick={() => onOpenTeamRegistration(hackathon)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              onClick={() => {
+                if (onOpenTeamRegistration) onOpenTeamRegistration(hackathon);
+                setIsRegisterModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
             >
-              <UserPlus className="w-4 h-4" /> Register Team / Join Code
-            </button>
-
-            <button
-              onClick={() => onOpenSubmissionModal(hackathon)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm transition-all transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <Send className="w-4 h-4 text-indigo-600" /> Submit Demo Project
+              <UserPlus className="w-4 h-4" /> {regRecord ? 'Update Registration' : 'Register for Hackathon'}
             </button>
           </div>
         </div>
@@ -183,7 +278,7 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          Problem Statements ({hackathon.problemStatements.length})
+          Problem Statements ({problemStatementsList.length})
         </button>
         <button
           onClick={() => setActiveTab('rubrics')}
@@ -244,11 +339,14 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
                   <Layers className="w-4 h-4 text-indigo-600" /> Tracks & Focus Areas
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {(hackathon.tracks || []).map((t: any, idx: number) => (
-                    <span key={idx} className="px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 shadow-2xs">
-                      {t}
-                    </span>
-                  ))}
+                  {(hackathon.tracks || []).map((t: any, idx: number) => {
+                    const trackName = typeof t === 'string' ? t : (t?.name || 'Track');
+                    return (
+                      <span key={idx} className="px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 shadow-2xs">
+                        {trackName}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -340,6 +438,13 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
           </div>
         )}
       </div>
+
+      {/* Registration Form Step-by-Step Modal */}
+      <RegistrationModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        hackathon={hackathon}
+      />
     </div>
   );
 };

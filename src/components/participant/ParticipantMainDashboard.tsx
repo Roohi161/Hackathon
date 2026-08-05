@@ -46,7 +46,8 @@ export const ParticipantMainDashboard: React.FC<ParticipantMainDashboardProps> =
   const storeHackathons = useHackathonStore((s) => s.hackathons);
 
   const user = propsUser || storeUser || { name: 'User', email: 'user@example.com' };
-  const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
+  const rawHackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons && storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
+  const hackathons = (rawHackathons && rawHackathons.length > 0) ? rawHackathons : (INITIAL_HACKATHONS as any);
   const userName = user?.name || 'User';
   const activeHackathon = hackathons[0];
 

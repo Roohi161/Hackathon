@@ -11,6 +11,24 @@ interface NotificationDrawerProps {
 
 const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
   {
+    id: 'ann-default-0',
+    hackathonId: 'org-h-0',
+    hackathonTitle: 'AI Hackathon 2026',
+    title: '⏰ Submission Deadline Approaching',
+    content: 'Final submission deadline is in 2 hours for AI Hackathon 2026. Make sure your GitHub repository and demo links are attached.',
+    type: 'critical',
+    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString()
+  },
+  {
+    id: 'ann-default-commit-1',
+    hackathonId: 'org-h-0',
+    hackathonTitle: 'AI Hackathon 2026',
+    title: '💻 New Commit Pushed to Project Repo',
+    content: 'Roohi pushed commit 8f2a91b: "feat: add PostgreSQL vector database integration & embeddings API"',
+    type: 'update',
+    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString()
+  },
+  {
     id: 'ann-default-1',
     hackathonId: 'org-h-1',
     hackathonTitle: 'AI Innovation Challenge 2026',
@@ -20,6 +38,15 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
     timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString()
   },
   {
+    id: 'ann-default-commit-2',
+    hackathonId: 'org-h-1',
+    hackathonTitle: 'AI Innovation Challenge 2026',
+    title: '💻 New Commit Pushed to Project Repo',
+    content: 'Ansar pushed commit 3c1d94a: "fix: resolve light/dark contrast and Sora typography hierarchy"',
+    type: 'update',
+    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+  },
+  {
     id: 'ann-default-2',
     hackathonId: 'org-h-2',
     hackathonTitle: 'Web3 & Decentralized Scale-A-Thon',
@@ -27,15 +54,6 @@ const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
     content: 'Senior Web3 architects and AI engineers are available for live 1-on-1 code reviews and pitch debugging.',
     type: 'info',
     timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString()
-  },
-  {
-    id: 'ann-default-3',
-    hackathonId: 'org-h-3',
-    hackathonTitle: 'Smart Cities & GreenTech Sprint',
-    title: '⚡ Rubric Evaluation Weights Synced by Judges',
-    content: 'Code Quality (30%), Innovation (30%), Presentation (20%), and Climate Impact (20%) are now live on leaderboard scoring.',
-    type: 'update',
-    timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString()
   }
 ];
 

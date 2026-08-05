@@ -26,38 +26,22 @@ interface HackathonState {
 const getInitialHackathons = (): Hackathon[] => {
   const initial = INITIAL_HACKATHONS as unknown as Hackathon[];
   try {
-    const stored = localStorage.getItem('hc_organizer_hackathons');
-    if (stored) {
-      const parsed: Hackathon[] = JSON.parse(stored);
-      const map = new Map(initial.map(h => [h.id, h]));
-      parsed.forEach(h => {
-        map.set(h.id, h);
-      });
-      return Array.from(map.values());
+    const savedCreated = localStorage.getItem('hc_created_hackathons');
+    const savedOrganizer = localStorage.getItem('hc_organizer_hackathons');
+    const map = new Map(initial.map(h => [h.id, h]));
+
+    if (savedCreated) {
+      const parsed: Hackathon[] = JSON.parse(savedCreated);
+      if (Array.isArray(parsed)) parsed.forEach(h => map.set(h.id, h));
     }
+    if (savedOrganizer) {
+      const parsed: Hackathon[] = JSON.parse(savedOrganizer);
+      if (Array.isArray(parsed)) parsed.forEach(h => map.set(h.id, h));
+    }
+    return Array.from(map.values());
   } catch {}
   return initial;
 };
-
-interface HackathonState {
-  hackathons: Hackathon[];
-  selectedHackathon: Hackathon | null;
-  isLoading: boolean;
-  searchQuery: string;
-  selectedCategory: string;
-  selectedStatus: string;
-
-  fetchHackathons: () => Promise<void>;
-  setHackathons: (hackathons: Hackathon[]) => void;
-  selectHackathon: (hackathon: Hackathon | null) => void;
-  addHackathon: (hackathon: Hackathon) => void;
-  updateHackathon: (id: string, partial: Partial<Hackathon>) => void;
-  deleteHackathon: (id: string) => void;
-  setSearchQuery: (query: string) => void;
-  setSelectedCategory: (category: string) => void;
-  setSelectedStatus: (status: string) => void;
-  setLoading: (loading: boolean) => void;
-}
 
 export const useHackathonStore = create<HackathonState>((set) => ({
   hackathons: getInitialHackathons(),
@@ -90,24 +74,39 @@ export const useHackathonStore = create<HackathonState>((set) => ({
       const updated = exists
         ? state.hackathons.map(h => h.id === hackathon.id ? { ...h, ...hackathon } : h)
         : [hackathon, ...state.hackathons];
+      try {
+        localStorage.setItem('hc_created_hackathons', JSON.stringify(updated));
+      } catch {}
       return { hackathons: updated };
     }),
   updateHackathon: (id: string, partial: Partial<Hackathon>) =>
-    set((state: HackathonState) => ({
-      hackathons: state.hackathons.map((h: Hackathon) =>
+    set((state: HackathonState) => {
+      const updated = state.hackathons.map((h: Hackathon) =>
         h.id === id ? { ...h, ...partial } : h
-      ),
-      selectedHackathon:
-        state.selectedHackathon?.id === id
-          ? { ...state.selectedHackathon, ...partial }
-          : state.selectedHackathon,
-    })),
+      );
+      try {
+        localStorage.setItem('hc_created_hackathons', JSON.stringify(updated));
+      } catch {}
+      return {
+        hackathons: updated,
+        selectedHackathon:
+          state.selectedHackathon?.id === id
+            ? { ...state.selectedHackathon, ...partial }
+            : state.selectedHackathon,
+      };
+    }),
   deleteHackathon: (id: string) =>
-    set((state: HackathonState) => ({
-      hackathons: state.hackathons.filter((h: Hackathon) => h.id !== id),
-      selectedHackathon:
-        state.selectedHackathon?.id === id ? null : state.selectedHackathon,
-    })),
+    set((state: HackathonState) => {
+      const updated = state.hackathons.filter((h: Hackathon) => h.id !== id);
+      try {
+        localStorage.setItem('hc_created_hackathons', JSON.stringify(updated));
+      } catch {}
+      return {
+        hackathons: updated,
+        selectedHackathon:
+          state.selectedHackathon?.id === id ? null : state.selectedHackathon,
+      };
+    }),
   setSearchQuery: (searchQuery: string) => set({ searchQuery }),
   setSelectedCategory: (selectedCategory: string) => set({ selectedCategory }),
   setSelectedStatus: (selectedStatus: string) => set({ selectedStatus }),

@@ -42,8 +42,21 @@ export const LearningCenterView: React.FC = () => {
   const currentUser = useAuthStore((s) => s.user);
   const currentUserEmail = (currentUser?.email || 'participant@hackathon.com').toLowerCase();
 
-  // Initial Notes State initialized dynamically to ensure user-scoped data for new signed-in participants
+  // Initial Notes State initialized dynamically & persisted per user email in localStorage
   const [notes, setNotes] = useState<NoteItem[]>(() => {
+    const storageKey = `hc_notes_store_${currentUserEmail}`;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+
     const defaultNotes: NoteItem[] = [
       {
         id: 'n-1',
@@ -114,6 +127,16 @@ export const LearningCenterView: React.FC = () => {
 
     return defaultNotes;
   });
+
+  // Save notes to localStorage whenever modified
+  useEffect(() => {
+    const storageKey = `hc_notes_store_${currentUserEmail}`;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(notes));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [notes, currentUserEmail]);
 
   // Selected Team Filter to View Team Notes
   const [selectedTeamFilter, setSelectedTeamFilter] = useState<string>('Alpha Coders');

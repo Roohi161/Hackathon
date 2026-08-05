@@ -104,11 +104,8 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
 
   const growthNavItems: NavItem[] = isParticipant ? [
     { id: 'learning', label: 'Notes', icon: BookOpen },
-    { id: 'certificates', label: 'Certificates', icon: Award },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Medal }
-  ] : [
-    { id: 'leaderboard', label: 'Leaderboard', icon: Medal }
-  ];
+    { id: 'certificates', label: 'Certificates', icon: Award }
+  ] : [];
 
   const commNavItems: NavItem[] = [
     { id: 'messages', label: 'Inbox & Chat', icon: MessageSquare, badge: unreadMessagesCount > 0 ? String(unreadMessagesCount) : undefined },

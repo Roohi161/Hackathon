@@ -31,23 +31,23 @@ export const ProjectWorkspaceView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'github' | 'files' | 'submission'>('overview');
 
   // Core Project & Repository Data
-  const [projectName, setProjectName] = useState('AI Code Studio');
-  const [teamName, setTeamName] = useState('Alpha Coders');
-  const [githubUrl, setGithubUrl] = useState('https://github.com/CyberPioneers/ai-code-studio');
-  const [demoUrl, setDemoUrl] = useState('https://ai-code-studio.dev');
-  const [videoUrl, setVideoUrl] = useState('https://youtube.com/watch?v=demo123');
-  const [techStack, setTechStack] = useState('React, TypeScript, TailwindCSS, Express.js, PostgreSQL, OpenAI API');
-  const [description, setDescription] = useState('Autonomous AI pairing assistant with live sandbox and multi-agent refactoring.');
+  const [projectName, setProjectName] = useState('Antigravity AI Hackathon Platform');
+  const [teamName, setTeamName] = useState('Cyber Pioneers Squad');
+  const [githubUrl, setGithubUrl] = useState('https://github.com/Roohi161/Hackathon');
+  const [demoUrl, setDemoUrl] = useState('https://antigravity-hackathon.vercel.app');
+  const [videoUrl, setVideoUrl] = useState('https://youtube.com/watch?v=demo_video');
+  const [techStack, setTechStack] = useState('React 18, TypeScript, TailwindCSS, Vite, Zustand, Lucide Icons');
+  const [description, setDescription] = useState('A comprehensive real-time hackathon management platform built for modern hackers, hosts, and judges with AI co-pilots and multi-role evaluation suites.');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Repository Metrics
   const [primaryBranch, setPrimaryBranch] = useState('main');
-  const [totalCommits, setTotalCommits] = useState(148);
-  const [filesCount, setFilesCount] = useState(64);
-  const [linesOfCode, setLinesOfCode] = useState(12850);
-  const [openPRs, setOpenPRs] = useState(3);
-  const [openIssues, setOpenIssues] = useState(2);
-  const [lastCommitTime, setLastCommitTime] = useState('12 minutes ago');
+  const [totalCommits, setTotalCommits] = useState(42);
+  const [filesCount, setFilesCount] = useState(38);
+  const [linesOfCode, setLinesOfCode] = useState(8450);
+  const [openPRs, setOpenPRs] = useState(2);
+  const [openIssues, setOpenIssues] = useState(1);
+  const [lastCommitTime, setLastCommitTime] = useState('5 minutes ago');
 
   // Team Contributors
   const contributors = [
@@ -140,14 +140,12 @@ export const ProjectWorkspaceView: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-heading">{projectName}</h1>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-heading">{projectName || 'No Project Connected'}</h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  {teamName}
+                  {teamName || 'Unassigned Team'}
                 </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                  isSubmitted ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-50 text-amber-800 border border-amber-200'
-                }`}>
-                  {isSubmitted ? 'Submitted & Locked' : 'Draft • Ready for Review'}
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  🌐 Public Repository
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-normal mt-0.5">
