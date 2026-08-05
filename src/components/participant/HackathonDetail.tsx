@@ -10,7 +10,8 @@ import {
   Send,
   UserPlus,
   Layers,
-  CheckCircle2
+  CheckCircle2,
+  FolderCode
 } from 'lucide-react';
 import type { Hackathon } from '../../types';
 
@@ -245,12 +246,24 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
 
           {/* Action CTAs */}
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
+            {registrationStatus === 'APPROVED' && (
+              <button
+                onClick={() => {
+                  if (onOpenSubmissionModal) onOpenSubmissionModal(hackathon);
+                  else navigate('/projects');
+                }}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+              >
+                <FolderCode className="w-4 h-4" /> Submit Project / Files
+              </button>
+            )}
+
             <button
               onClick={() => {
                 if (onOpenTeamRegistration) onOpenTeamRegistration(hackathon);
                 setIsRegisterModalOpen(true);
               }}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all active:scale-95 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" /> {regRecord ? 'Update Registration' : 'Register for Hackathon'}
             </button>

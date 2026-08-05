@@ -96,7 +96,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     { id: 'explore', label: 'Discover Hackathons', icon: Compass },
     { id: 'my-hackathons', label: 'My Hackathons', icon: Trophy, badge: '3' },
     { id: 'teams', label: 'Teams Workspace', icon: Users },
-    { id: 'projects', label: 'Project Repos', icon: FolderCode }
+    { id: 'projects', label: 'Submissions', icon: FolderCode }
   ] : [
     { id: 'explore', label: 'Discover Hackathons', icon: Compass },
     { id: 'my-hackathons', label: 'Hosted Hackathons', icon: Trophy },

@@ -92,6 +92,9 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [bannerUrl, setBannerUrl] = useState('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80');
 
   // State for Registrations Management with localStorage sync
+  const [selectedHackathonForReg, setSelectedHackathonForReg] = useState<string | null>(null);
+  const [selectedMemberDetails, setSelectedMemberDetails] = useState<any | null>(null);
+
   const [registrationList, setRegistrationList] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('hc_global_registrations');
@@ -108,6 +111,44 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
       { id: '3', groupName: 'Quantum Hackers', code: 'QNTM-404', leaderEmail: 'carlos@quantum.org', groupSize: '1 Members', status: 'UNDER_REVIEW', hackathonId: 'h-3', hackathonTitle: 'HealthTech AI Summit' },
     ];
   });
+
+  // Bulk Approve All Registrations for a specific Hackathon
+  const handleApproveAllForHackathon = (hackathonId: string, hackathonTitle: string) => {
+    if (!window.confirm(`Are you sure you want to approve ALL pending registrations for "${hackathonTitle}"?`)) {
+      return;
+    }
+
+    setRegistrationList(prev => {
+      const updated = prev.map(item => {
+        if (item.hackathonId === hackathonId || (!item.hackathonId && hackathonId === 'h-1')) {
+          if (item.status === 'UNDER_REVIEW' || !item.status) {
+            return { ...item, status: 'APPROVED' };
+          }
+        }
+        return item;
+      });
+
+      try {
+        localStorage.setItem('hc_global_registrations', JSON.stringify(updated));
+      } catch {}
+
+      // Dispatch announcement notification to participant
+      useNotificationStore.getState().addAnnouncement({
+        id: `ann-${Date.now()}`,
+        hackathonId: hackathonId,
+        hackathonTitle: hackathonTitle,
+        title: `Bulk Registration Approval! 🚀`,
+        content: `All pending registrations for "${hackathonTitle}" have been APPROVED by the organizer. You now have full access to hackathon details and submission portal.`,
+        priority: 'HIGH',
+        createdAt: 'Just now',
+        type: 'update'
+      });
+
+      return updated;
+    });
+
+    notify(`All pending registrations for "${hackathonTitle}" approved successfully!`, 'success');
+  };
 
   // State for Judges
   const [judgeName, setJudgeName] = useState('');
@@ -523,78 +564,200 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
           {/* TAB 4: REGISTRATIONS (Enterprise Developer Registrations Management) */}
           {activeTab === 'registrations' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h2 className="text-2xl font-black text-slate-900">Developer Registrations</h2>
                   <p className="text-xs font-semibold text-slate-500">
-                    Verify team justifications, member profiles, and approve/reject applications
+                    Manage hackathon cards, click counts to inspect team submissions, and perform bulk approvals
                   </p>
                 </div>
-                <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-extrabold text-xs rounded-xl border border-indigo-100">
-                  {registrationList.length} Teams Registered
-                </span>
-              </div>
-
-              <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50/80 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
-                      <tr>
-                        <th className="px-6 py-4">GROUP NAME</th>
-                        <th className="px-6 py-4">GROUP NUMBER/CODE</th>
-                        <th className="px-6 py-4">LEADER EMAIL</th>
-                        <th className="px-6 py-4">GROUP SIZE</th>
-                        <th className="px-6 py-4">STATUS</th>
-                        <th className="px-6 py-4 text-right">ACTIONS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                      {registrationList.map((row) => (
-                        <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-indigo-600" />
-                            <span className="font-bold text-slate-900">{row.groupName}</span>
-                          </td>
-                          <td className="px-6 py-4 text-slate-500 font-mono text-[11px]">{row.code}</td>
-                          <td className="px-6 py-4">{row.leaderEmail}</td>
-                          <td className="px-6 py-4">{row.groupSize}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                              row.status === 'APPROVED'
-                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                                : row.status === 'REJECTED'
-                                ? 'bg-rose-100 text-rose-700 border border-rose-300'
-                                : 'bg-amber-100 text-amber-700 border border-amber-300'
-                            }`}>
-                              {row.status || 'UNDER_REVIEW'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right space-x-1.5">
-                            <button
-                              onClick={() => handleRegistrationAction(row.id, 'APPROVED')}
-                              className="px-2.5 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 cursor-pointer shadow-2xs"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleRegistrationAction(row.id, 'UNDER_REVIEW')}
-                              className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 font-bold text-[11px] rounded-lg cursor-pointer"
-                            >
-                              Review
-                            </button>
-                            <button
-                              onClick={() => handleRegistrationAction(row.id, 'REJECTED')}
-                              className="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 font-bold text-[11px] rounded-lg cursor-pointer"
-                            >
-                              Reject
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="flex items-center gap-2">
+                  {selectedHackathonForReg && (
+                    <button
+                      onClick={() => setSelectedHackathonForReg(null)}
+                      className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                    >
+                      ← Back to All Hackathons
+                    </button>
+                  )}
+                  <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-extrabold text-xs rounded-xl border border-indigo-100">
+                    {registrationList.length} Total Registrations
+                  </span>
                 </div>
               </div>
+
+              {!selectedHackathonForReg ? (
+                /* HACKATHON CARDS GRID FOR REGISTRATIONS */
+                <div className="space-y-4">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-500">Hosted Hackathons Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {hackathons.map((h) => {
+                      const hRegs = registrationList.filter(r => r.hackathonId === h.id || (!r.hackathonId && h.id === 'h-1'));
+                      const totalCount = hRegs.length;
+                      const pendingCount = hRegs.filter(r => r.status === 'UNDER_REVIEW' || !r.status).length;
+                      const approvedCount = hRegs.filter(r => r.status === 'APPROVED').length;
+                      const rejectedCount = hRegs.filter(r => r.status === 'REJECTED').length;
+
+                      return (
+                        <div key={h.id} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start gap-2">
+                              <h4 className="font-black text-slate-900 text-base line-clamp-1">{h.title}</h4>
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-100 text-indigo-700">
+                                {h.status || 'Active'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 line-clamp-2">{h.tagline || h.description || 'Hosted Innovation Hackathon'}</p>
+                          </div>
+
+                          <div className="pt-3 border-t border-slate-100 space-y-3">
+                            <div className="grid grid-cols-4 gap-2 text-center">
+                              <button
+                                onClick={() => setSelectedHackathonForReg(h.id)}
+                                className="p-2 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 transition-colors cursor-pointer border border-indigo-100/60"
+                                title="Click to view full registration list"
+                              >
+                                <span className="text-[9px] font-extrabold uppercase text-slate-400 block">TOTAL</span>
+                                <span className="text-base font-black text-indigo-700 underline decoration-indigo-300">{totalCount}</span>
+                              </button>
+
+                              <div className="p-2 rounded-2xl bg-amber-50 text-amber-800 border border-amber-100/60">
+                                <span className="text-[9px] font-extrabold uppercase text-slate-400 block">PENDING</span>
+                                <span className="text-base font-black text-amber-600">{pendingCount}</span>
+                              </div>
+
+                              <div className="p-2 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100/60">
+                                <span className="text-[9px] font-extrabold uppercase text-slate-400 block">APPROVED</span>
+                                <span className="text-base font-black text-emerald-600">{approvedCount}</span>
+                              </div>
+
+                              <div className="p-2 rounded-2xl bg-rose-50 text-rose-800 border border-rose-100/60">
+                                <span className="text-[9px] font-extrabold uppercase text-slate-400 block">REJECTED</span>
+                                <span className="text-base font-black text-rose-600">{rejectedCount}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-1">
+                              <button
+                                onClick={() => setSelectedHackathonForReg(h.id)}
+                                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer text-center"
+                              >
+                                View Registrations ({totalCount})
+                              </button>
+
+                              {pendingCount > 0 && (
+                                <button
+                                  onClick={() => handleApproveAllForHackathon(h.id, h.title)}
+                                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+                                >
+                                  Approve All ({pendingCount})
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                /* SPECIFIC HACKATHON REGISTRATION TABLE */
+                <div className="space-y-4">
+                  {(() => {
+                    const targetHack = hackathons.find(h => h.id === selectedHackathonForReg);
+                    const filteredRegs = registrationList.filter(r => r.hackathonId === selectedHackathonForReg || (!r.hackathonId && selectedHackathonForReg === 'h-1'));
+                    const pendingCount = filteredRegs.filter(r => r.status === 'UNDER_REVIEW' || !r.status).length;
+
+                    return (
+                      <div className="space-y-4">
+                        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">SELECTED EVENT</span>
+                            <h3 className="text-xl font-black text-slate-900">{targetHack?.title || 'Hackathon Registrations'}</h3>
+                            <p className="text-xs font-medium text-slate-500">{filteredRegs.length} Total Teams / Participants Registered</p>
+                          </div>
+
+                          {pendingCount > 0 && (
+                            <button
+                              onClick={() => handleApproveAllForHackathon(selectedHackathonForReg, targetHack?.title || 'Hackathon')}
+                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors cursor-pointer"
+                            >
+                              Approve All Pending ({pendingCount})
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs">
+                              <thead className="bg-slate-50/80 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
+                                <tr>
+                                  <th className="px-6 py-4">TEAM / PARTICIPANT</th>
+                                  <th className="px-6 py-4">REG CODE</th>
+                                  <th className="px-6 py-4">LEADER CONTACT</th>
+                                  <th className="px-6 py-4">MEMBERS</th>
+                                  <th className="px-6 py-4">STATUS</th>
+                                  <th className="px-6 py-4 text-right">ACTIONS</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                                {filteredRegs.map((row) => (
+                                  <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-indigo-600" />
+                                        <div>
+                                          <span className="font-bold text-slate-900 block">{row.groupName}</span>
+                                          <span className="text-[10px] text-slate-400">{row.registeredAt || 'Today'}</span>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-500 font-mono text-[11px]">{row.code}</td>
+                                    <td className="px-6 py-4">{row.leaderEmail}</td>
+                                    <td className="px-6 py-4">{row.groupSize}</td>
+                                    <td className="px-6 py-4">
+                                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                                        row.status === 'APPROVED'
+                                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                          : row.status === 'REJECTED'
+                                          ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                          : 'bg-amber-100 text-amber-700 border border-amber-300'
+                                      }`}>
+                                        {row.status || 'UNDER_REVIEW'}
+                                      </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right space-x-1.5">
+                                      <button
+                                        onClick={() => setSelectedMemberDetails(row)}
+                                        className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 font-bold text-[11px] rounded-lg cursor-pointer"
+                                      >
+                                        View Details
+                                      </button>
+
+                                      <button
+                                        onClick={() => handleRegistrationAction(row.id, 'APPROVED')}
+                                        className="px-2.5 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 cursor-pointer shadow-2xs"
+                                      >
+                                        Approve
+                                      </button>
+                                      <button
+                                        onClick={() => handleRegistrationAction(row.id, 'REJECTED')}
+                                        className="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 font-bold text-[11px] rounded-lg cursor-pointer"
+                                      >
+                                        Reject
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           )}
 
@@ -1008,6 +1171,97 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     className="px-6 py-2.5 bg-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-purple-700 cursor-pointer"
                   >
                     Save Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Registration Member Details Modal */}
+          {selectedMemberDetails && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 border border-slate-200 max-h-[85vh] overflow-y-auto">
+                <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-700">
+                      REGISTRATION DETAILS
+                    </span>
+                    <h3 className="text-xl font-black text-slate-900 mt-1">{selectedMemberDetails.groupName}</h3>
+                    <p className="text-xs text-slate-500 font-mono">Code: {selectedMemberDetails.code}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedMemberDetails(null)}
+                    className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs">
+                  <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Team Lead / Participant Email</span>
+                      <span className="font-bold text-slate-900">{selectedMemberDetails.leaderEmail}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Registration Status</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase inline-block mt-0.5 ${
+                        selectedMemberDetails.status === 'APPROVED'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : selectedMemberDetails.status === 'REJECTED'
+                          ? 'bg-rose-100 text-rose-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {selectedMemberDetails.status || 'UNDER_REVIEW'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Registered Members Roster */}
+                  <div className="space-y-3">
+                    <h4 className="font-black text-slate-900 uppercase tracking-wider text-[11px]">Registered Team Members & Skills</h4>
+                    {Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0 ? (
+                      selectedMemberDetails.members.map((m: any, idx: number) => (
+                        <div key={idx} className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="font-bold text-slate-900 text-sm">{m.name || `Member #${idx + 1}`}</span>
+                              <span className="text-xs text-slate-500 block">{m.email} {m.phone && `• ${m.phone}`}</span>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-lg bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
+                              {m.role || 'Hacker'}
+                            </span>
+                          </div>
+                          {m.organization && <p className="text-slate-600 font-medium">Org/Institution: <strong>{m.organization}</strong></p>}
+                          {m.skills && <p className="text-slate-600 font-medium">Skills: <strong className="text-indigo-600">{m.skills}</strong></p>}
+                          {m.github && <p className="text-slate-500 font-mono text-[11px]">GitHub: <a href={m.github} target="_blank" rel="noreferrer" className="text-indigo-600 underline">{m.github}</a></p>}
+                          {m.resumeFileName && <p className="text-emerald-700 font-bold">📄 Resume Attached: {m.resumeFileName}</p>}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-slate-500 italic p-3 bg-slate-50 rounded-xl">No detailed member profile breakdown available.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      handleRegistrationAction(selectedMemberDetails.id, 'APPROVED');
+                      setSelectedMemberDetails(null);
+                    }}
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
+                  >
+                    Approve Registration
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleRegistrationAction(selectedMemberDetails.id, 'REJECTED');
+                      setSelectedMemberDetails(null);
+                    }}
+                    className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl cursor-pointer"
+                  >
+                    Reject Registration
                   </button>
                 </div>
               </div>
