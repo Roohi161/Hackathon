@@ -618,11 +618,18 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                 {/* Category, Subcategory & Difficulty */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">MAIN CATEGORY</label>
+                    <label className={`text-[10px] font-black uppercase block mb-1.5 ${subcategory.trim() ? 'text-slate-400 opacity-60' : 'text-slate-600'}`}>
+                      MAIN CATEGORY {subcategory.trim() && '(DISABLED - SUBCATEGORY ACTIVE)'}
+                    </label>
                     <select
                       value={category}
+                      disabled={Boolean(subcategory.trim())}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl bg-slate-50 border border-slate-200 outline-none"
+                      className={`w-full px-3.5 py-2.5 text-xs font-bold rounded-2xl border outline-none transition-all ${
+                        subcategory.trim()
+                          ? 'bg-slate-100/70 border-slate-200 text-slate-400 cursor-not-allowed opacity-60 select-none'
+                          : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-purple-500'
+                      }`}
                     >
                       <option>AI & Machine Learning</option>
                       <option>Web3 & Blockchain</option>
