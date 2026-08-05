@@ -15,18 +15,32 @@ interface LoginPageProps {
   onLogin?: (role: UserRole, user: LoginUser) => void;
   onBack?: () => void;
   onSwitchToSignup?: () => void;
+  targetRole?: 'PARTICIPANT' | 'ORGANIZER' | 'JUDGE' | 'ADMIN';
+  title?: string;
+  subtitle?: string;
+  badgeText?: string;
+  accentColor?: string;
 }
 
 type AuthView = 'login' | 'forgot_email' | 'forgot_otp' | 'forgot_new' | 'success';
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchToSignup }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ 
+  onLogin, 
+  onBack, 
+  onSwitchToSignup,
+  targetRole,
+  title = 'Sign In',
+  subtitle = 'Sign in with your credentials or demo accounts',
+  badgeText,
+  accentColor
+}) => {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [view, setView] = useState<AuthView>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<string>('participant');
+  const [role, setRole] = useState<string>(targetRole ? targetRole.toLowerCase() : 'participant');
 
   // Forgot password specific state
   const [otp, setOtp] = useState('');
@@ -234,23 +248,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSwitchT
             {/* View: Login */}
             {view === 'login' && (
               <>
-                <div className="text-center">
-                  <h3 className="font-bold text-slate-900 text-2xl">Sign In</h3>
-                  <p className="text-sm text-slate-500 mt-2">Sign in with your credentials or demo accounts</p>
+                <div className="text-center space-y-1">
+                  {badgeText && (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-700 inline-block mb-1">
+                      {badgeText}
+                    </span>
+                  )}
+                  <h3 className="font-bold text-slate-900 text-2xl">{title}</h3>
+                  <p className="text-sm text-slate-500">{subtitle}</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">Role</label>
-                    <select 
-                      value={role} 
-                      onChange={(e) => setRole(e.target.value as UserRole)}
-                      className="w-full px-4 py-2.5 text-sm rounded-xl bg-white border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="participant">Participant</option>
-                      <option value="organizer">Organizer</option>
-                    </select>
-                  </div>
+                  {!targetRole && (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1.5">Role</label>
+                      <select 
+                        value={role} 
+                        onChange={(e) => setRole(e.target.value as UserRole)}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl bg-white border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="participant">Participant</option>
+                        <option value="organizer">Organizer</option>
+                      </select>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">Email</label>

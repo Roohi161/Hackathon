@@ -62,15 +62,14 @@ export const LandingFooter = () => {
             </ul>
           </div>
 
-          {/* Column 3: Company */}
+          {/* Column 3: Portals & Company */}
           <div>
-            <h3 className="text-white font-bold mb-6">Company</h3>
-            <ul className="space-y-4">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Press Kit</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+            <h3 className="text-white font-bold mb-6">Module Portals</h3>
+            <ul className="space-y-4 text-sm">
+              <li><a href="/organizer/login" className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors flex items-center gap-1.5">🏢 Organizer Portal</a></li>
+              <li><a href="/judge/login" className="text-purple-400 font-semibold hover:text-purple-300 transition-colors flex items-center gap-1.5">⚖️ Judge Portal</a></li>
+              <li><a href="/admin/login" className="text-rose-400 font-semibold hover:text-rose-300 transition-colors flex items-center gap-1.5">🛡️ Admin Portal</a></li>
+              <li><a href="/login" className="text-gray-400 hover:text-white transition-colors">Participant Sign In</a></li>
             </ul>
           </div>
 

@@ -10,6 +10,10 @@ import { Spinner } from '../components/ui/Spinner';
 const LandingPage = lazy(() => import('../components/LandingPage').then(m => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('../components/LoginPage').then(m => ({ default: m.LoginPage })));
 const SignupPage = lazy(() => import('../components/SignupPage').then(m => ({ default: m.SignupPage })));
+const OrganizerLoginPage = lazy(() => import('../components/auth/OrganizerLoginPage').then(m => ({ default: m.OrganizerLoginPage })));
+const JudgeLoginPage = lazy(() => import('../components/auth/JudgeLoginPage').then(m => ({ default: m.JudgeLoginPage })));
+const AdminLoginPage = lazy(() => import('../components/auth/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })));
+
 const AboutPage = lazy(() => import('../components/landing/AboutPage').then(m => ({ default: m.AboutPage })));
 const ContactPage = lazy(() => import('../components/landing/ContactPage').then(m => ({ default: m.ContactPage })));
 
@@ -84,6 +88,9 @@ export const AppRouter: React.FC = () => {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage onLogin={() => {}} />} />
           <Route path="/login" element={<LoginPage onLogin={() => {}} />} />
+          <Route path="/organizer/login" element={<OrganizerLoginPage />} />
+          <Route path="/judge/login" element={<JudgeLoginPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/signup" element={<SignupPage onSignup={() => {}} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
