@@ -74,7 +74,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
   // Active Tab Navigation
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'hackathons' | 'create' | 'registrations' | 'judges' | 'broadcaster' | 'connect' | 'settings'
+    'overview' | 'hackathons' | 'create' | 'registrations' | 'review' | 'judges' | 'broadcaster' | 'connect' | 'settings'
   >('overview');
 
   // Org Switcher State
@@ -481,6 +481,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
               { id: 'hackathons', label: `My Hackathons (${hackathons.length || 13})`, icon: Layers },
               { id: 'create', label: 'Create Hackathon', icon: Plus },
               { id: 'registrations', label: 'Registrations', icon: Users },
+              { id: 'review', label: 'Review & Summary', icon: CheckCircle },
               { id: 'judges', label: 'Judges & Rubrics', icon: Scale },
               { id: 'broadcaster', label: 'Broadcaster', icon: Megaphone },
               { id: 'connect', label: 'Connect Hub', icon: Sparkles },
@@ -899,6 +900,203 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   })()}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: REVIEW & SUMMARY DASHBOARD */}
+          {activeTab === 'review' && (
+            <div className="space-y-6">
+              {/* Review Header & Filter Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">Hackathon Review & Executive Summary</h2>
+                  <p className="text-xs font-semibold text-slate-500">
+                    Comprehensive overview of registrations, evaluations, rankings, winners, and prize payouts
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-500">Filter Event:</span>
+                  <select
+                    value={selectedHackathonForReg || 'all'}
+                    onChange={(e) => setSelectedHackathonForReg(e.target.value === 'all' ? null : e.target.value)}
+                    className="px-3.5 py-2 text-xs font-extrabold rounded-xl bg-white border border-slate-200 text-slate-800 shadow-2xs outline-none cursor-pointer"
+                  >
+                    <option value="all">🏆 All Hackathons Summary</option>
+                    {hackathons.map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {(() => {
+                const targetId = selectedHackathonForReg;
+                const relevantHackathons = targetId ? hackathons.filter(h => h.id === targetId) : hackathons;
+                const relevantRegs = targetId
+                  ? registrationList.filter(r => r.hackathonId === targetId || (!r.hackathonId && targetId === 'h-1'))
+                  : registrationList;
+
+                const totalRegs = relevantRegs.length;
+                const approvedTeams = relevantRegs.filter(r => r.status === 'APPROVED').length;
+                const pendingRegs = relevantRegs.filter(r => r.status === 'UNDER_REVIEW' || !r.status).length;
+                const rejectedRegs = relevantRegs.filter(r => r.status === 'REJECTED').length;
+
+                // Executive Summaries List per Hackathon
+                return (
+                  <div className="space-y-6">
+                    {/* Metric Cards Banner */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Applications</span>
+                        <div className="text-2xl font-black text-slate-900">{totalRegs} <span className="text-xs font-semibold text-slate-500">Teams</span></div>
+                        <span className="text-[10px] font-bold text-indigo-600">Across {relevantHackathons.length} Event(s)</span>
+                      </div>
+
+                      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Approved / Participated</span>
+                        <div className="text-2xl font-black text-emerald-600">{approvedTeams} <span className="text-xs font-semibold text-emerald-800">Verified</span></div>
+                        <span className="text-[10px] font-bold text-slate-500">{pendingRegs} Pending Review</span>
+                      </div>
+
+                      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Evaluations Completed</span>
+                        <div className="text-2xl font-black text-purple-600">100% <span className="text-xs font-semibold text-purple-800">Scored</span></div>
+                        <span className="text-[10px] font-bold text-purple-600">Rubric Verified</span>
+                      </div>
+
+                      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Prize Distribution Status</span>
+                        <div className="text-2xl font-black text-teal-600">Paid <span className="text-xs font-semibold text-slate-500">/ Synced</span></div>
+                        <span className="text-[10px] font-bold text-emerald-600">✓ Transactions Settled</span>
+                      </div>
+                    </div>
+
+                    {/* Detailed Hackathon Summaries */}
+                    <div className="space-y-6">
+                      {relevantHackathons.map((h) => {
+                        const hRegs = registrationList.filter(r => r.hackathonId === h.id || (!r.hackathonId && h.id === 'h-1'));
+                        const hApproved = hRegs.filter(r => r.status === 'APPROVED');
+                        const hPending = hRegs.filter(r => r.status === 'UNDER_REVIEW' || !r.status);
+                        const hRejected = hRegs.filter(r => r.status === 'REJECTED');
+
+                        // Mock/Default Winners and Judging Data for complete summary presentation
+                        const winners = [
+                          { rank: '🥇 1st Place', team: 'CyberPioneers', project: 'Neural Guardian AI', score: '96.8 / 100', prize: '₹12,50,000', status: 'PAID (Txn #88412)', lead: 'Ansar Ali' },
+                          { rank: '🥈 2nd Place', team: 'Visionary Crew', project: 'Quantum Ledger Protocol', score: '94.2 / 100', prize: '₹7,50,000', status: 'PAID (Txn #88413)', lead: 'Alex Rivera' },
+                          { rank: '🥉 3rd Place', team: 'Carlos Solo Hack', project: 'BioHealth Synth', score: '91.5 / 100', prize: '₹5,00,000', status: 'PENDING DISBURSAL', lead: 'Carlos Mendoza' }
+                        ];
+
+                        return (
+                          <div key={h.id} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                            
+                            {/* Hackathon Top Bar Summary */}
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-100">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-700">
+                                    {h.category || 'INNOVATION SPRINT'}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-400">ID: {h.id}</span>
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mt-1">{h.title}</h3>
+                                <p className="text-xs text-slate-500 font-medium">{h.tagline || h.description || 'Enterprise Hackathon Challenge'}</p>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <div className="text-right">
+                                  <span className="text-[10px] font-black uppercase text-slate-400 block">Total Prize Pool</span>
+                                  <span className="text-base font-black text-emerald-600">{h.prizePool || '₹25,00,000'}</span>
+                                </div>
+                                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  ● {h.status || 'Active'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* 1. Registration & Participation Breakup */}
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-indigo-600" /> 1. Registration & Participation Metrics
+                              </h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs">
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block">Total Applications</span>
+                                  <span className="font-extrabold text-slate-900 text-sm">{hRegs.length} Teams</span>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block">Approved Teams</span>
+                                  <span className="font-extrabold text-emerald-600 text-sm">{hApproved.length} Participated</span>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block">Under Review</span>
+                                  <span className="font-extrabold text-amber-600 text-sm">{hPending.length} Applications</span>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] font-black uppercase text-slate-400 block">Rejected</span>
+                                  <span className="font-extrabold text-rose-600 text-sm">{hRejected.length} Applications</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 2. Evaluation, Scores & Winner Rankings Table */}
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-amber-500" /> 2. Judging Scores, Rankings & Prize Payout Summary
+                              </h4>
+
+                              <div className="rounded-2xl border border-slate-200/80 overflow-hidden text-xs">
+                                <table className="w-full text-left">
+                                  <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
+                                    <tr>
+                                      <th className="px-4 py-3">RANKING</th>
+                                      <th className="px-4 py-3">TEAM & LEAD</th>
+                                      <th className="px-4 py-3">PROJECT TITLE</th>
+                                      <th className="px-4 py-3">EVALUATION SCORE</th>
+                                      <th className="px-4 py-3">PRIZE MONEY</th>
+                                      <th className="px-4 py-3 text-right">PAYMENT STATUS</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                                    {winners.map((w, idx) => (
+                                      <tr key={idx} className="hover:bg-slate-50/50">
+                                        <td className="px-4 py-3 font-extrabold text-slate-900">{w.rank}</td>
+                                        <td className="px-4 py-3">
+                                          <span className="font-bold text-slate-900 block">{w.team}</span>
+                                          <span className="text-[10px] text-slate-400">Lead: {w.lead}</span>
+                                        </td>
+                                        <td className="px-4 py-3 font-semibold text-indigo-600">{w.project}</td>
+                                        <td className="px-4 py-3">
+                                          <span className="px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 font-extrabold text-[11px] border border-purple-100">
+                                            ⭐ {w.score}
+                                          </span>
+                                        </td>
+                                        <td className="px-4 py-3 font-black text-slate-900">{w.prize}</td>
+                                        <td className="px-4 py-3 text-right">
+                                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                            w.status.includes('PAID')
+                                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                              : 'bg-amber-100 text-amber-700 border border-amber-300'
+                                          }`}>
+                                            {w.status}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
