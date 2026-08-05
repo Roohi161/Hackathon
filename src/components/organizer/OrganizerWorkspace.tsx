@@ -520,7 +520,30 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       organizerVerified: true,
                       participantsCount: 1,
                       teamsCount: 1,
-                      category: 'AI & Web3'
+                      category: 'AI & Web3',
+                      tracks: ['AI & Neural Networks', 'Web3 Protocols', 'Cloud Architecture'],
+                      problemStatements: [
+                        {
+                          id: `ps-${Date.now()}-1`,
+                          title: 'Autonomous Multi-Agent Task Orchestration',
+                          description: 'Build intelligent LLM agents capable of handling complex asynchronous coding workflows.',
+                          track: 'AI & Neural Networks',
+                          difficulty: 'Advanced'
+                        }
+                      ],
+                      rubrics: [
+                        { id: `rub-${Date.now()}-1`, name: 'Technical Execution', weight: 40, description: 'Code quality, architecture & test coverage' },
+                        { id: `rub-${Date.now()}-2`, name: 'Innovation & Impact', weight: 30, description: 'Originality of solution & market viability' },
+                        { id: `rub-${Date.now()}-3`, name: 'UI/UX Design', weight: 30, description: 'Interface polish and ease of interaction' }
+                      ],
+                      schedule: [
+                        { title: 'Kickoff & Opening Ceremony', time: 'Aug 05, 10:00 AM IST', description: 'Platform walkthrough & track announcements' },
+                        { title: 'Submission Deadline & Judging', time: 'Aug 10, 06:00 PM IST', description: 'Projects locked and sent to evaluation panel' }
+                      ],
+                      rules: [
+                        'All submitted code must be developed during the hackathon period.',
+                        'Teams must upload public GitHub repository links with proper documentation.'
+                      ]
                     };
 
                     addHackathon(newCreatedHackathon);
