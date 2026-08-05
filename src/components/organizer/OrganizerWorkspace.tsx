@@ -448,7 +448,40 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     <p className="text-xs text-slate-500 line-clamp-2">{h.description || h.tagline || 'No description available'}</p>
                     <div className="flex items-center justify-between text-xs font-bold text-slate-600 pt-2 border-t border-slate-100">
                       <span>Prize: {h.prizePool || '₹10,00,000'}</span>
-                      <span>Max Team: {h.maxTeamSize || 4}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingHackathonId(h.id);
+                            setActiveTab('create');
+                          }}
+                          className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete "${h.title}"?`)) {
+                              setOrganizerHackathons(prev => {
+                                const updated = prev.filter(item => item.id !== h.id);
+                                try {
+                                  localStorage.setItem('hc_organizer_hackathons', JSON.stringify(updated));
+                                } catch {}
+                                return updated;
+                              });
+                              useHackathonStore.getState().deleteHackathon(h.id);
+                              hackathonApi.delete(h.id).catch(() => {});
+                              addToast({
+                                title: 'Hackathon Deleted',
+                                message: `"${h.title}" was removed.`,
+                                type: 'info'
+                              });
+                            }
+                          }}
+                          className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

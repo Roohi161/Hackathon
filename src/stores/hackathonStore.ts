@@ -86,6 +86,7 @@ export const useHackathonStore = create<HackathonState>((set) => ({
       );
       try {
         localStorage.setItem('hc_created_hackathons', JSON.stringify(updated));
+        localStorage.setItem('hc_organizer_hackathons', JSON.stringify(updated));
       } catch {}
       return {
         hackathons: updated,
@@ -100,6 +101,7 @@ export const useHackathonStore = create<HackathonState>((set) => ({
       const updated = state.hackathons.filter((h: Hackathon) => h.id !== id);
       try {
         localStorage.setItem('hc_created_hackathons', JSON.stringify(updated));
+        localStorage.setItem('hc_organizer_hackathons', JSON.stringify(updated));
       } catch {}
       return {
         hackathons: updated,
