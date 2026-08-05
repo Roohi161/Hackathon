@@ -846,7 +846,19 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                                     </td>
                                     <td className="px-6 py-4 text-slate-500 font-mono text-[11px]">{row.code}</td>
                                     <td className="px-6 py-4">{row.leaderEmail}</td>
-                                    <td className="px-6 py-4">{row.groupSize}</td>
+                                    <td className="px-6 py-4">
+                                      <button
+                                        onClick={() => {
+                                          setSelectedMemberDetails(row);
+                                          setExpandedMemberIdx(null);
+                                        }}
+                                        className="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-[11px] border border-indigo-100 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                                        title="Click to view all team members and their full details"
+                                      >
+                                        <span>👥 {row.groupSize || '1 Member'}</span>
+                                        <span className="text-[9px] bg-indigo-200/60 px-1 py-0.2 rounded text-indigo-900">View All ↗</span>
+                                      </button>
+                                    </td>
                                     <td className="px-6 py-4">
                                       <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
                                         row.status === 'APPROVED'
