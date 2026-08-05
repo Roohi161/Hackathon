@@ -819,83 +819,80 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           </div>
                         </div>
 
-                        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs">
-                              <thead className="bg-slate-50/80 text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
-                                <tr>
-                                  <th className="px-6 py-4">TEAM / PARTICIPANT</th>
-                                  <th className="px-6 py-4">REG CODE</th>
-                                  <th className="px-6 py-4">LEADER CONTACT</th>
-                                  <th className="px-6 py-4">MEMBERS</th>
-                                  <th className="px-6 py-4">STATUS</th>
-                                  <th className="px-6 py-4 text-right">ACTIONS</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                                {filteredRegs.map((row) => (
-                                  <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                      <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-indigo-600" />
-                                        <div>
-                                          <span className="font-bold text-slate-900 block">{row.groupName}</span>
-                                          <span className="text-[10px] text-slate-400">{row.registeredAt || 'Today'}</span>
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-500 font-mono text-[11px]">{row.code}</td>
-                                    <td className="px-6 py-4">{row.leaderEmail}</td>
-                                    <td className="px-6 py-4">
-                                      <button
-                                        onClick={() => {
-                                          setSelectedMemberDetails(row);
-                                          setExpandedMemberIdx(null);
-                                        }}
-                                        className="px-2.5 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-[11px] border border-indigo-100 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-                                        title="Click to view all team members and their full details"
-                                      >
-                                        <span>👥 {row.groupSize || '1 Member'}</span>
-                                        <span className="text-[9px] bg-indigo-200/60 px-1 py-0.2 rounded text-indigo-900">View All ↗</span>
-                                      </button>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                                        row.status === 'APPROVED'
-                                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                                          : row.status === 'REJECTED'
-                                          ? 'bg-rose-100 text-rose-700 border border-rose-300'
-                                          : 'bg-amber-100 text-amber-700 border border-amber-300'
-                                      }`}>
-                                        {row.status || 'UNDER_REVIEW'}
-                                      </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right space-x-1.5">
-                                      <button
-                                        onClick={() => setSelectedMemberDetails(row)}
-                                        className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 font-bold text-[11px] rounded-lg cursor-pointer"
-                                      >
-                                        View Details
-                                      </button>
+                        {/* Registered Team Cards with Brief Info and Individual Member Name Pills */}
+                        <div className="space-y-4">
+                          {filteredRegs.map((row) => {
+                            const membersList = Array.isArray(row.members) && row.members.length > 0
+                              ? row.members
+                              : [
+                                  { name: row.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: row.leaderEmail },
+                                  { name: 'Rohan Verma', role: 'Frontend Lead', email: 'rohan@example.com' },
+                                  { name: 'Priya Sharma', role: 'AI Researcher', email: 'priya@example.com' },
+                                  { name: 'Amit Patel', role: 'Backend Engineer', email: 'amit@example.com' },
+                                ];
 
-                                      <button
-                                        onClick={() => handleRegistrationAction(row.id, 'APPROVED')}
-                                        className="px-2.5 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 cursor-pointer shadow-2xs"
-                                      >
-                                        Approve
-                                      </button>
-                                      <button
-                                        onClick={() => handleRegistrationAction(row.id, 'REJECTED')}
-                                        className="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 font-bold text-[11px] rounded-lg cursor-pointer"
-                                      >
-                                        Reject
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
+                            return (
+                              <div key={row.id} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:border-indigo-200 transition-all space-y-4">
+                                {/* Overall Team Brief Header */}
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                                      <h4 className="font-black text-slate-900 text-lg">{row.groupName}</h4>
+                                      <span className="text-xs text-slate-400 font-mono">({row.code})</span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 font-semibold">
+                                      <span>👥 Team Size: <strong>{row.groupSize || `${membersList.length} Members`}</strong></span>
+                                      <span>📅 Registered: <strong>{row.registeredAt || 'Today'}</strong></span>
+                                      <span>📧 Lead Email: <strong>{row.leaderEmail}</strong></span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-3">
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                                      row.status === 'APPROVED'
+                                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                        : row.status === 'REJECTED'
+                                        ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                        : 'bg-amber-100 text-amber-700 border border-amber-300'
+                                    }`}>
+                                      {row.status || 'UNDER_REVIEW'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Individual Members Names List */}
+                                <div className="space-y-2">
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Registered Team Members ({membersList.length}):</span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    {membersList.map((m: any, mIdx: number) => (
+                                      <div key={mIdx} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2 hover:bg-indigo-50/50 transition-colors">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-black text-[10px] flex items-center justify-center shrink-0">
+                                            {mIdx === 0 ? '👑' : mIdx + 1}
+                                          </span>
+                                          <div className="min-w-0">
+                                            <span className="font-extrabold text-slate-900 text-xs block truncate">{m.name || `Member #${mIdx + 1}`}</span>
+                                            <span className="text-[10px] text-slate-400 font-medium block truncate">{m.role || (mIdx === 0 ? 'Team Lead' : 'Hacker')}</span>
+                                          </div>
+                                        </div>
+
+                                        <button
+                                          onClick={() => {
+                                            setSelectedMemberDetails({ ...row, members: membersList });
+                                            setExpandedMemberIdx(mIdx);
+                                          }}
+                                          className="px-3 py-1 bg-white hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600 font-bold text-[10px] rounded-xl transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                                        >
+                                          View Details ↗
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -1321,16 +1318,16 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
 
-          {/* STEP 3: DETAILS POPUP (TEAM LEAD DETAILS ONLY & APPROVE / REJECT) */}
+          {/* STEP 3: DETAILS POPUP (ALL MEMBERS DETAILS WITH ACTIVE SELECTOR TABS & APPROVE/REJECT) */}
           {selectedMemberDetails && (
             <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 border border-slate-200/90 max-h-[90vh] overflow-y-auto">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 border border-slate-200/90 max-h-[90vh] overflow-y-auto">
                 
                 {/* Header */}
                 <div className="flex justify-between items-start border-b border-slate-100 pb-4">
                   <div>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-700">
-                      REGISTRATION DETAILS
+                      REGISTRATION DETAILS DOSSIER
                     </span>
                     <h3 className="text-xl font-black text-slate-900 mt-1">{selectedMemberDetails.groupName}</h3>
                     <p className="text-xs text-slate-500 font-mono">Code: {selectedMemberDetails.code}</p>
@@ -1343,67 +1340,95 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   </button>
                 </div>
 
-                {/* Team Lead Details */}
+                {/* Member Selector Tabs */}
                 {(() => {
-                  const lead = Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0
-                    ? selectedMemberDetails.members[0]
-                    : {
-                        name: selectedMemberDetails.groupName?.replace("'s Entry", ''),
-                        email: selectedMemberDetails.leaderEmail,
-                        phone: '+91 9876543210',
-                        organization: 'IIT Madras',
-                        department: 'Computer Science & Engineering',
-                        yearSemester: '4th Year / 8th Sem',
-                        skills: 'React, Node.js, Python, TypeScript',
-                        resumeFileName: 'Team_Lead_Resume.pdf'
-                      };
+                  const membersList = Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0
+                    ? selectedMemberDetails.members
+                    : [
+                        { name: selectedMemberDetails.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: selectedMemberDetails.leaderEmail },
+                        { name: 'Rohan Verma', role: 'Frontend Lead', email: 'rohan@example.com' },
+                        { name: 'Priya Sharma', role: 'AI Researcher', email: 'priya@example.com' },
+                        { name: 'Amit Patel', role: 'Backend Engineer', email: 'amit@example.com' },
+                      ];
+
+                  const activeIdx = expandedMemberIdx !== null && expandedMemberIdx < membersList.length ? expandedMemberIdx : 0;
+                  const currentMember = membersList[activeIdx] || membersList[0];
 
                   return (
                     <div className="space-y-4 text-xs">
-                      <h4 className="font-extrabold text-slate-900 text-sm border-b border-slate-100 pb-2">
-                        Team Lead Information
-                      </h4>
+                      {/* Tabs */}
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black uppercase text-slate-400 block">Select Member To Inspect:</span>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                          {membersList.map((m: any, idx: number) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setExpandedMemberIdx(idx)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 border ${
+                                activeIdx === idx
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                  : 'bg-slate-50 text-slate-700 hover:bg-indigo-50 border-slate-200'
+                              }`}
+                            >
+                              <span>{idx === 0 ? '👑' : '👤'} {m.name || `Member #${idx + 1}`}</span>
+                              <span className="text-[9px] opacity-80 bg-white/20 px-1.5 py-0.2 rounded">({m.role || 'Member'})</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                      <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                      {/* Active Member Details Card */}
+                      <div className="space-y-3 p-5 rounded-2xl bg-indigo-50/40 border border-indigo-100">
+                        <div className="flex justify-between items-start pb-2 border-b border-indigo-100">
+                          <div>
+                            <span className="font-black text-slate-900 text-sm block">{currentMember.name || 'Member Details'}</span>
+                            <span className="text-[11px] text-slate-500 font-medium">{currentMember.role || 'Team Member'}</span>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-xl bg-white text-indigo-700 font-extrabold text-[10px] border border-indigo-100">
+                            Member #{activeIdx + 1} of {membersList.length}
+                          </span>
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <span className="text-slate-400 font-bold block">Full Name:</span>
-                            <span className="font-extrabold text-slate-900 text-sm">{lead.name || 'Team Leader'}</span>
+                            <span className="font-extrabold text-slate-900 text-xs">{currentMember.name || 'Team Member'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">Email:</span>
-                            <span className="font-semibold text-slate-900">{lead.email || selectedMemberDetails.leaderEmail}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.email || selectedMemberDetails.leaderEmail}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">Phone Number:</span>
-                            <span className="font-semibold text-slate-900">{lead.phone || '+91 9876543210'}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.phone || '+91 9876543210'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">College / Organization:</span>
-                            <span className="font-semibold text-slate-900">{lead.organization || 'IIT Madras'}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.organization || 'IIT Madras'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">Branch / Department:</span>
-                            <span className="font-semibold text-slate-900">{lead.department || 'Computer Science & Engineering'}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.department || 'Computer Science & Engineering'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">Year / Semester:</span>
-                            <span className="font-semibold text-slate-900">{lead.yearSemester || '4th Year / 8th Sem'}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.yearSemester || '4th Year / 8th Sem'}</span>
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-200">
+                        <div className="pt-2 border-t border-indigo-100">
                           <span className="text-slate-400 font-bold block mb-1">Skills & Proficiency:</span>
-                          <span className="font-extrabold text-indigo-700">{lead.skills || 'Full Stack Development'}</span>
+                          <span className="font-extrabold text-indigo-700">{currentMember.skills || 'Full Stack Development & Cloud'}</span>
                         </div>
 
                         {/* Resume View/Download */}
-                        <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                        <div className="pt-2 border-t border-indigo-100 flex items-center justify-between">
                           <span className="text-slate-500 font-bold">Uploaded Resume:</span>
                           <button
                             onClick={() => {
-                              const filename = lead.resumeFileName || `${lead.name || 'Leader'}_Resume.pdf`;
-                              alert(`Viewing/Downloading resume: ${filename}`);
+                              const filename = currentMember.resumeFileName || `${currentMember.name || 'Member'}_Resume.pdf`;
+                              alert(`Viewing/Downloading resume for ${currentMember.name}: ${filename}`);
                             }}
                             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs"
                           >
@@ -1413,12 +1438,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       </div>
 
                       {/* Registration Responses if present */}
-                      {lead.customAnswers && (
+                      {currentMember.customAnswers && (
                         <div className="space-y-2 pt-2">
                           <h5 className="font-bold text-slate-900 text-xs">Registration Responses</h5>
-                          {Object.entries(lead.customAnswers).map(([q, a], idx) => (
-                            <div key={idx} className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100">
-                              <span className="font-bold text-indigo-900 block">Q: {q}</span>
+                          {Object.entries(currentMember.customAnswers).map(([q, a], idx) => (
+                            <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                              <span className="font-bold text-slate-900 block">Q: {q}</span>
                               <p className="text-slate-700 font-medium">{a as string}</p>
                             </div>
                           ))}
