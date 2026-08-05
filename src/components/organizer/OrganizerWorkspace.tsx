@@ -456,47 +456,11 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             </div>
           )}
 
-          {/* TAB 3: CREATE HACKATHON (Screen 1 Match) */}
+          {/* TAB 3: CREATE HACKATHON */}
           {activeTab === 'create' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              
-              {/* Left AI Real-Time Preview Card */}
-              <div className="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold text-purple-700 bg-purple-100/80">
-                  <Sparkles className="w-3.5 h-3.5" /> Real-Time AI Preview
-                </span>
-
-                <div className="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-900">
-                  <img
-                    src={bannerUrl || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80'}
-                    alt="Event Banner"
-                    className="w-full h-full object-cover opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent p-4 flex items-end">
-                    <h3 className="text-white font-black text-lg tracking-tight">
-                      {eventTitle || 'Your Event Title'}
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-700">
-                    <p className="text-[9px] font-bold uppercase text-slate-400">POOL</p>
-                    <p className="text-xs font-black">{prizePool || '₹25,00,000'}</p>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-slate-100 text-slate-700">
-                    <p className="text-[9px] font-bold uppercase text-slate-400">Max Size</p>
-                    <p className="text-xs font-black">{maxTeamSize} Ppl</p>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-purple-50 text-purple-700">
-                    <p className="text-[9px] font-bold uppercase text-slate-400">Level</p>
-                    <p className="text-xs font-black">Intermediate</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Form Card */}
-              <div className="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+            <div className="max-w-4xl mx-auto">
+              {/* Form Card */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-5">
                 <div>
                   <span className="text-xs font-bold text-slate-400 block">Step 1 of 4</span>
                   <h3 className="text-xl font-black text-slate-900">Basic Event Info</h3>
