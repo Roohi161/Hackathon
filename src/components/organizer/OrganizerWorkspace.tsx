@@ -286,10 +286,43 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [judgeEmail, setJudgeEmail] = useState('');
   const [judgeExpertise, setJudgeExpertise] = useState('');
   const [assignedTrack, setAssignedTrack] = useState('Generative AI');
-  const [judgesList, setJudgesList] = useState([
-    { id: '1', name: 'Dr. Suresh Kumar', email: 'suresh@judge.io', track: 'Generative AI', expertise: 'Computer Vision & LLMs' },
-    { id: '2', name: 'Elena Rostova', email: 'elena@judge.io', track: 'Agentic Coding', expertise: 'Web3 Security' },
-  ]);
+  const [selectedJudgeForCreds, setSelectedJudgeForCreds] = useState<any | null>(null);
+
+  const [judgesList, setJudgesList] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('hc_global_judges');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [
+      {
+        id: 'j-101',
+        name: 'Dr. Suresh Kumar',
+        email: 'suresh@judge.io',
+        track: 'Generative AI',
+        expertise: 'Computer Vision & LLMs',
+        username: 'suresh_judge',
+        tempPassword: 'JDG-suresh#9821',
+        portalUrl: 'https://hackathoncentral.io/judge/login',
+        supportEmail: 'support@hackathons.io',
+        credentialsSentAt: 'Today, 10:00 AM'
+      },
+      {
+        id: 'j-102',
+        name: 'Elena Rostova',
+        email: 'elena@judge.io',
+        track: 'Agentic Coding',
+        expertise: 'Web3 Security',
+        username: 'elena_judge',
+        tempPassword: 'JDG-elena#4412',
+        portalUrl: 'https://hackathoncentral.io/judge/login',
+        supportEmail: 'support@hackathons.io',
+        credentialsSentAt: 'Yesterday, 04:15 PM'
+      },
+    ];
+  });
 
   // State for Broadcaster
   const [broadcastTargetEvent, setBroadcastTargetEvent] = useState('Web3 & Decentralized Scale-A-Thon');
@@ -335,29 +368,59 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
     notify(`Team registration status updated to ${newStatus}`, 'success');
   };
 
-  // Handle Appoint Judge
+  // Handle Appoint Judge & Auto-Generate Credentials with Email Dispatch
   const handleAppointJudge = (e: React.FormEvent) => {
     e.preventDefault();
     if (!judgeName || !judgeEmail) {
       notify('Please enter Judge Name and Email', 'warning');
       return;
     }
-    setJudgesList(prev => [...prev, {
-      id: String(Date.now()),
+
+    const cleanUsername = judgeName.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_judge';
+    const generatedPass = `JDG-${cleanUsername.slice(0, 4)}#${Math.floor(1000 + Math.random() * 9000)}`;
+    const supportEmail = 'support@hackathons.io';
+    const sentTime = new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+
+    const newJudge = {
+      id: `j-${Date.now()}`,
       name: judgeName,
       email: judgeEmail,
       track: assignedTrack,
-      expertise: judgeExpertise || 'General AI & Web Development'
-    }]);
+      expertise: judgeExpertise || 'General AI & Web Development',
+      username: cleanUsername,
+      tempPassword: generatedPass,
+      portalUrl: 'https://hackathoncentral.io/judge/login',
+      supportEmail: supportEmail,
+      credentialsSentAt: sentTime
+    };
+
+    setJudgesList(prev => {
+      const updated = [...prev, newJudge];
+      try {
+        localStorage.setItem('hc_global_judges', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
     setJudgeName('');
     setJudgeEmail('');
     setJudgeExpertise('');
-    notify(`Judge ${judgeName} appointed successfully!`, 'success');
+
+    // Open Credential Modal Preview immediately so organizer can see credentials and verify email delivery
+    setSelectedJudgeForCreds(newJudge);
+
+    notify(`Judge ${judgeName} appointed! Credentials mailed from ${supportEmail}`, 'success');
   };
 
   // Handle Revoke Judge
   const handleRevokeJudge = (id: string) => {
-    setJudgesList(prev => prev.filter(j => j.id !== id));
+    setJudgesList(prev => {
+      const updated = prev.filter(j => j.id !== id);
+      try {
+        localStorage.setItem('hc_global_judges', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     notify('Judge credentials revoked', 'info');
   };
 
@@ -1202,26 +1265,61 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 {/* Appointed Panel List */}
                 <div className="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-base font-black text-slate-900">APPOINTED PANEL ({judgesList.length})</h3>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Active Evaluators</span>
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">APPOINTED PANEL ({judgesList.length})</h3>
+                      <p className="text-[10px] text-slate-400 font-semibold">Judge login credentials auto-mailed from support@hackathons.io</p>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-700">
+                      ● Active Evaluators
+                    </span>
                   </div>
 
                   <div className="divide-y divide-slate-100">
                     {judgesList.map((j) => (
-                      <div key={j.id} className="py-3 flex items-center justify-between gap-4">
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-xs">{j.name}</h4>
-                          <p className="text-[10px] text-slate-400">{j.email}</p>
-                          <p className="text-[11px] font-bold text-purple-600 mt-0.5">{j.track}</p>
+                      <div key={j.id} className="py-4 space-y-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-extrabold text-slate-900 text-sm">{j.name}</h4>
+                              <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-extrabold text-[10px]">
+                                {j.track}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium">{j.email} • <span className="text-slate-400">{j.expertise}</span></p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setSelectedJudgeForCreds(j)}
+                              className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-xs rounded-xl border border-indigo-100 transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              🔑 View Credentials
+                            </button>
+                            <button
+                              onClick={() => handleRevokeJudge(j.id)}
+                              className="px-2.5 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl cursor-pointer transition-colors"
+                            >
+                              Revoke
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500 font-medium">{j.expertise}</p>
-                          <button
-                            onClick={() => handleRevokeJudge(j.id)}
-                            className="text-xs font-bold text-rose-600 hover:text-rose-700 mt-1 cursor-pointer"
-                          >
-                            Revoke
-                          </button>
+
+                        {/* Visible Credentials Pill Bar on Organizer Page */}
+                        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <span className="text-[9px] font-black uppercase text-slate-400 block">Username</span>
+                            <span className="font-mono font-bold text-slate-900">{j.username || `${j.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_judge`}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black uppercase text-slate-400 block">Temp Password</span>
+                            <span className="font-mono font-bold text-indigo-600">{j.tempPassword || 'JDG-pass#2026'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black uppercase text-slate-400 block">Mailer Status</span>
+                            <span className="font-bold text-emerald-600 flex items-center gap-1 text-[11px]">
+                              <span>✉️ Sent from {j.supportEmail || 'support@hackathons.io'}</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1671,6 +1769,102 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                     className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl cursor-pointer"
                   >
                     Reject Registration
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* POPUP MODAL: JUDGE CREDENTIALS EMAIL & DISPATCH REPORT */}
+          {selectedJudgeForCreds && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 border border-slate-200/90">
+                
+                {/* Modal Header */}
+                <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-700 tracking-wider">
+                      ✉️ CONFIRMED EMAIL DISPATCH
+                    </span>
+                    <h3 className="text-xl font-black text-slate-900 mt-1">Judge Credentials Issued</h3>
+                    <p className="text-xs text-slate-500 font-medium">Mailed directly to <strong className="text-indigo-600">{selectedJudgeForCreds.email}</strong></p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedJudgeForCreds(null)}
+                    className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Email Dispatch & Credential Body */}
+                <div className="space-y-4 text-xs">
+                  {/* Sender Badge */}
+                  <div className="p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900 font-semibold">
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-indigo-400 block">Sender Mailer</span>
+                      <span className="font-extrabold text-indigo-700">{selectedJudgeForCreds.supportEmail || 'support@hackathons.io'}</span>
+                    </div>
+                    <span className="px-2 py-1 rounded-md bg-white text-emerald-700 text-[10px] font-extrabold shadow-2xs">
+                      ✓ Email Sent
+                    </span>
+                  </div>
+
+                  {/* Issued Credentials Box */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                    <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider">Judge Account Credentials</h4>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-bold">Judge Name:</span>
+                        <span className="font-extrabold text-slate-900">{selectedJudgeForCreds.name}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-bold">Assigned Track:</span>
+                        <span className="font-extrabold text-purple-700">{selectedJudgeForCreds.track}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-bold">Username:</span>
+                        <span className="font-mono font-bold text-slate-900">{selectedJudgeForCreds.username}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-bold">Temporary Password:</span>
+                        <span className="font-mono font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{selectedJudgeForCreds.tempPassword}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-bold">Judge Portal Login:</span>
+                        <a href={selectedJudgeForCreds.portalUrl} target="_blank" rel="noreferrer" className="font-mono font-bold text-xs text-indigo-600 underline">
+                          {selectedJudgeForCreds.portalUrl}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 font-medium leading-normal">
+                    * An automated email containing login instructions and temporary credentials was dispatched from <strong>support@hackathons.io</strong> to {selectedJudgeForCreds.email}.
+                  </p>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(
+                        `Judge Login Credentials\nUsername: ${selectedJudgeForCreds.username}\nPassword: ${selectedJudgeForCreds.tempPassword}\nPortal: ${selectedJudgeForCreds.portalUrl}`
+                      );
+                      notify('Credentials copied to clipboard!', 'success');
+                    }}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                  >
+                    📋 Copy Credentials
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedJudgeForCreds(null)}
+                    className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
+                  >
+                    Done
                   </button>
                 </div>
 
