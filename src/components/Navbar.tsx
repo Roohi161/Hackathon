@@ -94,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Navigation Links according to Active Role */}
           <nav className="hidden md:flex items-center gap-1 bg-gray-900/60 p-1 rounded-xl border border-white/5">
-            {currentRole === 'participant' && (
+            {currentRole?.toUpperCase() === 'PARTICIPANT' && (
               <>
                 <button
                   onClick={() => setActiveTab('explore')}
@@ -123,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </>
             )}
 
-            {currentRole === 'organizer' && (
+            {currentRole?.toUpperCase() === 'ORGANIZER' && (
               <>
                 <button
                   onClick={() => setActiveTab('create')}
@@ -164,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </>
             )}
 
-            {currentRole === 'judge' && (
+            {currentRole?.toUpperCase() === 'JUDGE' && (
               <button
                 onClick={() => setActiveTab('judge-portal')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${

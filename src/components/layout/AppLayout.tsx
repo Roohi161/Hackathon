@@ -60,6 +60,7 @@ export const AppLayout: React.FC = () => {
       {/* Persistent Top Navbar */}
       <Navbar
         currentRole={role}
+        onRoleChange={() => {}}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenTeamModal={() => setTeamModalOpen(true)}
         unreadCount={announcements.length}

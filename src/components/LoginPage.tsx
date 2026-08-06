@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Terminal, Mail, Lock, Eye, EyeOff, KeyRound, CheckCircle2, ArrowRight } from 'lucide-react';
 import type { UserRole } from '../types';
+import { useAuthStore } from '../stores/authStore';
+import { authApi } from '../services/authApi';
 
 interface LoginUser {
   name: string;
@@ -9,7 +12,7 @@ interface LoginUser {
 }
 
 interface LoginPageProps {
-  onLogin: (role: UserRole, user: LoginUser) => void;
+  onLogin?: (role: UserRole, user: LoginUser) => void;
   onBack?: () => void;
   onSwitchToSignup?: () => void;
   targetRole?: 'PARTICIPANT' | 'ORGANIZER' | 'JUDGE' | 'ADMIN';
@@ -50,6 +53,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loginFailed, setLoginFailed] = useState(false);
+
+  const navigateByRole = (r: string) => {
+    const roleLower = r.toLowerCase();
+    if (roleLower === 'organizer') navigate('/organizer');
+    else if (roleLower === 'judge') navigate('/judge');
+    else if (roleLower === 'admin') navigate('/admin');
+    else navigate('/dashboard');
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -471,7 +471,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div key={req.id} className="p-5 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <h4 className="font-extrabold text-white text-sm">{req.organizationName}</h4>
+                    <h4 className="font-extrabold text-white text-sm">{req.organization || (req as any).organizationName}</h4>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                       req.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
                       req.status === 'rejected' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
@@ -480,8 +480,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       {req.status.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">Contact Email: <span className="font-mono text-indigo-300">{req.contactEmail}</span></p>
-                  <p className="text-xs text-slate-400">Tax/Org Reg Number: <span className="font-mono text-slate-300">{req.taxId || 'TAX-998412'}</span></p>
+                  <p className="text-xs text-slate-400">Contact Email: <span className="font-mono text-indigo-300">{(req as any).email || (req as any).contactEmail || 'org@tech.io'}</span></p>
+                  <p className="text-xs text-slate-400">Tax/Org Reg Number: <span className="font-mono text-slate-300">{(req as any).taxId || 'TAX-998412'}</span></p>
                 </div>
 
                 {req.status === 'pending' && (
