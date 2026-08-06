@@ -78,7 +78,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setError('');
 
     try {
-      // Try real API first
       const res = await authApi.login({ email, password });
       const userRole = (res.user.role || 'PARTICIPANT').toUpperCase() as UserRole;
       setAuth({ ...res.user, role: userRole }, res.tokens);
@@ -88,79 +87,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       navigateByRole(userRole);
       return;
     } catch {
-      // Check registered users from local storage first
+      // Check registered users in local storage
       try {
         const storedUsersStr = localStorage.getItem('hc_registered_users');
         const storedUsers = storedUsersStr ? JSON.parse(storedUsersStr) : [];
-        const foundRegisteredUser = storedUsers.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+        const foundUser = storedUsers.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
 
-        if (foundRegisteredUser) {
-          if (foundRegisteredUser.password !== password) {
-            setError('Invalid password. Please check your credentials.');
+        if (foundUser) {
+          if (foundUser.password !== password) {
+            setError('Invalid password. Please check your password and try again.');
             setLoginFailed(true);
             return;
           }
-          const userRole = (foundRegisteredUser.role || 'PARTICIPANT') as UserRole;
-          const mockTokens: import('../types/auth').AuthTokens = {
-            accessToken: 'demo-access-token',
-            refreshToken: 'demo-refresh-token',
-          };
-          setAuth(foundRegisteredUser.userObj, mockTokens);
+          const userRole = (foundUser.role || 'PARTICIPANT') as UserRole;
+          setAuth(foundUser.userObj, { accessToken: `token-${Date.now()}`, refreshToken: `ref-${Date.now()}` });
           if (onLogin) {
-            onLogin(userRole, { name: foundRegisteredUser.name, email: foundRegisteredUser.email, avatar: foundRegisteredUser.userObj.avatar });
+            onLogin(userRole, { name: foundUser.name, email: foundUser.email, avatar: foundUser.userObj.avatar });
           }
           navigateByRole(userRole);
           return;
         }
       } catch {}
 
-      // Demo accounts strict password validation requirement: password must be "password123"
-      if (password !== 'password123') {
-        setError('Invalid password. Please check your password and try again.');
-        setLoginFailed(true);
-        return;
-      }
-
-      // Standard Demo mode fallback when using valid demo password "password123"
-      const demoRoleMap: Record<string, { name: string; role: UserRole }> = {
-        organizer: { name: 'Organizer Admin', role: 'ORGANIZER' },
-        judge: { name: 'Judge Reviewer', role: 'JUDGE' },
-        admin: { name: 'System Admin', role: 'ADMIN' },
-        mentor: { name: 'Mentor User', role: 'MENTOR' },
-        volunteer: { name: 'Volunteer User', role: 'VOLUNTEER' },
-        sponsor: { name: 'Sponsor User', role: 'SPONSOR' },
-        reviewer: { name: 'Reviewer User', role: 'REVIEWER' },
-        participant: { name: 'Participant User', role: 'PARTICIPANT' },
-      };
-
-      // Detect role from email address or selected role
-      const detectedKey = Object.keys(demoRoleMap).find(key => email.toLowerCase().includes(key)) || role.toLowerCase();
-      const demoEntry = demoRoleMap[detectedKey] || demoRoleMap.participant;
-      const detectedRole = demoEntry.role;
-
-      const mockUser: import('../types/auth').User = {
-        id: `user-${detectedRole.toLowerCase()}-1`,
-        email,
-        name: demoEntry.name,
-        role: detectedRole,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-        isEmailVerified: true,
-        profileComplete: true,
-        skills: ['React', 'TypeScript'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      const mockTokens: import('../types/auth').AuthTokens = {
-        accessToken: 'demo-access-token',
-        refreshToken: 'demo-refresh-token',
-      };
-
-      setAuth(mockUser, mockTokens);
-      if (onLogin) {
-        onLogin(detectedRole, { name: demoEntry.name, email, avatar: mockUser.avatar });
-      }
-      navigateByRole(detectedRole);
+      // Reject unregistered or invalid credentials strictly
+      setError('Invalid email or password. Please check your credentials or Sign Up for a new account.');
+      setLoginFailed(true);
     } finally {
       setIsLoading(false);
     }
@@ -258,20 +209,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <p className="text-sm text-slate-500">{subtitle}</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                  {!targetRole && (
-                    <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1.5">Role</label>
-                      <select 
-                        value={role} 
-                        onChange={(e) => setRole(e.target.value as UserRole)}
-                        className="w-full px-4 py-2.5 text-sm rounded-xl bg-white border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                        <option value="participant">Participant</option>
-                        <option value="organizer">Organizer</option>
-                      </select>
-                    </div>
-                  )}
+                <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
 
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">Email</label>
@@ -280,6 +218,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <input
                         type="email"
                         required
+                        autoComplete="off"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Enter your email"
@@ -310,6 +249,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
+                        autoComplete="new-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter your password"
