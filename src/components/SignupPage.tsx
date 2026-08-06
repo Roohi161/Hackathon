@@ -47,25 +47,30 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
     setIsLoading(true);
     setError('');
 
+    const chosenRole = (role || 'PARTICIPANT').toUpperCase() as UserRole;
+
     try {
       const res = await authApi.register({
         name,
         email,
         password,
-        role: role.toUpperCase() as any,
+        role: chosenRole as any,
       });
       setAuth(res.user, res.tokens);
       if (onSignup) {
-        onSignup(role as any, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
+        onSignup(chosenRole, { name: res.user.name, email: res.user.email, avatar: res.user.avatar || '' });
       }
-      navigate('/hackathons');
+      if (chosenRole === 'ORGANIZER') navigate('/organizer');
+      else if (chosenRole === 'JUDGE') navigate('/judge');
+      else if (chosenRole === 'ADMIN') navigate('/admin');
+      else navigate('/dashboard');
     } catch {
       // Fallback local signup when backend server is unreachable
       const newUser = {
         id: `user-${Date.now()}`,
         email,
         name,
-        role: 'PARTICIPANT' as UserRole,
+        role: chosenRole,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
         isEmailVerified: true,
         profileComplete: false,
@@ -77,7 +82,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       try {
         const storedUsersStr = localStorage.getItem('hc_registered_users');
         const storedUsers = storedUsersStr ? JSON.parse(storedUsersStr) : [];
-        storedUsers.push({ email: email.toLowerCase(), password, name, role: 'PARTICIPANT', userObj: newUser });
+        storedUsers.push({ email: email.toLowerCase(), password, name, role: chosenRole, userObj: newUser });
         localStorage.setItem('hc_registered_users', JSON.stringify(storedUsers));
       } catch {}
 
@@ -88,9 +93,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
 
       setAuth(newUser, tokens);
       if (onSignup) {
-        onSignup('PARTICIPANT', { name, email, avatar: newUser.avatar });
+        onSignup(chosenRole, { name, email, avatar: newUser.avatar });
       }
-      navigate('/hackathons');
+      if (chosenRole === 'ORGANIZER') navigate('/organizer');
+      else if (chosenRole === 'JUDGE') navigate('/judge');
+      else if (chosenRole === 'ADMIN') navigate('/admin');
+      else navigate('/dashboard');
     } finally {
       setIsLoading(false);
     }
