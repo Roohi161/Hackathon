@@ -111,21 +111,49 @@ const cardVariants: Variants = {
   show: { opacity: 1, x: 0, transition: { duration: 0.5 } },
 };
 
+import { useHackathonStore } from '../../stores/hackathonStore';
+
 interface FeaturedHackathonsProps {
   onNavigateLogin?: (hackathonId?: string | number) => void;
 }
 
 export const FeaturedHackathons: React.FC<FeaturedHackathonsProps> = ({ onNavigateLogin }) => {
+  const storeHackathons = useHackathonStore((s) => s.hackathons);
+  const fetchHackathons = useHackathonStore((s) => s.fetchHackathons);
+
+  useState(() => {
+    fetchHackathons();
+  });
+
+  const displayHackathons = storeHackathons.length > 0 ? storeHackathons.map((h, i) => ({
+    id: h.id,
+    title: h.title,
+    organizer: h.organizerName || 'TechCorp Labs',
+    organizerInitials: (h.organizerName || 'TC').slice(0, 2).toUpperCase(),
+    category: h.category || (h.tracks?.[0]) || 'AI & ML',
+    status: h.status || 'Live',
+    statusColor: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+    mode: h.mode || 'Online',
+    imageGradient: i % 2 === 0 ? 'from-emerald-500/80 to-teal-700/80' : 'from-indigo-500/80 to-purple-700/80',
+    tags: h.tracks?.length ? h.tracks.map(t => typeof t === 'string' ? t : (t as any).name) : ['React', 'TypeScript', 'Node.js'],
+    prize: h.prizePool || '₹25L',
+    participants: h.participantsCount || 120,
+    teams: h.teamsCount || 30,
+    timeLeft: h.endDate ? `Ends ${h.endDate}` : 'Active Now',
+    difficulty: h.difficulty || 'Intermediate',
+    difficultyColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+  })) : allHackathons;
+
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [registeringHackathon, setRegisteringHackathon] = useState<typeof allHackathons[0] | null>(null);
+  const [registeringHackathon, setRegisteringHackathon] = useState<any | null>(null);
   const [registrationSubmitted, setRegistrationSubmitted] = useState(false);
   const [teamName, setTeamName] = useState('');
 
   const categories = ['All', 'AI & ML', 'Web3', 'Green Tech', 'Cloud Native', 'FinTech'];
 
   const filteredHackathons = selectedCategory === 'All'
-    ? allHackathons
-    : allHackathons.filter(h => h.category === selectedCategory);
+    ? displayHackathons
+    : displayHackathons.filter(h => h.category === selectedCategory);
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();

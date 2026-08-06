@@ -23,6 +23,12 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   const isMyHackathons = onlyMyHackathons || location.pathname.includes('my-hackathons');
 
   const storeHackathons = useHackathonStore((s) => s.hackathons);
+  const fetchHackathons = useHackathonStore((s) => s.fetchHackathons);
+
+  React.useEffect(() => {
+    fetchHackathons();
+  }, [fetchHackathons]);
+
   const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
 
   const [registerModalHackathon, setRegisterModalHackathon] = useState<Hackathon | null>(null);
