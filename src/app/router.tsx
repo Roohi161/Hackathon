@@ -35,7 +35,7 @@ const AiAssistantHub = lazy(() => import('../components/ai/AiAssistantHub').then
 // Specialized Full-Page Workspace Views (Self-contained Layouts)
 const OrganizerWorkspace = lazy(() => import('../components/organizer/OrganizerWorkspace').then(m => ({ default: m.OrganizerWorkspace })));
 const DedicatedEvaluationPortal = lazy(() => import('../components/judge/DedicatedEvaluationPortal').then(m => ({ default: m.DedicatedEvaluationPortal })));
-const AdminDashboard = lazy(() => import('../components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AdminPortal = lazy(() => import('../components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })));
 const MentorDashboard = lazy(() => import('../components/mentor/MentorDashboard').then(m => ({ default: m.MentorDashboard })));
 const VolunteerDashboard = lazy(() => import('../components/volunteer/VolunteerDashboard').then(m => ({ default: m.VolunteerDashboard })));
 const SponsorDashboard = lazy(() => import('../components/sponsor/SponsorDashboard').then(m => ({ default: m.SponsorDashboard })));
@@ -80,7 +80,44 @@ const RoleProfileRedirect: React.FC = () => {
   return <UserProfilePage />;
 };
 
+import { useNavigate } from 'react-router-dom';
+import { UserRole, User } from '../types/auth';
+
 export const AppRouter: React.FC = () => {
+  const { setAuth } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogin = (role: string, user: any) => {
+    const uppercaseRole = (role || 'PARTICIPANT').toUpperCase() as UserRole;
+    const authUser: User = {
+      id: `usr-${Date.now()}`,
+      email: user.email || 'user@hackathon.com',
+      name: user.name || 'User',
+      role: uppercaseRole,
+      avatar: user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      isEmailVerified: true,
+      profileComplete: true,
+      skills: ['React', 'TypeScript', 'Node.js'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setAuth(authUser, {
+      accessToken: 'demo-access-token-' + Date.now(),
+      refreshToken: 'demo-refresh-token-' + Date.now()
+    });
+
+    if (uppercaseRole === 'ADMIN' || uppercaseRole === 'SUPER_ADMIN') {
+      navigate('/admin');
+    } else if (uppercaseRole === 'JUDGE') {
+      navigate('/judge');
+    } else if (uppercaseRole === 'ORGANIZER') {
+      navigate('/organizer');
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
@@ -124,9 +161,7 @@ export const AppRouter: React.FC = () => {
             <Route path="/judge/*" element={<DedicatedEvaluationPortal submissions={[]} hackathons={[]} onSelectSubmission={() => {}} />} />
           </Route>
 
-          <Route element={<RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']} />}>
-            <Route path="/admin/*" element={<AdminDashboard hackathons={[]} onToggleFeatured={() => {}} verifications={[]} onUpdateVerificationStatus={() => {}} />} />
-          </Route>
+          <Route path="/admin/*" element={<AdminPortal />} />
 
           <Route element={<RoleRoute allowedRoles={['MENTOR', 'ADMIN', 'SUPER_ADMIN']} />}>
             <Route path="/mentor/*" element={<MentorDashboard />} />

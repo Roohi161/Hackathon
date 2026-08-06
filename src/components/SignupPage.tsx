@@ -36,16 +36,8 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       setError('Please fill in all fields.');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      return;
-    }
-    if (!/\d/.test(password)) {
-      setError('Password must contain at least one number (0-9).');
-      return;
-    }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      setError('Password must contain at least one SPECIAL character (e.g. !@#$%^&*).');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
       return;
     }
     if (password !== confirmPassword) {
@@ -68,12 +60,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       }
       navigate('/hackathons');
     } catch {
-      // Fallback local signup for offline/demo mode
+      // Fallback local signup when backend server is unreachable
       const newUser = {
         id: `user-${Date.now()}`,
         email,
         name,
-        role: role.toUpperCase() as any,
+        role: 'PARTICIPANT' as UserRole,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
         isEmailVerified: true,
         profileComplete: false,
@@ -82,16 +74,10 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
         updatedAt: new Date().toISOString(),
       };
 
-      // Store credentials locally for login validation
       try {
         const storedUsersStr = localStorage.getItem('hc_registered_users');
         const storedUsers = storedUsersStr ? JSON.parse(storedUsersStr) : [];
-        const existingIdx = storedUsers.findIndex((u: any) => u.email.toLowerCase() === email.toLowerCase());
-        if (existingIdx >= 0) {
-          storedUsers[existingIdx] = { email: email.toLowerCase(), password, name, role: role.toUpperCase(), userObj: newUser };
-        } else {
-          storedUsers.push({ email: email.toLowerCase(), password, name, role: role.toUpperCase(), userObj: newUser });
-        }
+        storedUsers.push({ email: email.toLowerCase(), password, name, role: 'PARTICIPANT', userObj: newUser });
         localStorage.setItem('hc_registered_users', JSON.stringify(storedUsers));
       } catch {}
 
@@ -102,7 +88,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
 
       setAuth(newUser, tokens);
       if (onSignup) {
-        onSignup(role as any, { name, email, avatar: newUser.avatar });
+        onSignup('PARTICIPANT', { name, email, avatar: newUser.avatar });
       }
       navigate('/hackathons');
     } finally {
@@ -145,18 +131,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
               <p className="text-sm text-slate-500 mt-2">Sign up to get started.</p>
             </div>
 
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1.5">Role</label>
-                <select 
-                  value={role} 
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl bg-white border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="participant">Participant</option>
-                  <option value="organizer">Organizer</option>
-                </select>
-              </div>
+            <form onSubmit={handleSignup} className="space-y-4" autoComplete="off">
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">Full Name</label>
@@ -165,9 +140,10 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                   <input
                     type="text"
                     required
+                    autoComplete="off"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
+                    placeholder="Enter your full name"
                     className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
                 </div>
@@ -180,6 +156,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                   <input
                     type="email"
                     required
+                    autoComplete="off"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
@@ -197,6 +174,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a password"
@@ -210,7 +188,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Must be at least 8 characters with 1 number & 1 special character</p>
+                <p className="text-[10px] text-slate-400 mt-1">Must be at least 6 characters</p>
               </div>
 
               <div>
@@ -220,6 +198,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"

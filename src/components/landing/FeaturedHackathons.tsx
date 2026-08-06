@@ -309,15 +309,11 @@ export const FeaturedHackathons: React.FC<FeaturedHackathonsProps> = ({ onNaviga
 
                 <button
                   onClick={() => {
-                    if (onNavigateLogin) {
-                      onNavigateLogin(hackathon.id);
-                    } else {
-                      setRegisteringHackathon(hackathon);
-                      setRegistrationSubmitted(false);
-                      setTeamName('');
-                    }
+                    setRegisteringHackathon(hackathon);
+                    setRegistrationSubmitted(false);
+                    setTeamName('');
                   }}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/25 transition-all active:scale-[0.98]"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/25 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Register Now
                 </button>
