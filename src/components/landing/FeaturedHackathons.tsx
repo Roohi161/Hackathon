@@ -112,6 +112,7 @@ const cardVariants: Variants = {
 };
 
 import { useHackathonStore } from '../../stores/hackathonStore';
+import { registrationApi } from '../../services/registrationApi';
 
 interface FeaturedHackathonsProps {
   onNavigateLogin?: (hackathonId?: string | number) => void;
@@ -125,7 +126,7 @@ export const FeaturedHackathons: React.FC<FeaturedHackathonsProps> = ({ onNaviga
     fetchHackathons();
   });
 
-  const displayHackathons = storeHackathons.length > 0 ? storeHackathons.map((h, i) => ({
+  const displayHackathons = storeHackathons.map((h, i) => ({
     id: h.id,
     title: h.title,
     organizer: h.organizerName || 'TechCorp Labs',
@@ -142,7 +143,7 @@ export const FeaturedHackathons: React.FC<FeaturedHackathonsProps> = ({ onNaviga
     timeLeft: h.endDate ? `Ends ${h.endDate}` : 'Active Now',
     difficulty: h.difficulty || 'Intermediate',
     difficultyColor: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-  })) : allHackathons;
+  }));
 
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [registeringHackathon, setRegisteringHackathon] = useState<any | null>(null);
@@ -157,7 +158,48 @@ export const FeaturedHackathons: React.FC<FeaturedHackathonsProps> = ({ onNaviga
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamName) return;
+    if (!teamName || !registeringHackathon) return;
+
+    const newReg = {
+      id: `reg-${Date.now()}`,
+      groupName: teamName,
+      code: `REG-${Math.floor(1000 + Math.random() * 9000)}`,
+      leaderEmail: '',
+      groupSize: '1 Member',
+      status: 'UNDER_REVIEW',
+      hackathonId: registeringHackathon.id,
+      hackathonTitle: registeringHackathon.title,
+      registrationType: 'team',
+      registeredAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      members: [
+        {
+          name: '',
+          email: '',
+          phone: '',
+          organization: '',
+          department: 'Computer Science & Engineering',
+          yearSemester: '3rd Year / 6th Sem',
+          role: 'Team Lead',
+          skills: '',
+          github: '',
+          linkedin: '',
+          resumeFileName: ''
+        }
+      ]
+    };
+
+    try {
+      const saved = localStorage.getItem('hc_global_registrations');
+      const list = saved ? JSON.parse(saved) : [];
+      list.unshift(newReg);
+      localStorage.setItem('hc_global_registrations', JSON.stringify(list));
+    } catch {
+      // ignore
+    }
+
+    // Persist to backend so the organizer sees the registration in any browser
+    registrationApi.create(newReg).catch(() => {});
+
     setRegistrationSubmitted(true);
   };
 

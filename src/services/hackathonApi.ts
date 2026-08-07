@@ -9,18 +9,18 @@ interface ApiResponse<T> {
 
 export const hackathonApi = {
   getAll: async (params?: { skip?: number; take?: number; search?: string; category?: string; status?: string }): Promise<Hackathon[]> => {
-    const res = await apiClient.get<ApiResponse<Hackathon[]>>('/hackathons', { params });
-    return res.data.data;
+    const res: any = await apiClient.get('/hackathons', { params });
+    return Array.isArray(res) ? res : (res?.data?.data || res?.data || []);
   },
 
   getById: async (id: string): Promise<Hackathon> => {
-    const res = await apiClient.get<ApiResponse<Hackathon>>(`/hackathons/${id}`);
-    return res.data.data;
+    const res: any = await apiClient.get(`/hackathons/${id}`);
+    return res?.data?.data || res?.data || res;
   },
 
   create: async (data: Partial<Hackathon>): Promise<Hackathon> => {
-    const res = await apiClient.post<ApiResponse<Hackathon>>('/hackathons', data);
-    return res.data.data;
+    const res: any = await apiClient.post('/hackathons', data);
+    return res?.data?.data || res?.data || res;
   },
 
   update: async (id: string, data: Partial<Hackathon>): Promise<Hackathon> => {

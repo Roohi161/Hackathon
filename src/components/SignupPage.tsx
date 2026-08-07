@@ -36,8 +36,16 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
       setError('Please fill in all fields.');
       return;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setError('Password must contain at least one number.');
+      return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setError('Password must contain at least one special character.');
       return;
     }
     if (password !== confirmPassword) {
@@ -196,7 +204,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onBack, onSwit
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Must be at least 6 characters</p>
+                <p className="text-[10px] text-slate-400 mt-1">Min 8 chars, 1 number, 1 special character</p>
               </div>
 
               <div>

@@ -222,7 +222,7 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
     logo,
     banner,
     coverImage,
-    status: (initialHackathon?.status || 'PUBLISHED') as any,
+    status: (initialHackathon?.status || 'live') as any,
     mode,
     category: subcategory.trim() ? subcategory.trim() : category,
     subcategory: subcategory.trim(),
@@ -571,7 +571,14 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
 
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-slate-100">
+              <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={handlePublishSubmit}
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-xs rounded-2xl shadow-md flex items-center gap-2 hover:from-emerald-600 hover:to-teal-600 transition-all cursor-pointer"
+                >
+                  <span>🚀 Direct Quick Publish</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setCurrentStep(2)}

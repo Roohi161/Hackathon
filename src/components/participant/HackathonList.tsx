@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, Trophy, ShieldCheck, ArrowRight, Clock, Sparkles } from 'lucide-react';
 import type { Hackathon, HackathonStatus } from '../../types';
-import { INITIAL_HACKATHONS } from '../../data/mockData';
 import { useHackathonStore } from '../../stores/hackathonStore';
 
 import { RegistrationModal } from './RegistrationModal';
@@ -29,7 +28,18 @@ export const HackathonList: React.FC<HackathonListProps> = ({
     fetchHackathons();
   }, [fetchHackathons]);
 
-  const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
+  const getCombinedHackathons = () => {
+    const map = new Map<string, Hackathon>();
+    if (storeHackathons && storeHackathons.length > 0) {
+      storeHackathons.forEach(h => map.set(h.id, h));
+    }
+    if (propsHackathons && propsHackathons.length > 0) {
+      propsHackathons.forEach(h => map.set(h.id, h));
+    }
+    return Array.from(map.values());
+  };
+
+  const hackathons = getCombinedHackathons();
 
   const [registerModalHackathon, setRegisterModalHackathon] = useState<Hackathon | null>(null);
 
@@ -80,7 +90,13 @@ export const HackathonList: React.FC<HackathonListProps> = ({
     const matchesStatus =
       selectedStatus === 'all' ||
       itemStatusLower === selectedStatus.toLowerCase() ||
-      (selectedStatus === 'live' && (itemStatusLower === 'published' || itemStatusLower === 'in_progress' || itemStatusLower === 'registration_open'));
+      selectedStatus === 'live' ||
+      itemStatusLower.includes('live') ||
+      itemStatusLower.includes('progress') ||
+      itemStatusLower.includes('open') ||
+      itemStatusLower.includes('publish') ||
+      itemStatusLower.includes('active') ||
+      itemStatusLower.includes('draft');
 
     const matchesMode =
       selectedMode === 'all' ||

@@ -73,7 +73,7 @@ services:
     ports:
       - "3002:3002"
     environment:
-      VITE_API_URL: "http://localhost:5000"
+      VITE_API_URL: "http://localhost:5000/api/v1"
     depends_on:
       - api
 

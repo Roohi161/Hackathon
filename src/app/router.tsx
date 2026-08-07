@@ -125,9 +125,9 @@ export const AppRouter: React.FC = () => {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage onLogin={() => {}} />} />
           <Route path="/login" element={<LoginPage onLogin={handleLogin} onSwitchToSignup={() => navigate('/signup')} />} />
-          <Route path="/organizer/login" element={<OrganizerLoginPage />} />
-          <Route path="/judge/login" element={<JudgeLoginPage />} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/organizer/login" element={<OrganizerLoginPage onLogin={handleLogin} onSwitchToSignup={() => navigate('/signup')} />} />
+          <Route path="/judge/login" element={<JudgeLoginPage onLogin={handleLogin} onSwitchToSignup={() => navigate('/signup')} />} />
+          <Route path="/admin/login" element={<AdminLoginPage onLogin={handleLogin} onSwitchToSignup={() => navigate('/signup')} />} />
           <Route path="/signup" element={<SignupPage onSignup={handleLogin} onSwitchToLogin={() => navigate('/login')} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />

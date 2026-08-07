@@ -17,7 +17,6 @@ import type { Hackathon } from '../../types';
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useHackathonStore } from '../../stores/hackathonStore';
-import { INITIAL_HACKATHONS } from '../../data/mockData';
 
 import { RegistrationModal } from './RegistrationModal';
 
@@ -38,8 +37,8 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
   const navigate = useNavigate();
   const storeHackathons = useHackathonStore((s) => s.hackathons);
   
-  const allHackathons = (storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
-  const hackathon = (propsHackathon && propsHackathon.id) ? propsHackathon : (allHackathons.find((h: any) => h.id === id) || allHackathons[0] || (INITIAL_HACKATHONS[0] as any));
+  const allHackathons = storeHackathons || [];
+  const hackathon = (propsHackathon && propsHackathon.id) ? propsHackathon : (allHackathons.find((h: any) => h.id === id) || null);
 
   // Lookup registration status from localStorage
   const getRegistrationRecord = () => {

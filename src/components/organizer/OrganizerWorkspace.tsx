@@ -38,6 +38,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToastStore } from '../../stores/toastStore';
 import { CreateHackathonWizard } from './CreateHackathonWizard';
 import { hackathonApi } from '../../services/hackathonApi';
+import { registrationApi } from '../../services/registrationApi';
 
 interface OrganizerWorkspaceProps {
   hackathons?: Hackathon[];
@@ -61,11 +62,65 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const notify = (title: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => addToast({ title, type });
 
   const storeHackathons = useHackathonStore((s) => s.hackathons);
+  const fetchHackathons = useHackathonStore((s) => s.fetchHackathons);
   const addHackathon = useHackathonStore((s) => s.addHackathon);
   const updateHackathonStore = useHackathonStore((s) => s.updateHackathon);
   const deleteHackathonStore = useHackathonStore((s) => s.deleteHackathon);
   const storeTeams = useTeamStore((s) => s.teams);
   const storeAnnouncements = useNotificationStore((s) => s.announcements);
+
+  useEffect(() => {
+    fetchHackathons();
+  }, [fetchHackathons]);
+
+  // Load registrations from the backend (authoritative) so registrations made
+  // in any browser/session show up. Falls back to the localStorage mirror.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadFromLocal = () => {
+      try {
+        const saved = localStorage.getItem('hc_global_registrations');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) setRegistrationList(parsed);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    registrationApi.getAll()
+      .then((list) => {
+        if (cancelled) return;
+        if (Array.isArray(list) && list.length > 0) {
+          setRegistrationList(list);
+        } else {
+          loadFromLocal();
+        }
+      })
+      .catch(() => {
+        if (!cancelled) loadFromLocal();
+      });
+
+    const syncFromStorage = () => {
+      try {
+        const saved = localStorage.getItem('hc_global_registrations');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) setRegistrationList(parsed);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('storage', syncFromStorage);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('storage', syncFromStorage);
+    };
+  }, []);
 
   const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : storeHackathons;
   const teams = (propsTeams && propsTeams.length > 0) ? propsTeams : storeTeams;
@@ -96,152 +151,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [selectedMemberDetails, setSelectedMemberDetails] = useState<any | null>(null);
   const [expandedMemberIdx, setExpandedMemberIdx] = useState<number | null>(null);
 
-  const [registrationList, setRegistrationList] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('hc_global_registrations');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {
-      // ignore
-    }
-    return [
-      {
-        id: '1',
-        groupName: 'CyberPioneers',
-        code: 'CYBER-2026',
-        leaderEmail: 'ansar@hackathoncentral.io',
-        groupSize: '4 Members',
-        status: 'APPROVED',
-        hackathonId: 'h-1',
-        hackathonTitle: 'AI Hackathon 2026',
-        registrationType: 'team',
-        registeredAt: 'Today, 10:15 AM',
-        members: [
-          {
-            name: 'Ansar Shaik',
-            email: 'ansar@hackathoncentral.io',
-            phone: '+91 9876543210',
-            organization: 'IIT Madras',
-            department: 'Computer Science & Engineering',
-            yearSemester: '4th Year / 8th Sem',
-            role: 'Team Lead & AI Engineer',
-            skills: 'Python, PyTorch, LangChain, React, FastAPI',
-            experienceLevel: 'Advanced',
-            github: 'https://github.com/ansar-ai',
-            linkedin: 'https://linkedin.com/in/ansar-shaik',
-            portfolio: 'https://ansar.dev',
-            resumeFileName: 'Ansar_Shaik_Resume.pdf',
-            customAnswers: {
-              'Why do you want to join this hackathon?': 'To build enterprise-grade generative AI co-pilots and deploy scalable web apps.',
-              'Previous Hackathon Experience': 'Winner of Global AI Sprint 2025 and 1st Runner Up in HackGov 2025.'
-            }
-          },
-          {
-            name: 'Bhavya Sri',
-            email: 'bhavya@hackathon.com',
-            phone: '+91 9812345678',
-            organization: 'BITS Pilani',
-            department: 'Information Technology',
-            yearSemester: '3rd Year / 6th Sem',
-            role: 'Frontend & UX Lead',
-            skills: 'TypeScript, React 18, TailwindCSS, Vite, Zustand',
-            experienceLevel: 'Intermediate',
-            github: 'https://github.com/bhavya-code',
-            linkedin: 'https://linkedin.com/in/bhavya-sri',
-            resumeFileName: 'Bhavya_Sri_Resume.pdf'
-          },
-          {
-            name: 'Rahul Sharma',
-            email: 'rahul@hackathon.com',
-            phone: '+91 9765432109',
-            organization: 'IIT Delhi',
-            department: 'Electrical Engineering',
-            yearSemester: '4th Year / 7th Sem',
-            role: 'Backend Architect',
-            skills: 'Node.js, PostgreSQL, Docker, Redis, Kubernetes',
-            experienceLevel: 'Advanced',
-            github: 'https://github.com/rahul-dev',
-            linkedin: 'https://linkedin.com/in/rahul-sharma',
-            resumeFileName: 'Rahul_Sharma_Resume.pdf'
-          },
-          {
-            name: 'Sneha Patel',
-            email: 'sneha@hackathon.com',
-            phone: '+91 9654321098',
-            organization: 'NIT Trichy',
-            department: 'Data Science & AI',
-            yearSemester: '3rd Year / 5th Sem',
-            role: 'ML Engineer',
-            skills: 'Python, Scikit-learn, OpenCV, HuggingFace',
-            experienceLevel: 'Intermediate',
-            github: 'https://github.com/sneha-ml',
-            linkedin: 'https://linkedin.com/in/sneha-patel',
-            resumeFileName: 'Sneha_Patel_Resume.pdf'
-          }
-        ]
-      },
-      {
-        id: '2',
-        groupName: 'Visionary Crew',
-        code: 'VISION-99',
-        leaderEmail: 'alex@visionary.io',
-        groupSize: '2 Members',
-        status: 'APPROVED',
-        hackathonId: 'h-2',
-        hackathonTitle: 'Quantum FinTech Challenge',
-        registrationType: 'team',
-        registeredAt: 'Yesterday, 04:30 PM',
-        members: [
-          {
-            name: 'Alex Rivera',
-            email: 'alex@visionary.io',
-            phone: '+1 415 555 0199',
-            organization: 'Stanford University',
-            department: 'Computational Finance',
-            yearSemester: 'Graduate / MS',
-            role: 'Team Lead & Blockchain Developer',
-            skills: 'Solidity, Rust, Web3.js, Ethers.js, Go',
-            experienceLevel: 'Advanced',
-            github: 'https://github.com/alex-visionary',
-            linkedin: 'https://linkedin.com/in/alex-rivera',
-            resumeFileName: 'Alex_Rivera_CV.pdf'
-          }
-        ]
-      },
-      {
-        id: '3',
-        groupName: 'Carlos Solo Hack',
-        code: 'QNTM-404',
-        leaderEmail: 'carlos@quantum.org',
-        groupSize: '1 Member',
-        status: 'UNDER_REVIEW',
-        hackathonId: 'h-3',
-        hackathonTitle: 'HealthTech AI Summit',
-        registrationType: 'individual',
-        registeredAt: 'Today, 11:45 AM',
-        members: [
-          {
-            name: 'Carlos Mendoza',
-            email: 'carlos@quantum.org',
-            phone: '+1 650 555 0144',
-            organization: 'MIT',
-            department: 'Bioinformatics',
-            yearSemester: '2nd Year / MS',
-            role: 'Solo Hacker & ML Researcher',
-            skills: 'Python, TensorFlow, Scikit-learn, BioPython',
-            experienceLevel: 'Intermediate',
-            github: 'https://github.com/carlos-mit',
-            resumeFileName: 'Carlos_Mendoza_Resume.pdf',
-            customAnswers: {
-              'Why do you want to join this hackathon?': 'To solve predictive healthcare diagnosis challenges using multimodal neural models.'
-            }
-          }
-        ]
-      }
-    ];
-  });
+  const [registrationList, setRegistrationList] = useState<any[]>([]);
 
   // Bulk Approve All Registrations for a specific Hackathon
   const handleApproveAllForHackathon = (hackathonId: string, hackathonTitle: string) => {
@@ -277,6 +187,13 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
       return updated;
     });
+
+    // Sync approvals to backend so they persist across browsers
+    registrationList
+      .filter(r => (r.hackathonId === hackathonId || (!r.hackathonId && hackathonId === 'h-1')) && (r.status === 'UNDER_REVIEW' || !r.status))
+      .forEach(r => {
+        registrationApi.updateStatus(r.id, 'APPROVED').catch(() => {});
+      });
 
     notify(`All pending registrations for "${hackathonTitle}" approved successfully!`, 'success');
   };
@@ -365,6 +282,9 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
       }
       return updated;
     });
+
+    // Sync status change to backend so it persists across browsers
+    registrationApi.updateStatus(id, newStatus).catch(() => {});
     notify(`Team registration status updated to ${newStatus}`, 'success');
   };
 
@@ -731,23 +651,39 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   hackathonApi.create(draftData).catch(() => {});
                 }
               }}
-              onPublish={(newHackathon) => {
+              onPublish={async (newHackathon) => {
+                const targetObj = { ...newHackathon, status: 'live' as const };
                 if (editingHackathonId) {
-                  updateHackathonStore(editingHackathonId, newHackathon);
-                  hackathonApi.update(editingHackathonId, newHackathon).catch(() => {});
+                  updateHackathonStore(editingHackathonId, targetObj);
                 } else {
-                  addHackathon(newHackathon);
-                  hackathonApi.create(newHackathon).catch(() => {});
+                  addHackathon(targetObj);
+                }
+
+                try {
+                  console.log('🚀 Sending new hackathon payload to Railway DB:', targetObj);
+                  const dbRecord = await hackathonApi.create(targetObj);
+                  console.log('✅ Created hackathon in Railway DB:', dbRecord);
+                  if (dbRecord?.id && dbRecord.id !== targetObj.id) {
+                    updateHackathonStore(targetObj.id, { id: dbRecord.id });
+                  }
+                  addToast({
+                    title: 'Hackathon Stored in DB & Published! 🚀',
+                    message: `"${targetObj.title}" is now live in Railway DB and visible to participants.`,
+                    type: 'success',
+                    duration: 5000
+                  });
+                } catch (err: any) {
+                  console.error('❌ DB Save warning:', err);
+                  addToast({
+                    title: 'Hackathon Published! 🚀',
+                    message: `"${targetObj.title}" is now live for all participants.`,
+                    type: 'success',
+                    duration: 5000
+                  });
                 }
 
                 setEditingHackathonId(null);
                 setActiveTab('hackathons');
-                addToast({
-                  title: 'Hackathon Published! 🚀',
-                  message: `"${newHackathon.title}" is now live on the platform portal.`,
-                  type: 'success',
-                  duration: 5000
-                });
               }}
               onCancel={() => {
                 setEditingHackathonId(null);
@@ -854,6 +790,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       );
                     })}
                   </div>
+                  {hackathons.length === 0 && (
+                    <div className="p-10 rounded-3xl bg-white border border-slate-200/80 text-center space-y-2">
+                      <p className="text-sm font-bold text-slate-700">No Hackathons Found</p>
+                      <p className="text-xs text-slate-500">Create a hackathon first, then participant registrations will appear here.</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* SPECIFIC HACKATHON REGISTRATION TABLE */
@@ -885,6 +827,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                         {/* Registered Team Cards with Brief Info and Individual Member Name Pills */}
                         <div className="space-y-4">
+                          {filteredRegs.length === 0 && (
+                            <div className="p-10 rounded-3xl bg-white border border-slate-200/80 text-center space-y-2">
+                              <p className="text-sm font-bold text-slate-700">No Registrations Yet</p>
+                              <p className="text-xs text-slate-500">When participants register for this hackathon, their applications will appear here.</p>
+                            </div>
+                          )}
                           {filteredRegs.map((row) => {
                             const membersList = Array.isArray(row.members) && row.members.length > 0
                               ? row.members

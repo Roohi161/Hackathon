@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import type { Hackathon } from '../../types';
 import { useNotificationStore } from '../../stores/notificationStore';
+import { registrationApi } from '../../services/registrationApi';
 
 interface MemberDetails {
   name: string;
@@ -31,7 +32,6 @@ interface MemberDetails {
   yearSemester?: string;
   role: string;
   skills: string;
-  experienceLevel: string;
   github: string;
   linkedin?: string;
   portfolio?: string;
@@ -75,7 +75,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     yearSemester: '3rd Year / 6th Sem',
     role,
     skills: '',
-    experienceLevel: 'Intermediate',
     github: '',
     linkedin: '',
     portfolio: '',
@@ -207,7 +206,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     if (!validateCurrentStep()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsSubmitting(false);
       setIsSubmittedSuccess(true);
 
@@ -225,7 +224,14 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         members: members
       };
 
-      // Push to global registration store
+      // Persist to backend so the organizer sees the registration in any browser
+      try {
+        await registrationApi.create(newReg);
+      } catch {
+        // ignore
+      }
+
+      // Mirror to localStorage for the participant's own "My Hackathons" list
       try {
         const saved = localStorage.getItem('hc_global_registrations');
         const list = saved ? JSON.parse(saved) : [];
@@ -550,9 +556,23 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     </div>
 
                     {registrationType === 'team' && (
-                      <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-                        {members.length} Member(s) Total
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                          {members.length} Member(s) Total
+                        </span>
+                        <select
+                          value={numberOfMembers}
+                          onChange={(e) => handleMemberCountChange(Number(e.target.value))}
+                          title="Adjust number of team members"
+                          className="text-xs font-bold px-2 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 focus:border-indigo-500 outline-none cursor-pointer"
+                        >
+                          {Array.from({ length: hackathon.maxTeamSize || 5 }, (_, i) => i + 1).map((num) => (
+                            <option key={num} value={num}>
+                              {num} {num === 1 ? 'Member' : 'Members'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     )}
                   </div>
 
@@ -649,19 +669,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                             />
                           </div>
                         </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-slate-700 mb-1">EXPERIENCE LEVEL</label>
-                          <select
-                            value={members[activeMemberTab].experienceLevel}
-                            onChange={(e) => handleMemberFieldChange(activeMemberTab, 'experienceLevel', e.target.value)}
-                            className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-slate-200 text-slate-900 focus:border-indigo-500 outline-none cursor-pointer"
-                          >
-                            <option value="Beginner">Beginner (0-1 yrs)</option>
-                            <option value="Intermediate">Intermediate (1-3 yrs)</option>
-                            <option value="Advanced">Advanced / Expert (3+ yrs)</option>
-                          </select>
-                        </div>
                       </div>
 
                       <div>
@@ -753,7 +760,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                           <div key={idx} className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
                             <div className="flex items-center justify-between font-bold text-slate-900">
                               <span>{idx + 1}. {m.name} ({m.role || 'Member'})</span>
-                              <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-mono">{m.experienceLevel}</span>
                             </div>
                             <div className="text-[11px] text-slate-500 flex flex-wrap gap-3">
                               <span>📧 {m.email}</span>

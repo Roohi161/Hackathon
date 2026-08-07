@@ -22,7 +22,6 @@ import type { Hackathon } from '../../types';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../../stores/authStore';
 import { useHackathonStore } from '../../stores/hackathonStore';
-import { INITIAL_HACKATHONS } from '../../data/mockData';
 
 interface ParticipantMainDashboardProps {
   user?: {
@@ -44,10 +43,25 @@ export const ParticipantMainDashboard: React.FC<ParticipantMainDashboardProps> =
   const navigate = useNavigate();
   const storeUser = useAuthStore((s) => s.user);
   const storeHackathons = useHackathonStore((s) => s.hackathons);
+  const fetchHackathons = useHackathonStore((s) => s.fetchHackathons);
+
+  React.useEffect(() => {
+    fetchHackathons();
+  }, [fetchHackathons]);
+
+  const getCombinedHackathons = () => {
+    const map = new Map<string, Hackathon>();
+    if (storeHackathons && storeHackathons.length > 0) {
+      storeHackathons.forEach(h => map.set(h.id, h));
+    }
+    if (propsHackathons && propsHackathons.length > 0) {
+      propsHackathons.forEach(h => map.set(h.id, h));
+    }
+    return Array.from(map.values());
+  };
 
   const user = propsUser || storeUser || { name: 'User', email: 'user@example.com' };
-  const rawHackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : (storeHackathons && storeHackathons.length > 0 ? storeHackathons : (INITIAL_HACKATHONS as any));
-  const hackathons = (rawHackathons && rawHackathons.length > 0) ? rawHackathons : (INITIAL_HACKATHONS as any);
+  const hackathons = getCombinedHackathons();
   const userName = user?.name || 'User';
   const activeHackathon = hackathons[0];
 
