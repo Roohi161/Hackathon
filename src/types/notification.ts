@@ -21,6 +21,7 @@ export interface Announcement {
   content: string;
   priority?: AnnouncementPriority;
   isPinned?: boolean;
+  isRead?: boolean;
   createdAt?: string;
   updatedAt?: string;
   timestamp?: string;

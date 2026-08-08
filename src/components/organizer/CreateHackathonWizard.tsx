@@ -185,6 +185,40 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
     return () => clearInterval(timer);
   }, []);
 
+  // Banner image upload (file -> compressed data URL)
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      addToast({ title: 'Upload Error', type: 'error', message: 'Please upload a valid image file' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      addToast({ title: 'File Too Large', type: 'error', message: 'Image must be under 5MB' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 1600;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setBanner(canvas.toDataURL('image/jpeg', 0.82));
+        addToast({ title: 'Success', type: 'success', message: 'Banner image uploaded' });
+      };
+      img.onerror = () => addToast({ title: 'Error', type: 'error', message: 'Could not read the selected image' });
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Calculate 0-100 Readiness Score
   const calculateReadinessScore = () => {
     let score = 0;
@@ -519,13 +553,46 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">BANNER IMAGE URL</label>
+                    <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">BANNER IMAGE</label>
                     <input
                       type="text"
-                      value={banner}
+                      value={banner.startsWith('data:') ? '(uploaded image — shown below)' : banner}
                       onChange={(e) => setBanner(e.target.value)}
+                      placeholder="https://... or upload a file below"
                       className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200"
                     />
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-[10px] font-bold cursor-pointer hover:bg-purple-700 transition-all">
+                        <Upload className="w-3 h-3" />
+                        Upload Image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleBannerUpload}
+                        />
+                      </label>
+                      {banner && (
+                        <button
+                          type="button"
+                          onClick={() => setBanner('')}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[10px] font-bold hover:bg-slate-200 transition-all cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {banner && (
+                      <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 h-24">
+                        <img
+                          src={banner}
+                          alt="Banner preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-600 block mb-1.5">COVER IMAGE URL</label>
@@ -796,6 +863,67 @@ export const CreateHackathonWizard: React.FC<CreateHackathonWizardProps> = ({
                           </button>
                         </div>
                         <input type="text" value={tr.description || ''} onChange={(e) => setTracks(tracks.map(t => t.id === tr.id ? { ...t, description: e.target.value } : t))} placeholder="Track description..." className="w-full text-xs text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 outline-none" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Problem Statements Builder Section */}
+                <div className="space-y-3 pt-4 border-t border-slate-100">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">PROBLEM STATEMENTS ({problemStatements.length})</h4>
+                      <p className="text-[11px] font-medium text-slate-400">Add specific problem statements for participants to choose and solve</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProblemStatements([
+                          ...problemStatements,
+                          { id: `ps-${Date.now()}`, title: 'New Problem Statement', description: 'Describe the challenge, goals, and technical requirements...', difficulty: 'Intermediate' }
+                        ]);
+                      }}
+                      className="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-xl hover:bg-indigo-100 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Problem Statement
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {problemStatements.map((ps, idx) => (
+                      <div key={ps.id || idx} className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 space-y-3 relative">
+                        <div className="flex justify-between items-center gap-2">
+                          <input
+                            type="text"
+                            value={ps.title}
+                            onChange={(e) => setProblemStatements(problemStatements.map(item => item.id === ps.id ? { ...item, title: e.target.value } : item))}
+                            placeholder="Problem Statement Title..."
+                            className="font-bold text-xs text-slate-900 bg-white px-3.5 py-2 rounded-xl border border-slate-200 flex-1 outline-none focus:border-indigo-500"
+                          />
+                          <select
+                            value={ps.difficulty || 'Intermediate'}
+                            onChange={(e) => setProblemStatements(problemStatements.map(item => item.id === ps.id ? { ...item, difficulty: e.target.value as any } : item))}
+                            className="text-xs font-bold text-slate-700 bg-white px-3 py-2 rounded-xl border border-slate-200 outline-none"
+                          >
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setProblemStatements(problemStatements.filter(item => item.id !== ps.id))}
+                            className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={ps.description || ''}
+                          onChange={(e) => setProblemStatements(problemStatements.map(item => item.id === ps.id ? { ...item, description: e.target.value } : item))}
+                          placeholder="Detailed challenge problem statement description, key features, and evaluation criteria..."
+                          className="w-full text-xs font-medium text-slate-600 bg-white p-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
+                        />
                       </div>
                     ))}
                   </div>

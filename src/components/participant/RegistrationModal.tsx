@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
-  Upload,
   Sparkles,
   BookOpen,
   Award,
@@ -20,8 +19,8 @@ import {
   Globe
 } from 'lucide-react';
 import type { Hackathon } from '../../types';
-import { useNotificationStore } from '../../stores/notificationStore';
 import { registrationApi } from '../../services/registrationApi';
+import { notifyRegistrationSubmitted } from '../../services/notificationService';
 
 interface MemberDetails {
   name: string;
@@ -35,7 +34,6 @@ interface MemberDetails {
   github: string;
   linkedin?: string;
   portfolio?: string;
-  resumeFileName?: string;
   customAnswers?: Record<string, string>;
 }
 
@@ -57,7 +55,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   // Step 1: Type Selection ('individual' | 'team')
   const [registrationType, setRegistrationType] = useState<'individual' | 'team'>('individual');
 
-  // Step state: 1: Type Selection, 2: Basic & Team Info, 3: Members Details & Resume, 4: Review & Confirm
+  // Step state: 1: Type Selection, 2: Basic & Team Info, 3: Members Details, 4: Review & Confirm
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Team Form Data
@@ -78,7 +76,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     github: '',
     linkedin: '',
     portfolio: '',
-    resumeFileName: '',
     customAnswers: {
       'Why do you want to join this hackathon?': 'To build real-world AI applications, learn from mentors, and collaborate with like-minded developers.',
       'Previous Hackathon Experience': 'Participated in 2 national-level hackathons and won 2nd runner up in Web3 Sprint.'
@@ -122,17 +119,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       copy[index] = { ...copy[index], [field]: value };
       return copy;
     });
-  };
-
-  const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMembers((prev) => {
-        const copy = [...prev];
-        copy[index] = { ...copy[index], resumeFileName: file.name };
-        return copy;
-      });
-    }
   };
 
   // Step Validation Logic
@@ -241,16 +227,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         // ignore
       }
 
-      // Add Notification to store
-      useNotificationStore.getState().addAnnouncement({
-        id: `ann-${Date.now()}`,
+      // Add Notification to store (participant + organizer alerts)
+      notifyRegistrationSubmitted({
+        id: regId,
         hackathonId: hackathon.id,
         hackathonTitle: hackathon.title,
-        title: `Registration Submitted (UNDER REVIEW)`,
-        content: `Your registration application for "${hackathon.title}" has been received and is currently UNDER REVIEW by the organizer.`,
-        priority: 'MEDIUM',
-        createdAt: 'Just now',
-        type: 'info'
+        groupName: newReg.groupName
       });
 
       if (onSuccess) onSuccess();
@@ -307,7 +289,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               {[
                 { step: 1, title: 'Registration Type' },
                 { step: 2, title: 'Basic Details' },
-                { step: 3, title: 'Member Info & Resume' },
+                { step: 3, title: 'Member Info' },
                 { step: 4, title: 'Review & Register' }
               ].map((s) => (
                 <div
@@ -537,22 +519,22 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         <User className="w-4 h-4" /> Individual Registration Selected
                       </div>
                       <p className="text-slate-600">
-                        You will register as a solo participant for <strong>{hackathon.title}</strong>. Click Next to fill in your personal contact details, skills, and resume.
+                        You will register as a solo participant for <strong>{hackathon.title}</strong>. Click Next to fill in your personal contact details and skills.
                       </p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* STEP 3: Member Details, Skills & Resume */}
+              {/* STEP 3: Member Details & Skills */}
               {currentStep === 3 && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-base font-bold text-slate-900">
-                        {registrationType === 'team' ? 'Team Member Profiles' : 'Participant Details & Resume'}
+                        {registrationType === 'team' ? 'Team Member Profiles' : 'Participant Details & Skills'}
                       </h3>
-                      <p className="text-xs text-slate-500">Collect skills, proficiency, and resume for verification</p>
+                      <p className="text-xs text-slate-500">Collect contact details and skills for verification</p>
                     </div>
 
                     {registrationType === 'team' && (
@@ -686,7 +668,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
+                        <div className="sm:col-span-2">
                           <label className="block text-[11px] font-bold text-slate-700 mb-1">GITHUB / LINKEDIN (Optional)</label>
                           <div className="relative">
                             <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
@@ -697,28 +679,6 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                               placeholder="https://github.com/username"
                               className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-white border border-slate-200 text-slate-900 focus:border-indigo-500 outline-none"
                             />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-slate-700 mb-1">RESUME UPLOAD (PDF/DOC)</label>
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept=".pdf,.doc,.docx"
-                              onChange={(e) => handleFileUpload(activeMemberTab, e)}
-                              className="hidden"
-                              id={`resume-upload-${activeMemberTab}`}
-                            />
-                            <label
-                              htmlFor={`resume-upload-${activeMemberTab}`}
-                              className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl bg-white border border-slate-200 text-slate-600 hover:border-indigo-300 cursor-pointer"
-                            >
-                              <span className="truncate">
-                                {members[activeMemberTab].resumeFileName || 'Choose File...'}
-                              </span>
-                              <Upload className="w-3.5 h-3.5 text-indigo-600 shrink-0 ml-2" />
-                            </label>
                           </div>
                         </div>
                       </div>

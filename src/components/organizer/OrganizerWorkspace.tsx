@@ -27,7 +27,9 @@ import {
   ShieldCheck,
   Zap,
   Check,
-  LogOut
+  LogOut,
+  RefreshCw,
+  ChevronRight
 } from 'lucide-react';
 import type { Hackathon, Team, Announcement } from '../../types';
 import { useHackathonStore } from '../../stores/hackathonStore';
@@ -37,8 +39,20 @@ import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { useToastStore } from '../../stores/toastStore';
 import { CreateHackathonWizard } from './CreateHackathonWizard';
+import { ProgressRing } from '../ui/ProgressRing';
+import { BarChart } from '../ui/BarChart';
 import { hackathonApi } from '../../services/hackathonApi';
 import { registrationApi } from '../../services/registrationApi';
+import {
+  notifyNewHackathon,
+  notifyRegistrationStatus,
+  notifyBroadcast,
+  notifyIncomingMessage
+} from '../../services/notificationService';
+import { NotificationDrawer } from '../NotificationDrawer';
+import { useDeadlineWatcher } from '../../hooks/useDeadlineWatcher';
+import { useOrganizerChatStore } from '../../stores/organizerChatStore';
+import type { ChatMessage } from '../../stores/organizerChatStore';
 
 interface OrganizerWorkspaceProps {
   hackathons?: Hackathon[];
@@ -49,6 +63,77 @@ interface OrganizerWorkspaceProps {
   onUpdateTeamStatus?: (teamId: string, status: 'Approved' | 'Rejected') => void;
   onBroadcastAnnouncement?: (announcement: Announcement) => void;
 }
+
+interface Contact {
+  id: string;
+  name: string;
+  org: string;
+  label: string;
+  avatar: string;
+}
+
+const CONTACTS: Contact[] = [
+  {
+    id: 'elena',
+    name: 'Elena Rostova',
+    org: 'Vercel India Hub',
+    label: 'Elena Rostova (Vercel India Hub)',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+  },
+  {
+    id: 'suresh',
+    name: 'Suresh Kumar',
+    org: 'Apex Bank Labs',
+    label: 'Suresh Kumar (Apex Bank Labs)',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80'
+  },
+  {
+    id: 'ananya',
+    name: 'Ananya Sharma',
+    org: 'GreenTech Coalition',
+    label: 'Ananya Sharma (GreenTech Coalition)',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80'
+  }
+];
+
+const REPLY_POOLS: Record<string, string[]> = {
+  elena: [
+    'Sounds good! We can coordinate the prize date to avoid overlap with your September window.',
+    'Great point — let me sync with my team on the Web3 sprint timeline and get back to you.',
+    'That works for us. I will block out the same week so there is no collision on the calendar.',
+    'Noted! Happy to cross-promote registrations if you share your event link.'
+  ],
+  suresh: [
+    'We are planning mid-November too, so let us align the dates before we publish.',
+    'Agreed, better to keep a clear gap between our FinTech Disrupt and your event.',
+    'Will update the shared calendar today. Thanks for flagging it!',
+    'That timeline works for Apex Bank Labs. Let us coordinate sponsor overlap as well.'
+  ],
+  ananya: [
+    'Great idea — our Smart Cities hackathon is flexible, we can shift to match.',
+    'Perfect, we will move our demo day so students can join both events back-to-back.',
+    'Happy to collaborate on a joint mentorship session between the two hackathons.',
+    'Noted! We will update the coordination sheet with the new dates.'
+  ]
+};
+
+const GENERIC_REPLIES = [
+  'Thanks for sharing, that makes sense!',
+  'Agreed — let us keep the calendar in sync.',
+  'Sounds great, I will take it up with our organizing team.',
+  'Perfect, noted and confirmed on our side.'
+];
+
+const lastReplies: Record<string, string> = {};
+
+const pickReply = (contactId: string): string => {
+  const pool = REPLY_POOLS[contactId] || GENERIC_REPLIES;
+  const reply = pool[Math.floor(Math.random() * pool.length)];
+  lastReplies[contactId] = reply;
+  return reply;
+};
+
+const lastReplyText = (contactId: string): string => lastReplies[contactId] || 'Thanks!';
 
 export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   hackathons: propsHackathons,
@@ -68,6 +153,13 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const deleteHackathonStore = useHackathonStore((s) => s.deleteHackathon);
   const storeTeams = useTeamStore((s) => s.teams);
   const storeAnnouncements = useNotificationStore((s) => s.announcements);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const chatPublicMessages = useOrganizerChatStore((s) => s.publicMessages);
+  const chatDirectMessages = useOrganizerChatStore((s) => s.directMessages);
+  const chatSendPublic = useOrganizerChatStore((s) => s.sendPublic);
+  const chatSendDirect = useOrganizerChatStore((s) => s.sendDirect);
+  const chatReceivePublic = useOrganizerChatStore((s) => s.receivePublic);
+  const chatReceiveDirect = useOrganizerChatStore((s) => s.receiveDirect);
 
   useEffect(() => {
     fetchHackathons();
@@ -75,10 +167,11 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
   // Load registrations from the backend (authoritative) so registrations made
   // in any browser/session show up. Falls back to the localStorage mirror.
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadFromLocal = () => {
+  const loadRegistrations = React.useCallback(async () => {
+    try {
+      const list = await registrationApi.getAll();
+      if (Array.isArray(list)) setRegistrationList(list);
+    } catch {
       try {
         const saved = localStorage.getItem('hc_global_registrations');
         if (saved) {
@@ -88,42 +181,33 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
       } catch {
         // ignore
       }
-    };
+    }
+  }, []);
 
-    registrationApi.getAll()
-      .then((list) => {
-        if (cancelled) return;
-        if (Array.isArray(list) && list.length > 0) {
-          setRegistrationList(list);
-        } else {
-          loadFromLocal();
-        }
-      })
-      .catch(() => {
-        if (!cancelled) loadFromLocal();
-      });
+  useEffect(() => {
+    loadRegistrations();
+  }, [loadRegistrations]);
 
-    const syncFromStorage = () => {
-      try {
-        const saved = localStorage.getItem('hc_global_registrations');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) setRegistrationList(parsed);
-        }
-      } catch {
-        // ignore
+  const syncFromStorage = () => {
+    try {
+      const saved = localStorage.getItem('hc_global_registrations');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setRegistrationList(parsed);
       }
-    };
+    } catch {
+      // ignore
+    }
+  };
+  useEffect(() => {
     window.addEventListener('storage', syncFromStorage);
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener('storage', syncFromStorage);
-    };
+    return () => window.removeEventListener('storage', syncFromStorage);
   }, []);
 
   const hackathons = (propsHackathons && propsHackathons.length > 0) ? propsHackathons : storeHackathons;
   const teams = (propsTeams && propsTeams.length > 0) ? propsTeams : storeTeams;
+
+  useDeadlineWatcher(hackathons as any[]);
 
   const [editingHackathonId, setEditingHackathonId] = useState<string | null>(null);
 
@@ -131,6 +215,19 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [activeTab, setActiveTab] = useState<
     'overview' | 'hackathons' | 'create' | 'registrations' | 'review' | 'judges' | 'broadcaster' | 'connect' | 'settings'
   >('overview');
+
+  // Refresh registrations whenever the Registrations tab is opened
+  useEffect(() => {
+    if (activeTab === 'registrations') loadRegistrations();
+  }, [activeTab, loadRegistrations]);
+
+  // Poll while the Registrations tab is active so new participant
+  // registrations appear without a manual reload
+  useEffect(() => {
+    if (activeTab !== 'registrations') return;
+    const timer = setInterval(loadRegistrations, 10000);
+    return () => clearInterval(timer);
+  }, [activeTab, loadRegistrations]);
 
   // Org Switcher State
   const [currentOrg, setCurrentOrg] = useState('TechCorp India Labs');
@@ -148,10 +245,31 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
   // State for Registrations Management with localStorage sync
   const [selectedHackathonForReg, setSelectedHackathonForReg] = useState<string | null>(null);
+  const [selectedRegForDetails, setSelectedRegForDetails] = useState<any | null>(null);
   const [selectedMemberDetails, setSelectedMemberDetails] = useState<any | null>(null);
   const [expandedMemberIdx, setExpandedMemberIdx] = useState<number | null>(null);
 
   const [registrationList, setRegistrationList] = useState<any[]>([]);
+
+  // Hackathon timeline status derived from start/end dates: LIVE / ENDED / UPCOMING
+  const getHackathonTimelineStatus = (h: any) => {
+    const now = Date.now();
+    const start = h?.startDate ? new Date(h.startDate).getTime() : NaN;
+    const end = h?.endDate ? new Date(h.endDate).getTime() : NaN;
+    if (!Number.isNaN(start) && !Number.isNaN(end)) {
+      if (now < start) return { label: 'UPCOMING', tone: 'bg-sky-600/90' };
+      if (now > end) return { label: 'ENDED', tone: 'bg-slate-800/90' };
+      return { label: 'LIVE', tone: 'bg-emerald-600/90' };
+    }
+    return { label: (h?.status || 'ACTIVE').toUpperCase(), tone: 'bg-indigo-600/90' };
+  };
+
+  const formatDateTime = (iso?: string) => {
+    if (!iso) return 'Not set';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return 'Not set';
+    return d.toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
 
   // Bulk Approve All Registrations for a specific Hackathon
   const handleApproveAllForHackathon = (hackathonId: string, hackathonTitle: string) => {
@@ -251,11 +369,9 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const [sendSms, setSendSms] = useState(false);
 
   // State for Connect Hub Chat
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'Elena (Vercel India)', time: '10:30 AM', message: 'Hey organizers! Finalizing our Web3 Sprint prize dates for September.' },
-    { sender: 'Suresh (Apex Labs)', time: '10:35 AM', message: 'Sounds great. We are hosting FinTech Disrupt in November to avoid collision.' },
-  ]);
   const [newMessage, setNewMessage] = useState('');
+  const [activeDmContact, setActiveDmContact] = useState<Contact | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Handle Registration Status Change
   const handleRegistrationAction = (id: string, newStatus: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW') => {
@@ -269,15 +385,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
       const targetItem = prev.find(item => item.id === id);
       if (targetItem) {
         // Dispatch live notification to store
-        useNotificationStore.getState().addAnnouncement({
-          id: `ann-${Date.now()}`,
+        notifyRegistrationStatus({
+          id: targetItem.id,
           hackathonId: targetItem.hackathonId || 'h-1',
           hackathonTitle: targetItem.hackathonTitle || 'Hackathon',
-          title: `Registration Status Update: ${newStatus}`,
-          content: `Your registration for "${targetItem.hackathonTitle || 'Hackathon'}" (${targetItem.groupName}) has been marked as ${newStatus}.`,
-          priority: newStatus === 'APPROVED' ? 'HIGH' : 'MEDIUM',
-          createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          type: newStatus === 'APPROVED' ? 'update' : 'critical'
+          groupName: targetItem.groupName || '',
+          status: newStatus
         });
       }
       return updated;
@@ -351,6 +464,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
       notify('Please fill in announcement title and content', 'warning');
       return;
     }
+    notifyBroadcast(broadcastTitle, broadcastContent, broadcastTargetEvent, 'platform');
     notify(`Broadcast "${broadcastTitle}" sent to participants!`, 'success');
     setBroadcastTitle('');
     setBroadcastContent('');
@@ -360,11 +474,31 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
   const handleSendChatMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    setChatMessages(prev => [...prev, {
-      sender: `${user?.name || 'You'} (${currentOrg})`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      message: newMessage
-    }]);
+
+    const meName = user?.name || 'You';
+    const text = newMessage.trim();
+
+    if (activeDmContact) {
+      chatSendDirect(activeDmContact.id, text, meName);
+      // Simulated reply from the recipient after a short "typing" delay
+      setIsTyping(true);
+      setTimeout(() => {
+        chatReceiveDirect(activeDmContact!.id, activeDmContact!.label, pickReply(activeDmContact!.id));
+        setIsTyping(false);
+        notifyIncomingMessage(activeDmContact!.label, true, lastReplyText(activeDmContact!.id));
+      }, 1400 + Math.random() * 1200);
+    } else {
+      chatSendPublic(text, meName);
+      // Simulated reply in the public room from another organizer
+      const randomContact = CONTACTS[Math.floor(Math.random() * CONTACTS.length)];
+      setIsTyping(true);
+      setTimeout(() => {
+        chatReceivePublic(randomContact.label, pickReply(randomContact.id));
+        setIsTyping(false);
+        notifyIncomingMessage(randomContact.label, false, lastReplyText(randomContact.id));
+      }, 1600 + Math.random() * 1400);
+    }
+
     setNewMessage('');
   };
 
@@ -434,7 +568,11 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
             className="relative p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors cursor-pointer"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {/* User Profile */}
@@ -527,49 +665,105 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
         <main className="lg:col-span-9 min-w-0">
           
           {/* TAB 1: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { title: 'Total Hackathons', value: hackathons.length || 13, icon: Trophy, color: 'text-purple-600 bg-purple-50' },
-                  { title: 'Active Registrations', value: '1,420', icon: Users, color: 'text-indigo-600 bg-indigo-50' },
-                  { title: 'Projects Submitted', value: '384', icon: Layers, color: 'text-emerald-600 bg-emerald-50' },
-                  { title: 'Total Prize Pool', value: '₹50,00,000', icon: Award, color: 'text-amber-600 bg-amber-50' },
-                ].map((stat, i) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={i} className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{stat.title}</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">{stat.value}</h3>
-                      </div>
-                      <div className={`p-3 rounded-2xl ${stat.color}`}>
-                        <Icon className="w-6 h-6" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          {activeTab === 'overview' && (() => {
+            const approvedCount = registrationList.filter((r: any) => r.status === 'APPROVED').length;
+            const rejectedCount = registrationList.filter((r: any) => r.status === 'REJECTED').length;
+            const pendingCount = registrationList.filter((r: any) => !r.status || r.status === 'UNDER_REVIEW').length;
+            const approvedPct = registrationList.length > 0 ? Math.round((approvedCount / registrationList.length) * 100) : 0;
 
-              {/* Quick Actions & Recent Overview */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
-                <h3 className="text-lg font-black text-slate-900">Active Hackathons Overview</h3>
-                <div className="divide-y divide-slate-100">
-                  {hackathons.slice(0, 4).map((h, i) => (
-                    <div key={i} className="py-3 flex items-center justify-between gap-4">
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{h.title || `Hackathon #${i+1}`}</h4>
-                        <p className="text-xs text-slate-400">{h.tagline || 'AI & Cloud Infrastructure Challenge'}</p>
+            const statusBars = [
+              { label: 'Approved Teams', value: approvedCount, display: `${approvedCount}`, color: '#10b981' },
+              { label: 'Under Review', value: pendingCount, display: `${pendingCount}`, color: '#f59e0b' },
+              { label: 'Rejected', value: rejectedCount, display: `${rejectedCount}`, color: '#f43f5e' }
+            ];
+
+            const hackathonBars = hackathons.slice(0, 5).map((h) => {
+              const count = registrationList.filter((r: any) => r.hackathonId === h.id).length;
+              return { label: h.title || 'Hackathon', value: count, display: `${count}`, color: '#6366f1' };
+            });
+
+            return (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { title: 'Total Hackathons', value: `${hackathons.length}`, icon: Trophy, color: 'text-purple-600 bg-purple-50' },
+                    { title: 'Total Registrations', value: `${registrationList.length}`, icon: Users, color: 'text-indigo-600 bg-indigo-50' },
+                    { title: 'Approved Teams', value: `${approvedCount}`, icon: CheckCircle, color: 'text-emerald-600 bg-emerald-50' },
+                    { title: 'Pending Review', value: `${pendingCount}`, icon: Clock, color: 'text-amber-600 bg-amber-50' },
+                  ].map((stat, i) => {
+                    const Icon = stat.icon;
+                    return (
+                      <div key={i} className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{stat.title}</p>
+                          <h3 className="text-2xl font-black text-slate-900 mt-1">{stat.value}</h3>
+                        </div>
+                        <div className={`p-3 rounded-2xl ${stat.color}`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
                       </div>
-                      <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-700">
-                        {h.status || 'PUBLISHED'}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
+                </div>
+
+                {/* Analytics: Registration insights with charts */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col items-center justify-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 self-start">Approval Rate</span>
+                    <ProgressRing
+                      value={approvedPct}
+                      size={150}
+                      strokeWidth={14}
+                      color={approvedPct >= 60 ? '#10b981' : approvedPct >= 30 ? '#f59e0b' : '#f43f5e'}
+                      label="Approved"
+                      sublabel={`of ${registrationList.length} registration(s)`}
+                    />
+                  </div>
+
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2 tracking-tight">
+                      <span className="p-1.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100"><Users className="w-4 h-4" /></span>
+                      Registrations by Status
+                    </h3>
+                    <BarChart items={statusBars} emptyMessage="No registrations yet — they will appear here." />
+                  </div>
+
+                  <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2 tracking-tight">
+                      <span className="p-1.5 rounded-xl bg-violet-50 text-violet-600 border border-violet-100"><Layers className="w-4 h-4" /></span>
+                      Registrations per Hackathon
+                    </h3>
+                    <BarChart items={hackathonBars} emptyMessage="No registrations yet — they will appear here." />
+                  </div>
+                </div>
+
+                {/* Quick Actions & Recent Overview */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                  <h3 className="text-lg font-black text-slate-900">Active Hackathons Overview</h3>
+                  <div className="divide-y divide-slate-100">
+                    {hackathons.slice(0, 4).map((h, i) => (
+                      <div key={i} className="py-3 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={h.banner || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=200&q=80'}
+                            alt={h.title || 'Hackathon banner'}
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-slate-900 text-sm truncate">{h.title || `Hackathon #${i+1}`}</h4>
+                            <p className="text-xs text-slate-400 truncate">{h.tagline || 'AI & Cloud Infrastructure Challenge'}</p>
+                          </div>
+                        </div>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-700 shrink-0">
+                          {h.status || 'PUBLISHED'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB 2: MY HACKATHONS */}
           {activeTab === 'hackathons' && (
@@ -587,44 +781,93 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {hackathons.map((h, i) => (
-                  <div key={i} className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-3">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-black text-slate-900 text-base">{h.title}</h3>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-100 text-indigo-700">
-                        {h.status || 'Active'}
-                      </span>
+                  <div key={h.id || i} className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden group flex flex-col">
+                    {/* Banner Image */}
+                    <div className="relative h-44 w-full overflow-hidden bg-slate-950">
+                      <img
+                        src={h.banner || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80'}
+                        alt={h.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+
+                      {/* Status & Mode Overlay */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+                        {(() => {
+                          const t = getHackathonTimelineStatus(h);
+                          return (
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase text-white backdrop-blur-md border border-white/20 ${t.tone}`}>
+                              {t.label}
+                            </span>
+                          );
+                        })()}
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-indigo-600/90 text-white">
+                          {h.mode || 'Online'}
+                        </span>
+                      </div>
+
+                      {/* Prize Pool Overlay */}
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/90 text-slate-950 text-xs font-black backdrop-blur-md shadow-sm">
+                        <Trophy className="w-3.5 h-3.5 text-slate-950" />
+                        <span>{h.prizePool || '₹10,00,000'} Prize Pool</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-500 line-clamp-2">{h.description || h.tagline || 'No description available'}</p>
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-600 pt-2 border-t border-slate-100">
-                      <span>Prize: {h.prizePool || '₹10,00,000'}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setEditingHackathonId(h.id);
-                            setActiveTab('create');
-                          }}
-                          className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete "${h.title}"?`)) {
-                              deleteHackathonStore(h.id);
-                              hackathonApi.delete(h.id).catch(() => {});
-                              addToast({
-                                title: 'Hackathon Deleted',
-                                message: `"${h.title}" was removed.`,
-                                type: 'info'
-                              });
-                            }
-                          }}
-                          className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          Delete
-                        </button>
+
+                    {/* Card Content */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                      <div>
+                        {h.organizerName && (
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 mb-1">
+                            {h.organizerName}
+                          </div>
+                        )}
+                        <h3 className="font-black text-slate-900 text-base line-clamp-1">{h.title}</h3>
+                        <p className="text-xs text-slate-500 line-clamp-2 mt-1">{h.description || h.tagline || 'No description available'}</p>
+                      </div>
+
+                      {/* Start & End Time */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                          <CalendarIcon className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span className="text-slate-400 font-semibold">Starts:</span> {formatDateTime(h.startDate)}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                          <Clock className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span className="text-slate-400 font-semibold">Ends:</span> {formatDateTime(h.endDate)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-600 pt-2 border-t border-slate-100">
+                        <span>Prize: {h.prizePool || '₹10,00,000'}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingHackathonId(h.id);
+                              setActiveTab('create');
+                            }}
+                            className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to delete "${h.title}"?`)) {
+                                deleteHackathonStore(h.id);
+                                hackathonApi.delete(h.id).catch(() => {});
+                                addToast({
+                                  title: 'Hackathon Deleted',
+                                  message: `"${h.title}" was removed.`,
+                                  type: 'info'
+                                });
+                              }
+                            }}
+                            className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -658,6 +901,8 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 } else {
                   addHackathon(targetObj);
                 }
+
+                notifyNewHackathon({ id: targetObj.id, title: targetObj.title });
 
                 try {
                   console.log('🚀 Sending new hackathon payload to Railway DB:', targetObj);
@@ -705,12 +950,22 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 <div className="flex items-center gap-2">
                   {selectedHackathonForReg && (
                     <button
-                      onClick={() => setSelectedHackathonForReg(null)}
+                      onClick={() => {
+                        setSelectedRegForDetails(null);
+                        setSelectedHackathonForReg(null);
+                      }}
                       className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
                     >
                       ← Back to All Hackathons
                     </button>
                   )}
+                  <button
+                    onClick={loadRegistrations}
+                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+                    title="Refresh registrations from the server"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Refresh
+                  </button>
                   <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 font-extrabold text-xs rounded-xl border border-indigo-100">
                     {registrationList.length} Total Registrations
                   </span>
@@ -734,9 +989,14 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           <div className="space-y-2">
                             <div className="flex justify-between items-start gap-2">
                               <h4 className="font-black text-slate-900 text-base line-clamp-1">{h.title}</h4>
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-100 text-indigo-700">
-                                {h.status || 'Active'}
-                              </span>
+                              {(() => {
+                                const t = getHackathonTimelineStatus(h);
+                                return (
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase text-white ${t.tone}`}>
+                                    {t.label}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             <p className="text-xs text-slate-500 line-clamp-2">{h.tagline || h.description || 'Hosted Innovation Hackathon'}</p>
                           </div>
@@ -798,15 +1058,118 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   )}
                 </div>
               ) : (
-                /* SPECIFIC HACKATHON REGISTRATION TABLE */
+                /* SPECIFIC HACKATHON REGISTRATION TABLE (LEVEL 1: TEAMS / LEVEL 2: TEAM DETAILS) */
                 <div className="space-y-4">
                   {(() => {
                     const targetHack = hackathons.find(h => h.id === selectedHackathonForReg);
                     const filteredRegs = registrationList.filter(r => r.hackathonId === selectedHackathonForReg || (!r.hackathonId && selectedHackathonForReg === 'h-1'));
+
+                    // ===== LEVEL 2: TEAM DETAILS (overall team info + members) =====
+                    if (selectedRegForDetails) {
+                      const liveReg = registrationList.find(r => r.id === selectedRegForDetails.id) || selectedRegForDetails;
+                      const membersList = Array.isArray(liveReg.members) && liveReg.members.length > 0
+                        ? liveReg.members
+                        : [
+                            { name: liveReg.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: liveReg.leaderEmail }
+                          ];
+
+                      return (
+                        <div className="space-y-4">
+                          {/* Breadcrumb */}
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 flex-wrap">
+                            <button onClick={() => { setSelectedRegForDetails(null); setSelectedHackathonForReg(null); }} className="text-indigo-600 hover:underline cursor-pointer">Registrations</button>
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                            <button onClick={() => setSelectedRegForDetails(null)} className="text-indigo-600 hover:underline cursor-pointer">{targetHack?.title || 'Hackathon'}</button>
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                            <span className="text-slate-900">{liveReg.groupName}</span>
+                          </div>
+
+                          {/* Team Header */}
+                          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                              <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">SELECTED TEAM</span>
+                              <h3 className="text-xl font-black text-slate-900">{liveReg.groupName}</h3>
+                              <p className="text-xs text-slate-500 font-mono">Code: {liveReg.code}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                                liveReg.status === 'APPROVED'
+                                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                  : liveReg.status === 'REJECTED'
+                                  ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                  : 'bg-amber-100 text-amber-700 border border-amber-300'
+                              }`}>
+                                {liveReg.status || 'UNDER_REVIEW'}
+                              </span>
+                              <button
+                                onClick={() => setSelectedRegForDetails(null)}
+                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                              >
+                                ← Back to Teams
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Overall Team Info */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                              <span className="text-[10px] font-black uppercase text-slate-400 block">Team Size</span>
+                              <span className="text-lg font-black text-slate-900">{liveReg.groupSize || `${membersList.length} Members`}</span>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                              <span className="text-[10px] font-black uppercase text-slate-400 block">Registered On</span>
+                              <span className="text-sm font-black text-slate-900">{liveReg.registeredAt || 'Today'}</span>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs sm:col-span-2">
+                              <span className="text-[10px] font-black uppercase text-slate-400 block">Team Lead Email</span>
+                              <span className="text-sm font-black text-slate-900 break-all">{liveReg.leaderEmail}</span>
+                            </div>
+                          </div>
+
+                          {/* Team Members with View Details */}
+                          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Team Members ({membersList.length}) — click View Details to inspect each member</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              {membersList.map((m: any, mIdx: number) => (
+                                <div key={mIdx} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2 hover:bg-indigo-50/50 transition-colors">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-black text-[10px] flex items-center justify-center shrink-0">
+                                      {mIdx === 0 ? '👑' : mIdx + 1}
+                                    </span>
+                                    <div className="min-w-0">
+                                      <span className="font-extrabold text-slate-900 text-xs block truncate">{m.name || `Member #${mIdx + 1}`}</span>
+                                      <span className="text-[10px] text-slate-400 font-medium block truncate">{m.email || m.role || (mIdx === 0 ? 'Team Lead' : 'Hacker')}</span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedMemberDetails({ ...liveReg, members: membersList });
+                                      setExpandedMemberIdx(mIdx);
+                                    }}
+                                    className="px-3 py-1 bg-white hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 hover:border-indigo-600 font-bold text-[10px] rounded-xl transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                                  >
+                                    View Details ↗
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // ===== LEVEL 1: TEAMS LIST for the selected hackathon =====
                     const pendingCount = filteredRegs.filter(r => r.status === 'UNDER_REVIEW' || !r.status).length;
 
                     return (
                       <div className="space-y-4">
+                        {/* Breadcrumb */}
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 flex-wrap">
+                          <button onClick={() => setSelectedHackathonForReg(null)} className="text-indigo-600 hover:underline cursor-pointer">Registrations</button>
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                          <span className="text-slate-900">{targetHack?.title || 'Hackathon'}</span>
+                        </div>
+
                         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div>
                             <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">SELECTED EVENT REGISTRATIONS</span>
@@ -825,7 +1188,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                           </div>
                         </div>
 
-                        {/* Registered Team Cards with Brief Info and Individual Member Name Pills */}
+                        {/* Registered Team Cards with View Details */}
                         <div className="space-y-4">
                           {filteredRegs.length === 0 && (
                             <div className="p-10 rounded-3xl bg-white border border-slate-200/80 text-center space-y-2">
@@ -837,10 +1200,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                             const membersList = Array.isArray(row.members) && row.members.length > 0
                               ? row.members
                               : [
-                                  { name: row.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: row.leaderEmail },
-                                  { name: 'Rohan Verma', role: 'Frontend Lead', email: 'rohan@example.com' },
-                                  { name: 'Priya Sharma', role: 'AI Researcher', email: 'priya@example.com' },
-                                  { name: 'Amit Patel', role: 'Backend Engineer', email: 'amit@example.com' },
+                                  { name: row.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: row.leaderEmail }
                                 ];
 
                             return (
@@ -870,6 +1230,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                                     }`}>
                                       {row.status || 'UNDER_REVIEW'}
                                     </span>
+                                    <button
+                                      onClick={() => setSelectedRegForDetails(row)}
+                                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded-xl transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                                    >
+                                      View Details ↗
+                                    </button>
                                   </div>
                                 </div>
 
@@ -1427,10 +1793,10 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
-                    { title: 'AI Innovation Challenge 2026', org: 'TechCorp India Labs', dates: 'Sep 01 — Sep 07', tag: 'Live Now', badgeColor: 'bg-emerald-100 text-emerald-700' },
-                    { title: 'Vercel Web3 Builder Sprint', org: 'Vercel India Hub', dates: 'Sep 15 — Sep 22', tag: 'Confirmed', badgeColor: 'bg-indigo-100 text-indigo-700' },
-                    { title: 'Smart Cities Hackathon 2026', org: 'Green Tech Coalition', dates: 'Oct 10 — Oct 15', tag: 'Upcoming', badgeColor: 'bg-amber-100 text-amber-700' },
-                    { title: 'FinTech Disrupt Challenge', org: 'Apex Bank Labs', dates: 'Nov 05 — Nov 10', tag: 'Planning', badgeColor: 'bg-slate-100 text-slate-700' },
+                    { title: 'AI Innovation Challenge 2026', org: 'TechCorp India Labs', dates: 'Sep 01 — Sep 07', tag: 'Live Now', badgeColor: 'bg-emerald-100 text-emerald-700', desc: 'Build production-grade AI agents & LLM-powered apps with live mentor reviews.' },
+                    { title: 'Vercel Web3 Builder Sprint', org: 'Vercel India Hub', dates: 'Sep 15 — Sep 22', tag: 'Confirmed', badgeColor: 'bg-indigo-100 text-indigo-700', desc: 'Ship decentralized dApps on Vercel with a focus on real-world Web3 infrastructure.' },
+                    { title: 'Smart Cities Hackathon 2026', org: 'Green Tech Coalition', dates: 'Oct 10 — Oct 15', tag: 'Upcoming', badgeColor: 'bg-amber-100 text-amber-700', desc: 'Design IoT & sustainability solutions for cleaner, smarter urban living.' },
+                    { title: 'FinTech Disrupt Challenge', org: 'Apex Bank Labs', dates: 'Nov 05 — Nov 10', tag: 'Planning', badgeColor: 'bg-slate-100 text-slate-700', desc: 'Reimagine banking with open APIs, fraud AI and inclusive payments rails.' },
                   ].map((card, idx) => (
                     <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
                       <div className="flex justify-between items-center">
@@ -1439,6 +1805,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                       </div>
                       <h4 className="font-bold text-slate-900 text-xs">{card.title}</h4>
                       <p className="text-[10px] text-slate-400">{card.org}</p>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">{card.desc}</p>
                       <p className="text-[11px] font-bold text-slate-700 pt-1 border-t border-slate-200">{card.dates}</p>
                     </div>
                   ))}
@@ -1455,21 +1822,38 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    {[
-                      { name: 'Elena Rostova', org: 'Vercel India Hub', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80' },
-                      { name: 'Suresh Kumar', org: 'Apex Bank Labs', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80' },
-                      { name: 'Ananya Sharma', org: 'GreenTech Coalition', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80' },
-                    ].map((org, i) => (
-                      <div key={i} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    {CONTACTS.map((c) => (
+                      <div
+                        key={c.id}
+                        className={`p-3 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
+                          activeDmContact?.id === c.id
+                            ? 'bg-purple-50 border-purple-200'
+                            : 'bg-slate-50 border-slate-200/80 hover:border-purple-300'
+                        }`}
+                        onClick={() => setActiveDmContact(activeDmContact?.id === c.id ? null : c)}
+                      >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <img src={org.avatar} alt={org.name} className="w-8 h-8 rounded-full object-cover" />
+                          <div className="relative">
+                            <img src={c.avatar} alt={c.name} className="w-8 h-8 rounded-full object-cover" />
+                            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white" />
+                          </div>
                           <div className="min-w-0">
-                            <h5 className="text-xs font-bold text-slate-900 truncate">{org.name}</h5>
-                            <p className="text-[10px] text-slate-400 truncate">{org.org}</p>
+                            <h5 className="text-xs font-bold text-slate-900 truncate">{c.name}</h5>
+                            <p className="text-[10px] text-slate-400 truncate">{c.org}</p>
                           </div>
                         </div>
-                        <button className="px-2.5 py-1 text-[10px] font-bold bg-white border border-slate-200 hover:border-purple-300 rounded-lg text-purple-700 cursor-pointer">
-                          DM
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDmContact(activeDmContact?.id === c.id ? null : c);
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border transition-colors cursor-pointer ${
+                            activeDmContact?.id === c.id
+                              ? 'bg-purple-600 text-white border-purple-600'
+                              : 'bg-white border-slate-200 hover:border-purple-300 text-purple-700'
+                          }`}
+                        >
+                          {activeDmContact?.id === c.id ? 'DM Active' : 'DM'}
                         </button>
                       </div>
                     ))}
@@ -1479,36 +1863,83 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                 {/* Live Chat Window */}
                 <div className="lg:col-span-8 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-4">
                   <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <h4 className="text-xs font-black text-slate-900">Public Organizer Network</h4>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded-lg">📢 Public Room</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      {activeDmContact ? (
+                        <>
+                          <img src={activeDmContact.avatar} alt={activeDmContact.name} className="w-7 h-7 rounded-full object-cover" />
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-black text-slate-900 truncate">{activeDmContact.name}</h4>
+                            <p className="text-[10px] text-emerald-600 font-bold">Direct Message • {activeDmContact.org}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <h4 className="text-xs font-black text-slate-900">Public Organizer Network</h4>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {activeDmContact ? (
+                        <button
+                          onClick={() => setActiveDmContact(null)}
+                          className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded-lg cursor-pointer transition-colors"
+                        >
+                          ← Back to Public Room
+                        </button>
+                      ) : (
+                        <span className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded-lg">📢 Public Room</span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Pinned Rule Banner */}
-                  <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center justify-between">
-                    <span>📌 PINNED: Finalize your September hackathon prize dates by Sep 10th to prevent collisions.</span>
-                    <span className="text-[10px] font-bold">Rule #4</span>
-                  </div>
+                  {/* Pinned Rule Banner (public room only) */}
+                  {!activeDmContact && (
+                    <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center justify-between">
+                      <span>📌 PINNED: Finalize your September hackathon prize dates by Sep 10th to prevent collisions.</span>
+                      <span className="text-[10px] font-bold">Rule #4</span>
+                    </div>
+                  )}
 
                   {/* Messages Stream */}
                   <div className="space-y-3 min-h-[160px] max-h-[220px] overflow-y-auto p-2">
-                    {chatMessages.map((msg, idx) => (
-                      <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-bold text-purple-700">{msg.sender}</span>
-                          <span className="text-[10px] text-slate-400">{msg.time}</span>
+                    {(activeDmContact
+                      ? (chatDirectMessages[activeDmContact.id] || [])
+                      : chatPublicMessages
+                    ).map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-3 rounded-2xl border text-xs max-w-[85%] ${
+                          msg.isMe
+                            ? 'bg-purple-600 text-white border-purple-600 ml-auto'
+                            : 'bg-slate-50 border-slate-100'
+                        }`}
+                      >
+                        <div className={`flex justify-between items-center mb-1 ${msg.isMe ? 'text-purple-100' : ''}`}>
+                          <span className={`font-bold ${msg.isMe ? 'text-white' : 'text-purple-700'}`}>{msg.sender}</span>
+                          <span className={`text-[10px] ${msg.isMe ? 'text-purple-200' : 'text-slate-400'}`}>{msg.time}</span>
                         </div>
-                        <p className="text-slate-700 font-medium">{msg.message}</p>
+                        <p className={`font-medium ${msg.isMe ? 'text-white' : 'text-slate-700'}`}>{msg.text}</p>
                       </div>
                     ))}
+                    {isTyping && (
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-400 font-semibold flex items-center gap-2 w-fit">
+                        <span className="flex gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:150ms]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:300ms]" />
+                        </span>
+                        {activeDmContact ? activeDmContact.name : 'Another organizer'} is typing…
+                      </div>
+                    )}
                   </div>
 
                   {/* Message Input Form */}
                   <form className="flex items-center gap-2 pt-2" onSubmit={handleSendChatMessage}>
                     <input
                       type="text"
-                      placeholder="Type a message to all organizers..."
+                      placeholder={
+                        activeDmContact
+                          ? `Message ${activeDmContact.name}...`
+                          : 'Type a message to all organizers...'
+                      }
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       className="flex-1 px-4 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-500 outline-none"
@@ -1589,10 +2020,7 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                   const membersList = Array.isArray(selectedMemberDetails.members) && selectedMemberDetails.members.length > 0
                     ? selectedMemberDetails.members
                     : [
-                        { name: selectedMemberDetails.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: selectedMemberDetails.leaderEmail },
-                        { name: 'Rohan Verma', role: 'Frontend Lead', email: 'rohan@example.com' },
-                        { name: 'Priya Sharma', role: 'AI Researcher', email: 'priya@example.com' },
-                        { name: 'Amit Patel', role: 'Backend Engineer', email: 'amit@example.com' },
+                        { name: selectedMemberDetails.groupName?.replace("'s Entry", '') || 'Team Lead', role: 'Team Lead', email: selectedMemberDetails.leaderEmail }
                       ];
 
                   const activeIdx = expandedMemberIdx !== null && expandedMemberIdx < membersList.length ? expandedMemberIdx : 0;
@@ -1600,6 +2028,26 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
 
                   return (
                     <div className="space-y-4 text-xs">
+                      {/* Team Overview (3 lines) */}
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <span className="text-[10px] font-black uppercase text-slate-400 block">Team Overview</span>
+                        <div className="flex items-center gap-2">
+                          <span>👥</span>
+                          <span className="text-slate-500 font-semibold">Team Size:</span>
+                          <strong className="text-slate-900">{selectedMemberDetails.groupSize || `${membersList.length} Members`}</strong>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>📅</span>
+                          <span className="text-slate-500 font-semibold">Registered:</span>
+                          <strong className="text-slate-900">{selectedMemberDetails.registeredAt || 'Today'}</strong>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>📧</span>
+                          <span className="text-slate-500 font-semibold">Lead Email:</span>
+                          <strong className="text-slate-900 break-all">{selectedMemberDetails.leaderEmail}</strong>
+                        </div>
+                      </div>
+
                       {/* Tabs */}
                       <div className="space-y-2">
                         <span className="text-[10px] font-black uppercase text-slate-400 block">Select Member To Inspect:</span>
@@ -1637,47 +2085,36 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <span className="text-slate-400 font-bold block">Full Name:</span>
-                            <span className="font-extrabold text-slate-900 text-xs">{currentMember.name || 'Team Member'}</span>
+                            <span className="font-extrabold text-slate-900 text-xs">{currentMember.name || '—'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">Email:</span>
-                            <span className="font-semibold text-slate-900">{currentMember.email || selectedMemberDetails.leaderEmail}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.email || '—'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">Phone Number:</span>
-                            <span className="font-semibold text-slate-900">{currentMember.phone || '+91 9876543210'}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.phone || '—'}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 font-bold block">College / Organization:</span>
-                            <span className="font-semibold text-slate-900">{currentMember.organization || 'IIT Madras'}</span>
+                            <span className="font-semibold text-slate-900">{currentMember.organization || '—'}</span>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-bold block">Branch / Department:</span>
-                            <span className="font-semibold text-slate-900">{currentMember.department || 'Computer Science & Engineering'}</span>
+                            <span className="text-slate-400 font-bold block">Role / Designation:</span>
+                            <span className="font-semibold text-slate-900">{currentMember.role || '—'}</span>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-bold block">Year / Semester:</span>
-                            <span className="font-semibold text-slate-900">{currentMember.yearSemester || '4th Year / 8th Sem'}</span>
+                            <span className="text-slate-400 font-bold block">GitHub / LinkedIn:</span>
+                            <span className="font-semibold text-indigo-700 break-all">
+                              {currentMember.github || currentMember.linkedin || '—'}
+                              {currentMember.github && currentMember.linkedin ? ` • ${currentMember.linkedin}` : ''}
+                            </span>
                           </div>
                         </div>
 
                         <div className="pt-2 border-t border-indigo-100">
                           <span className="text-slate-400 font-bold block mb-1">Skills & Proficiency:</span>
-                          <span className="font-extrabold text-indigo-700">{currentMember.skills || 'Full Stack Development & Cloud'}</span>
-                        </div>
-
-                        {/* Resume View/Download */}
-                        <div className="pt-2 border-t border-indigo-100 flex items-center justify-between">
-                          <span className="text-slate-500 font-bold">Uploaded Resume:</span>
-                          <button
-                            onClick={() => {
-                              const filename = currentMember.resumeFileName || `${currentMember.name || 'Member'}_Resume.pdf`;
-                              alert(`Viewing/Downloading resume for ${currentMember.name}: ${filename}`);
-                            }}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs"
-                          >
-                            📄 View / Download Resume
-                          </button>
+                          <span className="font-extrabold text-indigo-700">{currentMember.skills || '—'}</span>
                         </div>
                       </div>
 
@@ -1823,6 +2260,12 @@ export const OrganizerWorkspace: React.FC<OrganizerWorkspaceProps> = ({
         </main>
 
       </div>
+
+      {/* Notification Drawer (live store feed shared with participants) */}
+      <NotificationDrawer
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </div>
   );
 };

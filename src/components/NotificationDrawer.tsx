@@ -1,73 +1,29 @@
-import React, { useState } from 'react';
-import { X, Bell, AlertTriangle, Info, Sparkles, CheckCircle2, Send, Plus, Trash2, Radio } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Bell, AlertTriangle, Info, CheckCircle2, Send, Plus, Trash2, Radio, CheckCheck } from 'lucide-react';
 import type { Announcement } from '../types';
 import { useToastStore } from '../stores/toastStore';
+import { useNotificationStore } from '../stores/notificationStore';
 
 interface NotificationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  announcements?: Announcement[];
 }
 
-const DEFAULT_ANNOUNCEMENTS: Announcement[] = [
-  {
-    id: 'ann-default-0',
-    hackathonId: 'org-h-0',
-    hackathonTitle: 'AI Hackathon 2026',
-    title: '⏰ Submission Deadline Approaching',
-    content: 'Final submission deadline is in 2 hours for AI Hackathon 2026. Make sure your GitHub repository and demo links are attached.',
-    type: 'critical',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString()
-  },
-  {
-    id: 'ann-default-commit-1',
-    hackathonId: 'org-h-0',
-    hackathonTitle: 'AI Hackathon 2026',
-    title: '💻 New Commit Pushed to Project Repo',
-    content: 'Roohi pushed commit 8f2a91b: "feat: add PostgreSQL vector database integration & embeddings API"',
-    type: 'update',
-    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString()
-  },
-  {
-    id: 'ann-default-1',
-    hackathonId: 'org-h-1',
-    hackathonTitle: 'AI Innovation Challenge 2026',
-    title: '🚨 Final Submissions Deadline Extended by 2 Hours',
-    content: 'Due to server traffic during deployment build steps, final submission deadlines have been extended to 11:59 PM IST tonight.',
-    type: 'critical',
-    timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString()
-  },
-  {
-    id: 'ann-default-commit-2',
-    hackathonId: 'org-h-1',
-    hackathonTitle: 'AI Innovation Challenge 2026',
-    title: '💻 New Commit Pushed to Project Repo',
-    content: 'Ansar pushed commit 3c1d94a: "fix: resolve light/dark contrast and Sora typography hierarchy"',
-    type: 'update',
-    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString()
-  },
-  {
-    id: 'ann-default-2',
-    hackathonId: 'org-h-2',
-    hackathonTitle: 'Web3 & Decentralized Scale-A-Thon',
-    title: '📢 Mentorship Office Hours Open in Discord #mentor-room-1',
-    content: 'Senior Web3 architects and AI engineers are available for live 1-on-1 code reviews and pitch debugging.',
-    type: 'info',
-    timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString()
-  }
-];
-
-export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
-  isOpen,
-  onClose,
-  announcements: initialAnnouncements = []
-}) => {
+export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ isOpen, onClose }) => {
   const addToast = useToastStore((s) => s.addToast);
-  
-  // Combine passed announcements or fallback to default dataset
-  const [announcementList, setAnnouncementList] = useState<Announcement[]>(() => {
-    return initialAnnouncements.length > 0 ? initialAnnouncements : DEFAULT_ANNOUNCEMENTS;
-  });
+  const announcements = useNotificationStore((s) => s.announcements);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const addAnnouncement = useNotificationStore((s) => s.addAnnouncement);
+  const markAnnouncementAsRead = useNotificationStore((s) => s.markAnnouncementAsRead);
+  const markAllAnnouncementsAsRead = useNotificationStore((s) => s.markAllAnnouncementsAsRead);
+  const removeAnnouncement = useNotificationStore((s) => s.removeAnnouncement);
+
+  // Mark everything read when the drawer opens
+  useEffect(() => {
+    if (isOpen && unreadCount > 0) {
+      markAllAnnouncementsAsRead();
+    }
+  }, [isOpen]);
 
   // Composer Form State
   const [showComposer, setShowComposer] = useState(false);
@@ -82,17 +38,15 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) return;
 
-    const created: Announcement = {
+    addAnnouncement({
       id: `ann-${Date.now()}`,
-      hackathonId: 'h-live',
+      hackathonId: 'platform',
       hackathonTitle: 'Hackathon Central Platform',
       title: newTitle,
       content: newContent,
       type: newType,
       timestamp: new Date().toISOString()
-    };
-
-    setAnnouncementList((prev) => [created, ...prev]);
+    });
 
     addToast({
       title: 'Broadcast Published',
@@ -107,10 +61,10 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   };
 
   const handleDeleteAnnouncement = (id: string) => {
-    setAnnouncementList((prev) => prev.filter((a) => a.id !== id));
+    removeAnnouncement(id);
   };
 
-  const filteredAnnouncements = announcementList.filter((a) => {
+  const filteredAnnouncements = announcements.filter((a) => {
     if (activeFilter === 'all') return true;
     return a.type === activeFilter;
   });
@@ -153,9 +107,11 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               </div>
               <div>
                 <h3 className="font-black text-white text-base leading-tight flex items-center gap-2">
-                  <span>Live Broadcast Feed</span>
+                  <span>Live Notification Feed</span>
                 </h3>
-                <p className="text-[11px] font-medium text-slate-400 mt-0.5">Push real-time alerts to live hackers</p>
+                <p className="text-[11px] font-medium text-slate-400 mt-0.5">
+                  Start times, deadlines, logins &amp; everything else
+                </p>
               </div>
             </div>
 
@@ -185,7 +141,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 <span className="text-[10px] font-black uppercase text-purple-400 tracking-wider flex items-center gap-1">
                   <Radio className="w-3.5 h-3.5" /> Compose Live Broadcast
                 </span>
-                <span className="text-[10px] text-slate-500 font-mono">Pushed via WebSocket</span>
+                <span className="text-[10px] text-slate-500 font-mono">Real-Time Sync</span>
               </div>
 
               <input
@@ -237,10 +193,10 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
           <div className="px-5 py-3 border-b border-slate-800/80 bg-slate-900/60 flex items-center gap-2 overflow-x-auto text-xs font-bold">
             <span className="text-[10px] font-black uppercase text-slate-500 shrink-0">FILTER:</span>
             {[
-              { id: 'all', label: `All (${announcementList.length})` },
-              { id: 'critical', label: `Critical (${announcementList.filter((a) => a.type === 'critical').length})` },
-              { id: 'info', label: `Info (${announcementList.filter((a) => a.type === 'info').length})` },
-              { id: 'update', label: `Updates (${announcementList.filter((a) => a.type === 'update').length})` },
+              { id: 'all', label: `All (${announcements.length})` },
+              { id: 'critical', label: `Critical (${announcements.filter((a) => a.type === 'critical').length})` },
+              { id: 'info', label: `Info (${announcements.filter((a) => a.type === 'info').length})` },
+              { id: 'update', label: `Updates (${announcements.filter((a) => a.type === 'update').length})` },
             ].map((f) => (
               <button
                 key={f.id}
@@ -254,38 +210,57 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 {f.label}
               </button>
             ))}
+            <button
+              onClick={markAllAnnouncementsAsRead}
+              className="ml-auto px-3 py-1 rounded-xl text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+            </button>
           </div>
 
           {/* Broadcast Cards Feed */}
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
             {filteredAnnouncements.length === 0 ? (
               <div className="text-center py-16 text-slate-500 space-y-2">
-                <Sparkles className="w-8 h-8 mx-auto opacity-40 text-purple-400" />
-                <p className="text-xs font-bold text-slate-400">No broadcasts found in this filter.</p>
+                <Bell className="w-8 h-8 mx-auto opacity-40 text-purple-400" />
+                <p className="text-xs font-bold text-slate-400">No notifications yet.</p>
+                <p className="text-[11px] text-slate-500">
+                  Logins, new hackathons, registration updates, start/end times &amp; broadcasts will appear here automatically.
+                </p>
                 <button
                   onClick={() => setActiveFilter('all')}
                   className="text-xs text-purple-400 font-bold hover:underline cursor-pointer"
                 >
-                  View All Announcements
+                  View All Notifications
                 </button>
               </div>
             ) : (
               filteredAnnouncements.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl bg-slate-850 border border-slate-800/90 hover:border-purple-500/40 transition-all space-y-2.5 relative group shadow-sm"
+                  onClick={() => !item.isRead && markAnnouncementAsRead(item.id)}
+                  className={`p-4 rounded-2xl border transition-all space-y-2.5 relative group shadow-sm cursor-pointer ${
+                    item.isRead
+                      ? 'bg-slate-850 border-slate-800/90'
+                      : 'bg-slate-800/70 border-purple-500/40'
+                  } hover:border-purple-500/40`}
                 >
                   {/* Top Badge & Time */}
                   <div className="flex items-center justify-between">
                     {getTypeBadge(item.type)}
                     <div className="flex items-center gap-2">
+                      {!item.isRead && (
+                        <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      )}
                       <span className="text-[10px] text-slate-400 font-semibold">
-                        {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {item.timestamp
+                          ? new Date(item.timestamp).toLocaleString([], { hour: '2-digit', minute: '2-digit' })
+                          : item.createdAt || ''}
                       </span>
                       <button
-                        onClick={() => handleDeleteAnnouncement(item.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteAnnouncement(item.id); }}
                         className="p-1 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                        title="Delete Broadcast"
+                        title="Delete Notification"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -297,12 +272,14 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                   <p className="text-xs text-slate-300 leading-relaxed">{item.content}</p>
 
                   {/* Footer Event Title */}
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px]">
-                    <span className="font-bold text-indigo-400 truncate">{item.hackathonTitle}</span>
-                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live Sync
-                    </span>
-                  </div>
+                  {item.hackathonTitle && (
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px]">
+                      <span className="font-bold text-indigo-400 truncate">{item.hackathonTitle}</span>
+                      <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live Sync
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -311,7 +288,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
           {/* Footer Engine Bar */}
           <div className="p-3.5 border-t border-slate-800 bg-slate-950 text-center text-[10px] font-bold text-slate-500 flex items-center justify-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Powered by Socket.IO WebSocket Engine • Real-Time Participant Sync</span>
+            <span>Auto-notifications for start times, deadlines, logins &amp; events</span>
           </div>
 
         </div>

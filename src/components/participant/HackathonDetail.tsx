@@ -252,6 +252,14 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-slate-100">
             {registrationStatus === 'APPROVED' && (
               <button
+                onClick={() => navigate(`/my-hackathons/${hackathon.id}`)}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Open Hackathon Dashboard
+              </button>
+            )}
+            {registrationStatus === 'APPROVED' && (
+              <button
                 onClick={() => {
                   if (onOpenSubmissionModal) onOpenSubmissionModal(hackathon);
                   else navigate('/projects');
@@ -395,18 +403,41 @@ export const HackathonDetail: React.FC<HackathonDetailProps> = ({
 
         {activeTab === 'problems' && (
           <div className="space-y-4">
-            {(hackathon.problemStatements || []).map((ps: any) => (
-              <div key={ps.id} className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
+            {problemStatementsList.length > 0 ? (
+              problemStatementsList.map((ps: any, idx: number) => (
+                <div key={ps.id || idx} className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm hover:border-indigo-200 transition-all">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                      Problem Statement #{idx + 1} {ps.track ? `• Track: ${ps.track}` : ''}
+                    </span>
+                    {ps.difficulty && (
+                      <span className="text-xs text-amber-600 font-bold px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100">
+                        Difficulty: {ps.difficulty}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900">{ps.title || 'Challenge Statement'}</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium whitespace-pre-line">
+                    {ps.description || 'No detailed description provided for this challenge.'}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    Track: {ps.track}
+                    Main Challenge Problem Statement
                   </span>
-                  <span className="text-xs text-amber-600 font-bold">Difficulty: {ps.difficulty}</span>
+                  <span className="text-xs text-amber-600 font-bold px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100">
+                    Difficulty: {hackathon.difficulty || 'All Levels'}
+                  </span>
                 </div>
-                <h4 className="text-base font-bold text-slate-900">{ps.title}</h4>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">{ps.description}</p>
+                <h4 className="text-base font-bold text-slate-900">{hackathon.title} — Main Innovation Challenge</h4>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium whitespace-pre-line">
+                  {hackathon.detailedDescription || hackathon.description || hackathon.tagline || 'Build innovative solutions addressing key problem areas for this hackathon.'}
+                </p>
               </div>
-            ))}
+            )}
           </div>
         )}
 

@@ -53,3 +53,7 @@ docker-compose.override.yml
 # Misc
 *.local
 *.tsbuildinfo
+
+# Throwaway DB debug scripts (contain connection credentials)
+fetchHackathons.js
+runLiveTest.js

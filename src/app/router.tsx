@@ -20,6 +20,7 @@ const ContactPage = lazy(() => import('../components/landing/ContactPage').then(
 // Participant Views
 const HackathonList = lazy(() => import('../components/participant/HackathonList').then(m => ({ default: m.HackathonList })));
 const HackathonDetail = lazy(() => import('../components/participant/HackathonDetail').then(m => ({ default: m.HackathonDetail })));
+const ApprovedHackathonDashboard = lazy(() => import('../components/participant/ApprovedHackathonDashboard').then(m => ({ default: m.ApprovedHackathonDashboard })));
 const ParticipantMainDashboard = lazy(() => import('../components/participant/ParticipantMainDashboard').then(m => ({ default: m.ParticipantMainDashboard })));
 const TeamsWorkspaceView = lazy(() => import('../components/participant/TeamsWorkspaceView').then(m => ({ default: m.TeamsWorkspaceView })));
 const ProjectWorkspaceView = lazy(() => import('../components/participant/ProjectWorkspaceView').then(m => ({ default: m.ProjectWorkspaceView })));
@@ -82,6 +83,7 @@ const RoleProfileRedirect: React.FC = () => {
 
 import { useNavigate } from 'react-router-dom';
 import { UserRole, User } from '../types/auth';
+import { notifyLogin } from '../services/notificationService';
 
 export const AppRouter: React.FC = () => {
   const { setAuth } = useAuthStore();
@@ -106,6 +108,8 @@ export const AppRouter: React.FC = () => {
       accessToken: 'demo-access-token-' + Date.now(),
       refreshToken: 'demo-refresh-token-' + Date.now()
     });
+
+    notifyLogin(authUser.name, uppercaseRole);
 
     if (uppercaseRole === 'ADMIN' || uppercaseRole === 'SUPER_ADMIN') {
       navigate('/admin');
@@ -139,6 +143,7 @@ export const AppRouter: React.FC = () => {
             <Route path="/dashboard" element={<RoleDashboardRedirect />} />
             <Route path="/hackathons" element={<HackathonList />} />
             <Route path="/my-hackathons" element={<RoleMyHackathonsRedirect />} />
+            <Route path="/my-hackathons/:id" element={<ApprovedHackathonDashboard />} />
             <Route path="/hackathons/:id" element={<HackathonDetail />} />
             <Route path="/teams" element={<TeamsWorkspaceView />} />
             <Route path="/projects" element={<ProjectWorkspaceView />} />

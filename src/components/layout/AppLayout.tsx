@@ -8,17 +8,27 @@ import { NotificationDrawer } from '../NotificationDrawer';
 import { TeamModal } from '../TeamModal';
 import { useAuthStore } from '../../stores/authStore';
 import { useNotificationStore } from '../../stores/notificationStore';
+import { useHackathonStore } from '../../stores/hackathonStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useDeadlineWatcher } from '../../hooks/useDeadlineWatcher';
 
 import { ParticipantBackground } from '../participant/ParticipantBackground';
 import { ErrorBoundary } from '../ui/ErrorBoundary';
 
 export const AppLayout: React.FC = () => {
   const { user, role, logout } = useAuthStore();
-  const { isDrawerOpen, setDrawerOpen, announcements } = useNotificationStore();
+  const { isDrawerOpen, setDrawerOpen, unreadCount } = useNotificationStore();
+  const hackathons = useHackathonStore((s) => s.hackathons);
+  const fetchHackathons = useHackathonStore((s) => s.fetchHackathons);
   const { isTeamModalOpen, setTeamModalOpen } = useUIStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  React.useEffect(() => {
+    fetchHackathons();
+  }, [fetchHackathons]);
+
+  useDeadlineWatcher(hackathons as any[]);
 
   // Extract active tab name from path
   const currentTab = location.pathname.split('/')[1] || 'explore';
@@ -63,7 +73,7 @@ export const AppLayout: React.FC = () => {
         onRoleChange={() => {}}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenTeamModal={() => setTeamModalOpen(true)}
-        unreadCount={announcements.length}
+        unreadCount={unreadCount}
         activeTab={currentTab}
         setActiveTab={handleNavigateTab}
         loggedInUser={user ? { name: user.name, email: user.email, avatar: user.avatar || '' } : null}
@@ -80,7 +90,7 @@ export const AppLayout: React.FC = () => {
           onLogout={logout}
           userName={user?.name}
           userAvatar={user?.avatar}
-          unreadMessagesCount={announcements.length}
+          unreadMessagesCount={unreadCount}
         />
         {/* Main Content Area */}
         <main className="flex-1 min-w-0 p-2 sm:p-4 lg:p-5">
@@ -102,7 +112,6 @@ export const AppLayout: React.FC = () => {
       <NotificationDrawer
         isOpen={isDrawerOpen}
         onClose={() => setDrawerOpen(false)}
-        announcements={announcements}
       />
 
       <TeamModal

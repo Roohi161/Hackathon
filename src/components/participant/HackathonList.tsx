@@ -3,8 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Filter, MapPin, Trophy, ShieldCheck, ArrowRight, Clock, Sparkles } from 'lucide-react';
 import type { Hackathon, HackathonStatus } from '../../types';
 import { useHackathonStore } from '../../stores/hackathonStore';
+import { registrationApi } from '../../services/registrationApi';
 
 import { RegistrationModal } from './RegistrationModal';
+import { MyRegistrationModal } from './MyRegistrationModal';
 
 interface HackathonListProps {
   hackathons?: Hackathon[];
@@ -28,6 +30,19 @@ export const HackathonList: React.FC<HackathonListProps> = ({
     fetchHackathons();
   }, [fetchHackathons]);
 
+  // Load registrations from the backend so the participant's own
+  // registrations (and registration responses) are always available.
+  const [registrationList, setRegistrationList] = useState<any[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    registrationApi.getAll()
+      .then((list) => {
+        if (!cancelled && Array.isArray(list)) setRegistrationList(list);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const getCombinedHackathons = () => {
     const map = new Map<string, Hackathon>();
     if (storeHackathons && storeHackathons.length > 0) {
@@ -42,9 +57,17 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   const hackathons = getCombinedHackathons();
 
   const [registerModalHackathon, setRegisterModalHackathon] = useState<Hackathon | null>(null);
+  const [viewRegModal, setViewRegModal] = useState<{ reg: any; hackathon: Hackathon } | null>(null);
 
   const handleCardClick = (hackathon: Hackathon) => {
     if (onSelectHackathon) onSelectHackathon(hackathon);
+    if (isMyHackathons) {
+      const reg = getRegistrationRecord(hackathon.id);
+      if (reg?.status === 'APPROVED') {
+        navigate(`/my-hackathons/${hackathon.id}`);
+        return;
+      }
+    }
     navigate(`/hackathons/${hackathon.id}`);
   };
 
@@ -56,9 +79,11 @@ export const HackathonList: React.FC<HackathonListProps> = ({
   // Extract all tracks
   const allTracks = Array.from(new Set(hackathons.flatMap((h: Hackathon) => h.tracks || [])));
 
-  // Global registration status lookup from localStorage
+  // Global registration status lookup from backend + localStorage
   const getRegistrationRecord = (hackathonId: string) => {
     try {
+      const fromBackend = registrationList.find((item: any) => item.hackathonId === hackathonId);
+      if (fromBackend) return fromBackend;
       const saved = localStorage.getItem('hc_global_registrations');
       if (saved) {
         const list = JSON.parse(saved);
@@ -369,6 +394,34 @@ export const HackathonList: React.FC<HackathonListProps> = ({
                         Register
                       </button>
                     )}
+                    {isMyHackathons && (() => {
+                      const reg = getRegistrationRecord(hackathon.id);
+                      if (!reg) return null;
+                      return (
+                        <>
+                          {reg.status === 'APPROVED' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/my-hackathons/${hackathon.id}`);
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-[11px] shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+                            >
+                              Dashboard
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewRegModal({ reg, hackathon });
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 font-bold text-[11px] border border-indigo-200 hover:border-indigo-400 shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+                          >
+                            My Registration
+                          </button>
+                        </>
+                      );
+                    })()}
                     <div className="flex items-center gap-1 text-indigo-600 font-bold group-hover:translate-x-0.5 transition-transform">
                       <span>View</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -388,6 +441,15 @@ export const HackathonList: React.FC<HackathonListProps> = ({
         onClose={() => setRegisterModalHackathon(null)}
         hackathon={registerModalHackathon}
       />
+
+      {/* My Registration Details Modal */}
+      {viewRegModal && (
+        <MyRegistrationModal
+          registration={viewRegModal.reg}
+          hackathon={viewRegModal.hackathon}
+          onClose={() => setViewRegModal(null)}
+        />
+      )}
     </div>
   );
 };
